@@ -1,0 +1,17 @@
+# Backing all nextcloud pv folders
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: nextcloud-velero-schedule
+  namespace: velero
+spec:
+  schedule: "35 6 * * *"
+  template:
+    ttl: 168h
+    includedNamespaces:
+      - nextcloud
+    snapshotVolumes: true
+    storageLocation: b2
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/backup: velero

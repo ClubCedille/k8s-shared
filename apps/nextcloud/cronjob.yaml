@@ -1,0 +1,79 @@
+# Maintenance window for automated backups
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: enable-maintenance
+  namespace: nextcloud
+spec:
+  schedule: "30 6 * * *" # UTC time. 2h30 am EST
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: backup-runner
+          containers:
+            - name: maint-on
+              image: bitnami/kubectl:latest
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  POD=$(kubectl get pod -n nextcloud -l app.kubernetes.io/name=nextcloud -o jsonpath="{.items[0].metadata.name}")
+                  kubectl exec -n nextcloud $POD -- php occ maintenance:mode --on
+          restartPolicy: OnFailure
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: disable-maintenance
+  namespace: nextcloud
+spec:
+  schedule: "0 7 * * *" # UTC time. 3h00 am EST
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: backup-runner
+          containers:
+            - name: maint-off
+              image: bitnami/kubectl:latest
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  POD=$(kubectl get pod -n nextcloud -l app.kubernetes.io/name=nextcloud -o jsonpath="{.items[0].metadata.name}")
+                  kubectl exec -n nextcloud $POD -- php occ maintenance:mode --off
+          restartPolicy: OnFailure
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backup-runner
+  namespace: nextcloud
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: backup-access
+  namespace: nextcloud
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/exec"]
+    verbs: ["get", "list", "create", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: backup-access-binding
+  namespace: nextcloud
+roleRef:
+  kind: Role
+  name: backup-access
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: backup-runner
