@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: nextcloud-tls
+spec:
+  secretName: nextcloud-ingress-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: nextcloud.bk.shared.cedille.club
+  dnsNames:
+    - nextcloud.bk.shared.cedille.club
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: collabora-tls
+spec:
+  secretName: collabora-ingress-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: collabora-nextcloud.bk.shared.cedille.club
+  dnsNames:
+    - collabora-nextcloud.bk.shared.cedille.club

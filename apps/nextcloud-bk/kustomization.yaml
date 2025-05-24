@@ -1,0 +1,22 @@
+namespace: nextcloud-bk
+
+resources:
+  # - secrets.yaml
+  # - postgresql.yaml needs to be applied in same namespace as main nextcloud
+  - httpproxy.yaml
+  - certificate.yaml
+  - pvc.yaml
+
+helmCharts:
+  - name: nextcloud
+    repo: https://nextcloud.github.io/helm
+    version: 6.6.10
+    releaseName: nextcloud
+    namespace: nextcloud-bk
+    valuesFile: nextcloud-values.yaml
+  - name: collabora-online
+    repo: https://collaboraonline.github.io/online
+    version: 1.1.38
+    releaseName: collabora
+    namespace: nextcloud-bk
+    valuesFile: collabora-values.yaml

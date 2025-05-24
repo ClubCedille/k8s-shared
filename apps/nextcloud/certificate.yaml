@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: nextcloud-tls
+spec:
+  secretName: nextcloud-ingress-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: nextcloud.etsmtl.club
+  dnsNames:
+    - nextcloud.etsmtl.club
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: collabora-tls
+spec:
+  secretName: collabora-ingress-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: collabora-nextcloud.etsmtl.club
+  dnsNames:
+    - collabora-nextcloud.etsmtl.club
