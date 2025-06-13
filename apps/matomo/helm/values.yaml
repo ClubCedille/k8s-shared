@@ -1,0 +1,42 @@
+replicaCount: 1
+
+persistence:
+  enabled: true
+  storageClass: "cephfs"
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
+
+ingress:
+  enabled: false
+
+mariadb:
+  enabled: true
+  architecture: standalone
+  auth:
+    rootPassword: "root"
+    database: bitnami_matomo
+    username: bn_matomo
+    password: "root"
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "cephfs"
+      accessModes:
+        - ReadWriteOnce
+      size: 8Gi
+    storageClass: "cephfs"
+    resourcesPreset: "micro"
+
+matomo:
+  persistence:
+    enabled: true
+    storageClass: "cephfs"
+    accessModes:
+      - ReadWriteOnce
+    size: 8Gi
+  plugins:
+    - "LoginOIDC"
+  domain: "matomo.svc.cedille.club"
+  service:
+    type: ClusterIP

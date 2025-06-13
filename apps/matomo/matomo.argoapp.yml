@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: services-matomo
+  namespace: argocd
+spec:
+  destination:
+    namespace: matomo
+    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
+  project: k8s-services
+  source:
+    path: apps/matomo
+    repoURL: https://github.com/ClubCedille/k8s-shared.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

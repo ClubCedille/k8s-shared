@@ -1,0 +1,26 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: matomo
+  namespace: matomo
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  virtualhost:
+    fqdn: matomo.svc.cedille.club
+    tls:
+      secretName: matomo-tls
+  routes:
+  - conditions:
+    - header:
+        contains: application/grpc
+        name: Content-Type
+    - prefix: /websocket
+    enableWebsockets: true
+    services:
+    - name: matomo
+      port: 80
+      protocol: h2c
+  - services:
+    - name: matomo
+      port: 80

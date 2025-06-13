@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: matomo
+  namespace: matomo
+resources:
+  - resources/certificate.yaml
+  - resources/httpproxy.yaml
+helmCharts:
+  - name: matomo
+    version: "2024.10.2"  # Specify the version of the Matomo chart
+    repo: "oci://registry-1.docker.io/bitnamicharts/matomo"  # Repository for the Matomo chart
+    releaseName: "matomo"  # Release name for your Helm deployment
+    namespace: matomo  # Matomo namespace
+    valuesFile: "helm/values.yaml"  # Reference to your `values.yaml` file
