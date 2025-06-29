@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: matomo
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  destination:
+    namespace: matomo
+    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
+  project: k8s-shared
+  sources:
+    - chart: matomo
+      helm:
+      releaseName: matomo
+      valueFiles:
+        - $values/apps/matomo/helm/values.yaml
+      repoURL: https://charts.bitnami.com/bitnami
+    - repoURL: https://github.com/ClubCedille/k8s-shared.git
+      targetRevision: HEAD
+      path: apps/matomo/prod
+    - repoURL: 'https://github.com/ClubCedille/k8s-shared.git'
+      targetRevision: HEAD
+      ref: values
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
