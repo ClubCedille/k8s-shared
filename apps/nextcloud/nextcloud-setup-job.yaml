@@ -1,0 +1,41 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: nextcloud-setup-
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+spec:
+  template:
+    spec:
+      serviceAccountName: backup-runner
+      containers:
+        - name: nextcloud-setup
+          image: bitnami/kubectl:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              pod=$(kubectl get pods -n nextcloud -l app.kubernetes.io/name=nextcloud -l app.kubernetes.io/component=app -o=custom-columns=NAME:.metadata.name --no-headers | tail -n 1)
+              ls -la /
+              kubectl cp nextcloud-external-sites.yaml nextcloud/$pod:/tmp/
+              kubectl cp clubs.yaml nextcloud/$pod:/tmp/
+              kubectl cp nextcloud-setup.bash nextcloud/$pod:/tmp/
+              kubectl exec -n nextcloud $pod -c nextcloud -- ls -la /tmp
+              kubectl exec -n nextcloud $pod -c nextcloud -- /bin/bash /tmp/nextcloud-setup.bash
+          volumeMounts:
+            - name: job-files
+              mountPath: /nextcloud-setup.bash
+              subPath: nextcloud-setup.bash
+            - name: job-files
+              mountPath: /nextcloud-external-sites.yaml
+              subPath: nextcloud-external-sites.yaml
+            - name: job-files
+              mountPath: /clubs.yaml
+              subPath: clubs.yaml
+      restartPolicy: Never
+      volumes:
+        - name: job-files
+          configMap:
+            name: nextcloud-setup-job
+  backoffLimit: 4

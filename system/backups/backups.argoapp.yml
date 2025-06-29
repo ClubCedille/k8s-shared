@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k8s-shared-velero-backup
+  namespace: argocd
+spec:
+  destination:
+    namespace: velero
+    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
+  project: k8s-shared
+  source:
+    path: system/backups
+    repoURL: https://github.com/ClubCedille/k8s-shared.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
