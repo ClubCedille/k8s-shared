@@ -1,0 +1,4 @@
+---
+- name: cedille
+  external_sites: [planka, planka2]
+  quota: 100
