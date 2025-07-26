@@ -1,0 +1,125 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: enable-maintenance
+  namespace: nextcloud
+  annotations:
+    kube-score/ignore: pod-networkpolicy
+spec:
+  schedule: 30 6 * * *  # UTC time. 2h30 am EST
+  startingDeadlineSeconds: 10
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: backup-runner
+          securityContext:
+            runAsUser: 10000
+            runAsGroup: 10000
+            fsGroup: 10000
+          containers:
+            - name: maint-on
+              image: bitnami/kubectl:1.33.3
+              imagePullPolicy: Always
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  POD=$(kubectl get pod -n nextcloud -l app.kubernetes.io/name=nextcloud -o jsonpath="{.items[0].metadata.name}")
+                  kubectl exec -n nextcloud $POD -- php occ maintenance:mode --on
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 50m
+                  memory: 64Mi
+                  ephemeral-storage: 50Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                capabilities:
+                  drop:
+                    - ALL
+          restartPolicy: OnFailure
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: disable-maintenance
+  namespace: nextcloud
+  annotations:
+    kube-score/ignore: pod-networkpolicy
+spec:
+  schedule: 20 7 * * *  # UTC time. 3h20 am EST
+  startingDeadlineSeconds: 10
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: backup-runner
+          securityContext:
+            runAsUser: 10000
+            runAsGroup: 10000
+            fsGroup: 10000
+          containers:
+            - name: maint-off
+              image: bitnami/kubectl:1.33.3
+              imagePullPolicy: Always
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  POD=$(kubectl get pod -n nextcloud -l app.kubernetes.io/name=nextcloud -o jsonpath="{.items[0].metadata.name}")
+                  kubectl exec -n nextcloud $POD -- php occ maintenance:mode --off
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 50m
+                  memory: 64Mi
+                  ephemeral-storage: 50Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                capabilities:
+                  drop:
+                    - ALL
+          restartPolicy: OnFailure
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backup-runner
+  namespace: nextcloud
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: backup-access
+  namespace: nextcloud
+rules:
+  - apiGroups: ['']
+    resources: [pods, pods/exec]
+    verbs: [get, list, create, delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: backup-access-binding
+  namespace: nextcloud
+roleRef:
+  kind: Role
+  name: backup-access
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: backup-runner

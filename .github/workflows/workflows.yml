@@ -1,4 +1,4 @@
-name: k8s-template integration workflow
+name: k8s-shared integration workflow
 
 on:
   pull_request:

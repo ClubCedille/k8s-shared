@@ -1,0 +1,41 @@
+---
+collabora:
+  aliasgroups:
+    - host: https://nextcloud.etsmtl.club:443
+  extra_params: --o:ssl.enable=false --o:ssl.termination=true --o:num_prespawn_children=4
+    --o:remote_font_config.url=https://nextcloud.etsmtl.club/apps/richdocuments/settings/fonts.json
+  server_name: collabora-nextcloud.etsmtl.club
+  existingSecret:
+    enabled: true
+    secretName: collabora-admin
+    usernameKey: username
+    passwordKey: password
+  podSecurityContext:
+    runAsUser: 1000
+    runAsGroup: 2000
+    fsGroup: 2000
+  resources:
+    requests:
+      cpu: 4000m
+      memory: 8Gi
+      ephemeral-storage: "1Gi"
+    limits:
+      cpu: 8000m
+      memory: 16Gi
+      ephemeral-storage: "5Gi"
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 9980
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  image:
+    pullPolicy: Always
+  securityContext:
+    privileged: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000

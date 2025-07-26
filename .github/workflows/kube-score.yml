@@ -1,0 +1,9 @@
+name: Kube Score trigger for full repo validation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  kube-score:
+    uses:
+      clubcedille/cedille-workflows/.github/workflows/kube-score.yml@master

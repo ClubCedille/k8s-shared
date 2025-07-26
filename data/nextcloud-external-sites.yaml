@@ -1,0 +1,17 @@
+---
+- id: 1
+  name: planka
+  url: https://planka.etsmtl.club
+  lang: ''
+  type: link
+  device: ''
+  icon_url: https://static-00.iconduck.com/assets.00/planka-icon-1819x2048-b1uzumkn.png
+  redirect: false
+- id: 2
+  name: planka2
+  url: https://planka.etsmtl.club
+  lang: ''
+  type: link
+  device: ''
+  icon_url: https://static-00.iconduck.com/assets.00/planka-icon-1819x2048-b1uzumkn.png
+  redirect: false
