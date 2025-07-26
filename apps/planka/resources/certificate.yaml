@@ -6,7 +6,7 @@ metadata:
 spec:
   secretName: planka-tls
   issuerRef:
-    name: letsencrypt-http
+    name: letsencrypt-etsmtl
     kind: ClusterIssuer
   commonName: planka.etsmtl.club
   dnsNames:
