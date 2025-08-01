@@ -3,8 +3,6 @@ kind: HTTPProxy
 metadata:
   name: planka
   namespace: planka
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   virtualhost:
     fqdn: planka.etsmtl.club
@@ -12,15 +10,15 @@ spec:
       secretName: planka-tls
       minimumProtocolVersion: "1.3"
   routes:
-  - conditions:
-    - prefix: /
-    enableWebsockets: true
-    responseHeadersPolicy:
-      set:
-        - name: X-Frame-Options
-          value: ALLOW
-        - name: Content-Security-Policy
-          value: frame-ancestors 'self' https://nextcloud.etsmtl.club
-    services:
-    - name: planka
-      port: 1337
+    - conditions:
+        - prefix: /
+          enableWebsockets: true
+          responseHeadersPolicy:
+            set:
+              - name: X-Frame-Options
+                value: ALLOW
+              - name: Content-Security-Policy
+                value: frame-ancestors 'self' https://nextcloud.etsmtl.club
+          services:
+            - name: planka
+              port: 1337
