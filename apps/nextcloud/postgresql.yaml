@@ -1,0 +1,40 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgresql-nextcloud
+spec:
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.9
+  instances: 3
+  bootstrap:
+    initdb:
+      database: nextcloud
+      owner: nextcloud
+      secret:
+        name: nextcloud-postgresql
+  backup:
+    barmanObjectStore:
+      destinationPath: s3://k8s-shared-bucket/postgresql-nextcloud
+      endpointURL: https://s3.ca-east-006.backblazeb2.com
+      s3Credentials:
+        accessKeyId:
+          name: b2-creds
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: b2-creds
+          key: ACCESS_SECRET_KEY
+    retentionPolicy: 30d
+  storage:
+    size: 50Gi
+    storageClass: cephfs
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: cnpg-backup-schedule
+  namespace: nextcloud
+spec:
+  schedule: 0 35 6 * * *
+  backupOwnerReference: self
+  cluster:
+    name: postgresql-nextcloud

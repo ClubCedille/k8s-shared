@@ -1,0 +1,45 @@
+---
+namespace: nextcloud
+resources:
+  - postgresql.yaml
+  - httpproxy.yaml
+  - certificate.yaml
+  - pvc.yaml
+  - cronjob.yaml
+patches:
+  - target:
+      kind: Deployment
+      name: nextcloud
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nextcloud
+      spec:
+        template:
+          metadata:
+            labels:
+              app.kubernetes.io/backup: velero
+            annotations:
+              backup.velero.io/backup-volumes: nextcloud-main
+helmCharts:
+  - name: nextcloud
+    repo: https://nextcloud.github.io/helm
+    version: 6.6.10
+    releaseName: nextcloud
+    namespace: nextcloud
+    valuesFile: nextcloud-values.yaml
+  - name: collabora-online
+    repo: https://collaboraonline.github.io/online
+    version: 1.1.38
+    releaseName: collabora
+    namespace: nextcloud
+    valuesFile: collabora-values.yaml
+configMapGenerator:
+  - name: nextcloud-setup-job
+    files:
+      - ../../data/nextcloud-external-sites.yaml
+      - ../../data/clubs.yaml
+      - nextcloud-setup.bash
+generatorOptions:
+  disableNameSuffixHash: true
