@@ -15,7 +15,7 @@ php /var/www/html/occ app:install user_oidc
 php /var/www/html/occ app:install richdocuments
 php /var/www/html/occ app:install groupfolders
 php /var/www/html/occ app:install previewgenerator
-# php /var/www/html/occ app:install integration_excalidraw
+php /var/www/html/occ app:install whiteboard
 php /var/www/html/occ app:install drawio
 php /var/www/html/occ app:install external
 php /var/www/html/occ app:install notes
