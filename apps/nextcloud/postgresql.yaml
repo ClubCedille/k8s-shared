@@ -15,7 +15,7 @@ spec:
   storage:
     size: 100Gi
     storageClass: cephfs
-  # walStorage:
+  # walStorage: 
   #   size: 20Gi
   #   storageClass: cephfs 
   postgresql:
