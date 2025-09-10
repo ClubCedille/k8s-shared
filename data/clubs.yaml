@@ -6,3 +6,5 @@
   quota: 300
 - name: chinook
   quota: 1000
+- name: test
+  quota: 1000
