@@ -17,7 +17,7 @@ spec:
     storageClass: cephfs
   # walStorage: 
   #   size: 20Gi
-  #   storageClass: cephfs 
+  #   storageClass: cephf
   postgresql:
     parameters:
       wal_compression: "on"
