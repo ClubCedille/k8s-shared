@@ -1,16 +1,22 @@
----
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: postgresql-docmost-backup
-  namespace: staging
+  namespace: docmost
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:17.2
-  instances: 3
+  instances: 1
   bootstrap:
     recovery:
-      backup:
-        name: cnpg-backup-docmost
+      source: origin
+
+  externalClusters:
+    - name: origin
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: cnpg-docmost-b2
+          serverName: postgresql-docmost
   storage:
     size: 10Gi
     storageClass: cephfs

@@ -4,7 +4,6 @@ metadata:
   name: cnpg-backup-docmost
   namespace: docmost
 spec:
-  backupOwnerReference: self
   cluster:
     name: postgresql-docmost
   method: plugin

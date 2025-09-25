@@ -3,5 +3,13 @@ kind: Kustomization
 resources:
   - certificate.yaml
   - httpproxy.yaml
-  - postgres.yaml
   - ../base
+
+patches:
+  - target:
+      kind: Statefulset
+      name: docmost
+    patch: |-
+     - op: replace
+       path: /spec/template/spec/containers/0/env/0/value
+       value: https://wiki.staging.etsmtl.club
