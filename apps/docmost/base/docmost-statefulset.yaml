@@ -42,6 +42,12 @@ spec:
               cpu: 1000m
               memory: 1Gi
               ephemeral-storage: 1Gi
+          securityContext:
+            runAsUser: 10000
+            runAsGroup: 10000
+            fsGroup: 10000
+            runAsNonRoot: true
+            readOnlyRootFilesystem: fal
           readinessProbe:
             httpGet:
               path: /
@@ -50,8 +56,8 @@ spec:
             periodSeconds: 10
       initContainers:
         - name: init-myserver
-          image: alpine:latest
-          command: ['sudo chown -R 1000:1000 /app/data/storage']
+          image: busybox:1.28
+          command: ['sh', '-c', 'sudo chown -R 1000:1000 /app/data/storage']
           volumeMounts:
             - mountPath: /app/data/storage
               name: docmost-pv-claim
