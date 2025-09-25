@@ -48,6 +48,13 @@ spec:
               port: 3000
             initialDelaySeconds: 30
             periodSeconds: 10
+      initContainers:
+        - name: init-myserver
+          image: alpine:latest
+          command: ['sudo chown -R 1000:1000 /app/data/storage']
+          volumeMounts:
+            - mountPath: /app/data/storage
+              name: docmost-pv-claim
       restartPolicy: Always
   volumeClaimTemplates:
     - metadata:
