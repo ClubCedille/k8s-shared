@@ -81,7 +81,8 @@ nextcloud:
         'allow_local_remote_servers' => true,
         'trusted_proxies' => array (
           0 => '10.244.0.0/16',
-        )
+        ),
+        'files.chunked_upload.max_size' => 100 * 1024 * 1024
         );
     logging.config.php: |-
       <?php
