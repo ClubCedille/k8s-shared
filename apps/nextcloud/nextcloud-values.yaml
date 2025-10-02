@@ -230,8 +230,14 @@ externalDatabase:
 ## Redis chart configuration
 ## for more options see https://github.com/bitnami/charts/tree/main/bitnami/redis
 ##
+global:
+  security:
+    allowInsecureImages: true
 redis:
   image:
+    registry: docker.io
+    repository: library/redis
+    tag: "7.2.5"
     pullPolicy: Always
   enabled: true
   auth:
