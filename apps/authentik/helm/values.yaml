@@ -59,6 +59,10 @@ global:
 
 postgresql:
   enabled: true
+  image:
+    registry: docker.io
+    repository: library/postgres
+    tag: "17.4.2"
   auth:
     existingSecret: authentik-secrets
     secretKeys:
@@ -70,6 +74,10 @@ postgresql:
 
 redis:
   enabled: true
+  image:
+    registry: docker.io
+    repository: library/redis
+    tag: "8.2.1"
   persistence:
     enabled: true
     storageClass: cephfs

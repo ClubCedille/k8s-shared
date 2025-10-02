@@ -9,7 +9,7 @@ resources:
   - resources/pvc.yaml
 helmCharts:
   - name: authentik
-    version: "2025.4"
+    version: "2025.6"
     repo: "https://charts.goauthentik.io"
     releaseName: "authentik"
     namespace: authentik
