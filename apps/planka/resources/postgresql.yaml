@@ -15,3 +15,8 @@ spec:
   storage:
     size: 15Gi
     storageClass: cephfs
+  postgresql:
+    parameters:
+      wal_compression: "on"
+      wal_keep_size: "1GB"
+      max_slot_wal_keep_size: "2GB"
