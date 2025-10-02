@@ -64,7 +64,7 @@ postgresql:
   image:
     registry: docker.io
     repository: library/postgres
-    tag: "17.4.2"
+    tag: "17.4"
   auth:
     existingSecret: authentik-secrets
     secretKeys:
