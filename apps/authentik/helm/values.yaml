@@ -13,6 +13,8 @@ defaultStorageClass: cephfs
 global:
   storageClass: cephfs
   namespace: "authentik"
+  security:
+    allowInsecureImages: true
   volumes:
     - name: authentik-branding
       persistentVolumeClaim:
