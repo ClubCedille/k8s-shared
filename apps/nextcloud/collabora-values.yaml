@@ -1,4 +1,6 @@
 ---
+imagePullSecrets:
+  - name: dockerhub-pull
 collabora:
   aliasgroups:
     - host: https://nextcloud.etsmtl.club:443
@@ -34,8 +36,6 @@ collabora:
     repository: collabora/code
     tag: "24.04.13.3.1"
     pullPolicy: IfNotPresent
-  imagePullSecrets:
-    - name: dockerhub-pull
   securityContext:
     privileged: false
     capabilities:
