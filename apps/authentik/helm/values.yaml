@@ -63,7 +63,7 @@ postgresql:
   enabled: true
   image:
     registry: public.ecr.aws
-    repository: docker/library/postgres
+    repository: bitnami/postgresql
     tag: "17.4"
   auth:
     existingSecret: authentik-secrets
