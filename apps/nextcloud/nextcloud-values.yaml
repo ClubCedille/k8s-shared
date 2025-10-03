@@ -235,8 +235,8 @@ global:
     allowInsecureImages: true
 redis:
   image:
-    registry: docker.io
-    repository: public.ecr.aws/docker/library/redis
+    registry: public.ecr.aws
+    repository: docker/library
     tag: "7.2.5"
     pullPolicy: Always
   enabled: true
