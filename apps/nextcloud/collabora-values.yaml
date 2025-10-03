@@ -31,7 +31,11 @@ collabora:
     initialDelaySeconds: 30
     periodSeconds: 10
   image:
-    pullPolicy: Always
+    repository: collabora/code
+    tag: "24.04.13.3.1"
+    pullPolicy: IfNotPresent
+  imagePullSecrets:
+    - name: dockerhub-pull
   securityContext:
     privileged: false
     capabilities:
