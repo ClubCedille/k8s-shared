@@ -64,7 +64,7 @@ postgresql:
   image:
     registry: public.ecr.aws
     repository: bitnami/postgresql
-    tag: "17.4"
+    tag: "17.4.0"
   auth:
     existingSecret: authentik-secrets
     secretKeys:
