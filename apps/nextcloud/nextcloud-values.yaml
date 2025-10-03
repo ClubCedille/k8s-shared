@@ -236,7 +236,7 @@ global:
 redis:
   image:
     registry: public.ecr.aws
-    repository: docker/library
+    repository: docker/library/redis
     tag: "7.2.5"
     pullPolicy: Always
   enabled: true
