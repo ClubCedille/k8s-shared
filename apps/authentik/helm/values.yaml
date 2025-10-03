@@ -62,8 +62,8 @@ global:
 postgresql:
   enabled: true
   image:
-    registry: docker.io
-    repository: library/postgres
+    registry: public.ecr.aws
+    repository: docker/library/postgres
     tag: "17.4"
   auth:
     existingSecret: authentik-secrets
@@ -77,8 +77,8 @@ postgresql:
 redis:
   enabled: true
   image:
-    registry: docker.io
-    repository: library/redis
+    registry: public.ecr.aws
+    repository: docker/library/redis
     tag: "8.2.1"
   persistence:
     enabled: true
