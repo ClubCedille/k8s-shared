@@ -55,7 +55,7 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
       imagePullSecrets:
-      - name: dockerhub-pull
+        - name: dockerhub-pull
       # initContainers:
       #   - name: init-myserver
       #     image: busybox:1.28
