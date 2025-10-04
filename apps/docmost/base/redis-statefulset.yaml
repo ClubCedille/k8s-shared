@@ -54,6 +54,8 @@ spec:
             runAsGroup: 10001
             readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
+      imagePullSecrets:
+        - name: dockerhub-pull
   volumeClaimTemplates:
     - metadata:
         name: redis-pv-claim
