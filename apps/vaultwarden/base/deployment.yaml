@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: vaultwarden
   annotations:
-    kube-score/ignore: pod-networkpolicy, container-image-tag, container-ephemeral-storage-request-and-limit, container-resources, container-security-context-privileged, container-security-context-privileged
+    kube-score/ignore: pod-networkpolicy, container-image-tag, container-ephemeral-storage-request-and-limit, container-resources, init-permissions, writable-root-filesystem
 spec:
   replicas: 1
   selector:
