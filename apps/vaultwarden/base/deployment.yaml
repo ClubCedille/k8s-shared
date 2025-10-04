@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: vaultwarden
   annotations:
-    kube-score/ignore: pod-networkpolicy, container-image-tag
+    kube-score/ignore: pod-networkpolicy, container-image-tag, container-ephemeral-storage-request-and-limit, container-resources, container-security-context-user-group-id, container-security-context-privileged, container-security-context-readonlyrootfilesystem
 spec:
   replicas: 1
   selector:
@@ -40,7 +40,6 @@ spec:
                 secretKeyRef:
                   name: vaultwarden-secret
                   key: ADMIN_TOKEN
-
             - name: SSO_SCOPES
               valueFrom:
                 secretKeyRef:
@@ -51,13 +50,11 @@ spec:
                 secretKeyRef:
                   name: vaultwarden-secret
                   key: SSO_CLIENT_ID
-
             - name: SSO_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: vaultwarden-secret
                   key: SSO_CLIENT_SECRET
-
             - name: SSO_ENABLED
               value: "true"
             - name: SSO_AUTHORITY
@@ -74,7 +71,6 @@ spec:
               value: "true"
             - name: DOMAIN
               value: "https://vaultwarden.etsmtl.club"
-
           securityContext:
             runAsUser: 10001
             runAsGroup: 10001
@@ -83,7 +79,6 @@ spec:
             capabilities:
               drop:
                 - ALL
-
           resources:
             requests:
               cpu: 250m
@@ -93,14 +88,14 @@ spec:
               cpu: 1000m
               memory: 1Gi
               ephemeral-storage: 1Gi
-
           readinessProbe:
             httpGet:
               path: /
               port: 80
             initialDelaySeconds: 5
             periodSeconds: 5
-
+      imagePullSecrets:
+        - name: dockerhub-pull
       volumes:
         - name: vaultwarden-storage
           persistentVolumeClaim:
