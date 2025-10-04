@@ -42,12 +42,12 @@ spec:
               cpu: 1000m
               memory: 1Gi
               ephemeral-storage: 1Gi
-          securityContext:
-            runAsUser: 10000
-            runAsGroup: 10000
-            fsGroup: 10000
-            runAsNonRoot: true
-            readOnlyRootFilesystem: false
+          # securityContext:
+          #   runAsUser: 10000
+          #   runAsGroup: 10000
+          #   fsGroup: 10000
+          #   runAsNonRoot: true
+          #   readOnlyRootFilesystem: false
           readinessProbe:
             httpGet:
               path: /
