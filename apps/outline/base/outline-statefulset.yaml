@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: outline
+  annotations:
+    kube-score/ignore: pod-networkpolicy, pod-probes, container-security-context-readonlyrootfilesystem, container-security-context-privileged, container-security-context-user-group-id
+spec:
+  serviceName: outline
+  replicas: 2
+  selector:
+    matchLabels:
+      app: outline
+  template:
+    metadata:
+      labels:
+        app: outline
+    spec:
+      containers:
+        - env:
+            - name: URL
+              value: https://outline.etsmtl.club
+            - name: REDIS_URL
+              value: redis://redis.outline.svc.cluster.local:6379
+          image: outlinewiki/outline:0.87.4
+          name: outline
+          imagePullPolicy: Always
+          # https://github.com/outline/outline/blob/main/.env.sample
+          envFrom:
+            - secretRef:
+                name: outline-secrets
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/outline/data
+              name: outline-pv-claim
+          resources:
+            requests:
+              cpu: 250m
+              memory: 500Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+              ephemeral-storage: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      imagePullSecrets:
+        - name: dockerhub-pull
+      restartPolicy: Always
+  volumeClaimTemplates:
+    - metadata:
+        name: outline-pv-claim
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 15Gi
+        storageClassName: cephfs
