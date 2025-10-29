@@ -12,3 +12,5 @@
   quota: 1000
 - name: raconteursdangle
   quota: 1000
+- name: veloom
+  quota: 300
