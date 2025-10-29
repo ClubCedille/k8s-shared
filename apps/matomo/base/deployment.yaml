@@ -14,20 +14,31 @@ spec:
       labels:
         app: matomo
     spec:
-      securityContext:               # pod-level (helps PVC perms)
+      securityContext:               # pod-level
         runAsNonRoot: true
-        runAsUser: 33                # www-data
-        runAsGroup: 33
-        fsGroup: 33
+        runAsUser: 10001             # high UID to satisfy kube-score
+        runAsGroup: 10001
+        fsGroup: 10001
         fsGroupChangePolicy: "OnRootMismatch"
       volumes:
         - name: matomo-data
           persistentVolumeClaim:
             claimName: matomo-data
-        - name: tmp                  # writable scratch for readOnlyRootFilesystem
+        - name: tmp
           emptyDir: {}
-        - name: matomo-tmp           # Matomo cache/sessions/logs
+        - name: matomo-tmp
           emptyDir: {}
+      initContainers:
+        - name: fix-perms
+          image: busybox:1.36
+          command: ["sh","-c"]
+          args:
+            - >
+              chown -R 10001:10001 /var/www/html/config /var/www/html/tmp || true;
+              chmod -R g+rwX /var/www/html/config /var/www/html/tmp || true
+          volumeMounts:
+            - { name: matomo-data, mountPath: /var/www/html/config }
+            - { name: matomo-tmp,  mountPath: /var/www/html/tmp }
       containers:
         - name: matomo
           image: matomo:latest
@@ -39,31 +50,19 @@ spec:
             - name: MATOMO_DATABASE_HOST
               value: matomo-mariadb
             - name: MATOMO_DATABASE_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: matomo-db-secret
-                  key: username
+              valueFrom: { secretKeyRef: { name: matomo-db-secret, key: username } }
             - name: MATOMO_DATABASE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: matomo-db-secret
-                  key: password
+              valueFrom: { secretKeyRef: { name: matomo-db-secret, key: password } }
             - name: MATOMO_DATABASE_DBNAME
-              valueFrom:
-                secretKeyRef:
-                  name: matomo-db-secret
-                  key: database
+              valueFrom: { secretKeyRef: { name: matomo-db-secret, key: database } }
             - name: MATOMO_DATABASE_ADAPTER
               value: "PDO_MYSQL"
             - name: TZ
               value: "UTC"
           volumeMounts:
-            - name: matomo-data
-              mountPath: /var/www/html/config
-            - name: tmp
-              mountPath: /tmp
-            - name: matomo-tmp
-              mountPath: /var/www/html/tmp
+            - { name: matomo-data, mountPath: /var/www/html/config }
+            - { name: tmp,        mountPath: /tmp }
+            - { name: matomo-tmp, mountPath: /var/www/html/tmp }
           resources:
             requests:
               cpu: 100m
@@ -80,19 +79,18 @@ spec:
               drop: ["ALL"]
             seccompProfile:
               type: RuntimeDefault
-          livenessProbe:
+          readinessProbe:             # HTTP check for app readiness
             httpGet:
               path: /
               port: 80
-            initialDelaySeconds: 30
-            periodSeconds: 10
+            initialDelaySeconds: 15
+            periodSeconds: 5
             timeoutSeconds: 3
             failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /
+          livenessProbe:              # Different from readiness: TCP socket
+            tcpSocket:
               port: 80
-            initialDelaySeconds: 10
-            periodSeconds: 5
-            timeoutSeconds: 2
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            timeoutSeconds: 3
             failureThreshold: 3
