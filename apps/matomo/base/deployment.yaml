@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matomo
+  annotations:
+    kube-score/ignore: pod-networkpolicy,container-image-tag
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: matomo
+  template:
+    metadata:
+      labels:
+        app: matomo
+    spec:
+      volumes:
+        - name: matomo-data
+          persistentVolumeClaim:
+            claimName: matomo-data
+      containers:
+        - name: matomo
+          image: matomo:latest
+          imagePullPolicy: Always
+          env:
+            - name: MATOMO_DATABASE_HOST
+              value: matomo-mariadb
+            - name: MATOMO_DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: matomo-db-secret
+                  key: username
+            - name: MATOMO_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: matomo-db-secret
+                  key: password
+            - name: MATOMO_DATABASE_DBNAME
+              valueFrom:
+                secretKeyRef:
+                  name: matomo-db-secret
+                  key: database
+            - name: MATOMO_DATABASE_ADAPTER
+              value: "PDO_MYSQL"
+            - name: TZ
+              value: "UTC"
+          ports:
+            - name: http
+              containerPort: 80
+          volumeMounts:
+            - name: matomo-data
+              mountPath: /var/www/html/config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+              ephemeral-storage: 1Gi
