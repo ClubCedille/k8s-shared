@@ -14,14 +14,27 @@ spec:
       labels:
         app: matomo
     spec:
+      securityContext:               # pod-level (helps PVC perms)
+        runAsNonRoot: true
+        runAsUser: 33                # www-data
+        runAsGroup: 33
+        fsGroup: 33
+        fsGroupChangePolicy: "OnRootMismatch"
       volumes:
         - name: matomo-data
           persistentVolumeClaim:
             claimName: matomo-data
+        - name: tmp                  # writable scratch for readOnlyRootFilesystem
+          emptyDir: {}
+        - name: matomo-tmp           # Matomo cache/sessions/logs
+          emptyDir: {}
       containers:
         - name: matomo
           image: matomo:latest
           imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 80
           env:
             - name: MATOMO_DATABASE_HOST
               value: matomo-mariadb
@@ -44,12 +57,13 @@ spec:
               value: "PDO_MYSQL"
             - name: TZ
               value: "UTC"
-          ports:
-            - name: http
-              containerPort: 80
           volumeMounts:
             - name: matomo-data
               mountPath: /var/www/html/config
+            - name: tmp
+              mountPath: /tmp
+            - name: matomo-tmp
+              mountPath: /var/www/html/tmp
           resources:
             requests:
               cpu: 100m
@@ -59,3 +73,26 @@ spec:
               cpu: 500m
               memory: 256Mi
               ephemeral-storage: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
