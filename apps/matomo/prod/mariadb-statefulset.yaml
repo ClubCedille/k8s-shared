@@ -16,7 +16,7 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
-        runAsUser: 999 
+        runAsUser: 999
         runAsGroup: 999
         fsGroup: 999
         fsGroupChangePolicy: "OnRootMismatch"
@@ -85,7 +85,7 @@ spec:
             failureThreshold: 3
           livenessProbe:
             exec:
-              command: ["sh","-c","mysqladmin ping -h 127.0.0.1"]
+              command: ["sh", "-c", "mysqladmin ping -h 127.0.0.1"]
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
