@@ -2,8 +2,9 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: matomo-mariadb
+  namespace: matomo
 spec:
-  serviceName: matomo-mariadb
+  serviceName: matomo-mariadb-hl
   replicas: 1
   selector:
     matchLabels:
@@ -15,16 +16,22 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
-        runAsUser: 999
+        runAsUser: 999 
         runAsGroup: 999
         fsGroup: 999
         fsGroupChangePolicy: "OnRootMismatch"
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: run
+          emptyDir: {}
       containers:
         - name: mariadb
           image: mariadb:11
           imagePullPolicy: Always
           ports:
-            - containerPort: 3306
+            - name: mysql
+              containerPort: 3306
           env:
             - name: MYSQL_DATABASE
               valueFrom:
@@ -49,9 +56,13 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/mysql
+            - name: tmp
+              mountPath: /tmp
+            - name: run
+              mountPath: /run/mysqld
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
             seccompProfile:
@@ -73,12 +84,12 @@ spec:
             timeoutSeconds: 3
             failureThreshold: 3
           livenessProbe:
-            tcpSocket:
-              port: 3306
+            exec:
+              command: ["sh","-c","mysqladmin ping -h 127.0.0.1"]
             initialDelaySeconds: 30
             periodSeconds: 10
-            timeoutSeconds: 3
-            failureThreshold: 3
+            timeoutSeconds: 5
+            failureThreshold: 5
   volumeClaimTemplates:
     - metadata:
         name: data
