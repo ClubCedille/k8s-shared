@@ -13,9 +13,16 @@ spec:
       labels:
         app: matomo-mariadb
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        fsGroupChangePolicy: "OnRootMismatch"
       containers:
         - name: mariadb
           image: mariadb:11
+          imagePullPolicy: Always
           ports:
             - containerPort: 3306
           env:
@@ -42,17 +49,36 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/mysql
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
           resources:
             requests:
-              cpu: 100m
-              memory: 256Mi
+              cpu: "100m"
+              memory: "256Mi"
+              ephemeral-storage: "256Mi"
             limits:
               cpu: "1"
-              memory: 1Gi
-      securityContext:
-        runAsNonRoot: true
-        fsGroup: 999
-        runAsUser: 999
+              memory: "1Gi"
+              ephemeral-storage: "1Gi"
+          readinessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
   volumeClaimTemplates:
     - metadata:
         name: data
