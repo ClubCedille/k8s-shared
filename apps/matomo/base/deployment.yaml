@@ -57,8 +57,8 @@ spec:
               memory: 64Mi
               ephemeral-storage: 64Mi
           volumeMounts:
-            - {name: matomo-data,mountPath: /var/www/html/config}
-            - {name: matomo-tmp,mountPath: /var/www/html/tmp}
+            - {name: matomo-data, mountPath: /var/www/html/config}
+            - {name: matomo-tmp, mountPath: /var/www/html/tmp}
       containers:
         - name: matomo
           image: matomo:latest
@@ -70,11 +70,11 @@ spec:
             - name: MATOMO_DATABASE_HOST
               value: matomo-mariadb
             - name: MATOMO_DATABASE_USERNAME
-              valueFrom: {secretKeyRef: {name: matomo-db-secret,key: username}}
+              valueFrom: {secretKeyRef: {name: matomo-db-secret, key: username}}
             - name: MATOMO_DATABASE_PASSWORD
-              valueFrom: {secretKeyRef: {name: matomo-db-secret,key: password}}
+              valueFrom: {secretKeyRef: {name: matomo-db-secret, key: password}}
             - name: MATOMO_DATABASE_DBNAME
-              valueFrom: {secretKeyRef: {name: matomo-db-secret,key: database } }
+              valueFrom: {secretKeyRef: {name: matomo-db-secret, key: database}}
             - name: MATOMO_DATABASE_ADAPTER
               value: "PDO_MYSQL"
             - name: TZ
