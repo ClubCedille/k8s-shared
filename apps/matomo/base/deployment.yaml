@@ -65,12 +65,12 @@ spec:
             - { name: matomo-tmp, mountPath: /var/www/html/tmp }
           resources:
             requests:
-              cpu: 100m
-              memory: 128Mi
+              cpu: 250m
+              memory: 500Mi
               ephemeral-storage: 256Mi
             limits:
-              cpu: 500m
-              memory: 256Mi
+              cpu: 1000m
+              memory: 1Gi
               ephemeral-storage: 1Gi
           securityContext:
             allowPrivilegeEscalation: false
@@ -79,7 +79,7 @@ spec:
               drop: ["ALL"]
             seccompProfile:
               type: RuntimeDefault
-          readinessProbe:             # HTTP check for app readiness
+          readinessProbe:
             httpGet:
               path: /
               port: 80
@@ -87,7 +87,7 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 3
             failureThreshold: 3
-          livenessProbe:              # Different from readiness: TCP socket
+          livenessProbe:
             tcpSocket:
               port: 80
             initialDelaySeconds: 45
