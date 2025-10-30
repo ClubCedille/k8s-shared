@@ -80,9 +80,9 @@ spec:
             - name: TZ
               value: "UTC"
           volumeMounts:
-            - {name: matomo-data,mountPath: /var/www/html/config}
-            - {name: tmp,mountPath: /tmp}
-            - {name: matomo-tmp,mountPath: /var/www/html/tmp}
+            - {name: matomo-data, mountPath: /var/www/html/config}
+            - {name: tmp, mountPath: /tmp}
+            - {name: matomo-tmp, mountPath: /var/www/html/tmp}
           resources:
             requests:
               cpu: 250m
