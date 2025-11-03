@@ -14,9 +14,9 @@ spec:
       labels:
         app: matomo
     spec:
-      securityContext:               # pod-level
+      securityContext:
         runAsNonRoot: true
-        runAsUser: 10001             # high UID to satisfy kube-score
+        runAsUser: 10001
         runAsGroup: 10001
         fsGroup: 10001
         fsGroupChangePolicy: "OnRootMismatch"
@@ -61,7 +61,7 @@ spec:
             - {name: matomo-tmp, mountPath: /var/www/html/tmp}
       containers:
         - name: matomo
-          image: matomo:latest
+          image: matomo:5.5.1-fpm
           imagePullPolicy: Always
           ports:
             - name: http

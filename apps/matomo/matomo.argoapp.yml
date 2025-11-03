@@ -4,7 +4,6 @@ metadata:
   name: matomo
   namespace: argocd
   annotations:
-    argocd-image-updater.argoproj.io/image-list: matomo=matomo:latest
     argocd-image-updater.argoproj.io/matomo.update-strategy: digest
 spec:
   project: k8s-shared
