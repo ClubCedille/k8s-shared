@@ -1,0 +1,13 @@
+# Backing all vaultwarden pv
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: vaultwarden-velero-schedule
+  namespace: velero
+spec:
+  schedule: "35 6 * * *"
+  template:
+    ttl: 168h
+    includedNamespaces:
+      - vaultwarden
+    snapshotVolumes: true
