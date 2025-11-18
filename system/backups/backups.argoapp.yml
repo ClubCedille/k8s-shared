@@ -9,8 +9,8 @@ spec:
     server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
   project: k8s-shared
   ignoreDifferences:
-  - group: velero.io
-    kind: Backup
+    - group: velero.io
+      kind: Backup
   source:
     path: system/backups
     repoURL: https://github.com/ClubCedille/k8s-shared.git
