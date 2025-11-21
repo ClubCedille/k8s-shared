@@ -14,3 +14,5 @@
   quota: 1000
 - name: veloom
   quota: 300
+- name: comets
+  quota: 1000
