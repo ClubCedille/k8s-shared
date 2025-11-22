@@ -13,6 +13,8 @@ spec:
     metadata:
       labels:
         app: vaultwarden
+      annotations:
+        backup.velero.io/backup-volumes: vaultwarden-storage
     spec:
       initContainers:
         - name: init-permissions
