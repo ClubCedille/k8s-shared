@@ -21,6 +21,10 @@ spec:
               value: https://outline.etsmtl.club
             - name: REDIS_URL
               value: redis://redis.outline.svc.cluster.local:6379
+            - name: FILE_STORAGE
+              value: local
+            - name: FILE_STORAGE_UPLOAD_MAX_SIZE
+              value: "26214400"  # 25 MB
           image: outlinewiki/outline:0.87.4
           name: outline
           imagePullPolicy: Always
