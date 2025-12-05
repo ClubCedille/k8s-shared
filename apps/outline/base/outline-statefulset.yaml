@@ -37,7 +37,7 @@ spec:
               value: https://outline.etsmtl.club
             - name: REDIS_URL
               value: redis://redis.outline.svc.cluster.local:6379
-          image: outlinewiki/outline:0.1.1
+          image: outlinewiki/outline:1.1.0
           name: outline
           imagePullPolicy: Always
           # https://github.com/outline/outline/blob/main/.env.sample
