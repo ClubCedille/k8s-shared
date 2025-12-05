@@ -22,13 +22,13 @@ spec:
           volumeMounts:
             - name: outline-pv-claim
               mountPath: /var/lib/outline/data
-                 resources:
-                   requests:
-                     cpu: "50m"
-                     memory: "128Mi"
-                   limits:
-                     cpu: "100m"
-                     memory: "256Mi"
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "100m"
+              memory: "256Mi"
       containers:
         - env:
             - name: URL
