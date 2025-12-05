@@ -15,16 +15,19 @@ spec:
       labels:
         app: outline
     spec:
+      initContainers:
+        - name: create-uploads-folder
+          image: busybox
+          command: ['sh', '-c', 'mkdir -p /var/lib/outline/data/uploads && chmod 775 /var/lib/outline/data/uploads']
+          volumeMounts:
+            - name: outline-pv-claim
+              mountPath: /var/lib/outline/data
       containers:
         - env:
             - name: URL
               value: https://outline.etsmtl.club
             - name: REDIS_URL
               value: redis://redis.outline.svc.cluster.local:6379
-            - name: FILE_STORAGE
-              value: local
-            - name: FILE_STORAGE_UPLOAD_MAX_SIZE
-              value: "26214400"  # 25 MB
           image: outlinewiki/outline:0.87.4
           name: outline
           imagePullPolicy: Always
