@@ -26,9 +26,11 @@ spec:
             requests:
               cpu: "50m"
               memory: "128Mi"
+              ephemeral: "128Mi"
             limits:
               cpu: "100m"
               memory: "256Mi"
+              ephemeral: "256Mi"
       containers:
         - env:
             - name: URL
