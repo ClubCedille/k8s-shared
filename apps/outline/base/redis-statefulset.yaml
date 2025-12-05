@@ -24,7 +24,7 @@ spec:
             runAsUser: 0
             runAsNonRoot: false
           volumeMounts:
-            - name: outline-redis-pv-claim
+            - name: redis-pv-claim
               mountPath: /data
           resources:
             requests:
