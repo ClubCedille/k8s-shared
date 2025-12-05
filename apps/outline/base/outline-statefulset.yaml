@@ -18,7 +18,7 @@ spec:
       initContainers:
         - name: create-uploads-folder
           image: busybox
-          command: ['sh', '-c', 'mkdir -p /var/lib/outline/data/uploads && chmod 1000 /var/lib/outline/data/uploads']
+          command: ['sh', '-c', 'mkdir -p /var/lib/outline/data/uploads && chmod 775 /var/lib/outline/data/uploads']
           volumeMounts:
             - name: outline-pv-claim
               mountPath: /var/lib/outline/data
