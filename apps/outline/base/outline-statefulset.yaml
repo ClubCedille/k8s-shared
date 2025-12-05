@@ -18,7 +18,7 @@ spec:
       initContainers:
         - name: create-uploads-folder
           image: busybox
-          command: ['sh', '-c', 'mkdir -p /var/lib/outline/data/uploads && chmod 775 /var/lib/outline/data/uploads']
+          command: ['sh', '-c', 'mkdir -p /var/lib/outline/data/uploads && chmod 775 /var/lib/outline/data/uploads && chown -R 1000:1000 /var/lib/outline/data/uploads']
           volumeMounts:
             - name: outline-pv-claim
               mountPath: /var/lib/outline/data
@@ -62,6 +62,10 @@ spec:
       imagePullSecrets:
         - name: dockerhub-pull
       restartPolicy: Always
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
   volumeClaimTemplates:
     - metadata:
         name: outline-pv-claim
