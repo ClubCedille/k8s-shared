@@ -1,7 +1,7 @@
 ---
 - name: cedille
   external_sites: [planka]
-  quota: 100
+  quota: 300
 - name: conjure
   quota: 300
 - name: chinook
@@ -16,3 +16,5 @@
   quota: 300
 - name: comets
   quota: 1000
+- name: lanets
+  quota: 3000
