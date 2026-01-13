@@ -1,0 +1,13 @@
+# Backing all outline pv
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: outline-velero-schedule
+  namespace: velero
+spec:
+  schedule: "35 6 * * *"
+  template:
+    ttl: 168h
+    includedNamespaces:
+      - outline
+    snapshotVolumes: true
