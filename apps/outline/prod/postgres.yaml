@@ -16,7 +16,7 @@ spec:
     storageClass: cephfs
   backup: needs a cleanup cronjob to delete old backups
   volumeSnapshot:
-      className: csi-cephfsplugin-snapclass
+    className: csi-cephfsplugin-snapclass
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
