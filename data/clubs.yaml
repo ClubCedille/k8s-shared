@@ -18,3 +18,5 @@
   quota: 1000
 - name: lanets
   quota: 3000
+- name: synapse
+  quota: 500
