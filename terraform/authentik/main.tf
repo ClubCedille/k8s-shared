@@ -1,6 +1,6 @@
 # Set Brand config
 resource "authentik_brand" "authentik-test" {
-  domain         = "."
+  domain         = "authentik-test"
   default        = false
   branding_title = "CEDILLE-TEST-VRAI"
   branding_favicon = "/static/dist/assets/icons/icon.png"
