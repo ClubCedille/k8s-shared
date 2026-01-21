@@ -1,0 +1,3 @@
+module "authentik" {
+  source "./authentik"
+}
