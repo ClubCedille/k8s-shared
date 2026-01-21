@@ -27,3 +27,79 @@ resource "authentik_brand" "authentik-test" {
   # web_certificate = "" # (String)
 
 }
+
+# Fetch all groups
+data "authentik_groups" "all" {
+  slug = ""
+}
+
+# Create generic exec role + group and bind them together
+resource "authentik_group" "exec" {
+  name         = "exec-test"
+  is_superuser = false
+  roles = ["exec-test"]
+}
+
+resource "authentik_group" "club" {
+  name         = "exec-test"
+  is_superuser = false
+  roles = ["club-test"]
+}
+
+resource "authentik_rbac_role" "my-role" {
+  name = "my-role"
+}
+
+resource "authentik_rbac_permission_role" "global-permission" {
+  role       = authentik_rbac_role.my-role.id
+  model      = "authentik_flows.flow"
+  permission = "inspect_flow"
+  object_id  = authentik_flow.flow.uuid
+}
+# authentik Core
+# - Can view Group
+# - Can view User
+# authentik RBAC
+# - Can access admin interface
+
+# Permissions d'objet assignés
+# Can view Group 	        Group club-[]
+# Remove user from group 	Group club-[]
+# Add user to group 	    Group club-[]
+# Can view Group 	        Group exec-[]
+# Remove user from group 	Group exec-[]
+# Add user to group 	    Group exec-[]
+
+# Permissions
+
+# data "authentik_rbac_permission" "can_view_group" {
+#   codename = "Can view Group"
+# }
+
+# data "authentik_rbac_permission" "can_view_user" {
+#   codename = "Can view User"
+# }
+
+# data "authentik_rbac_permission" "can_access_admin_interface" {
+#   codename = "Can access admin interface"
+# }
+
+# resource "authentik_rbac_initial_permissions" "exec_permissions" {
+#   name = "exec-template"
+#   permissions = tolist([
+#     data.authentik_rbac_permission.can_view_user.id,
+#     data.authentik_rbac_permission.can_view_group.id,
+#     data.authentik_rbac_permission.can_access_admin_interface.id ])
+#   role = "exec-template"
+#   mode = "role"
+# }
+
+# resource "authentik_rbac_initial_permissions" "club_permissions" {
+#   name = "club-template"
+#   permissions = tolist([
+#     data.authentik_rbac_permission.can_view_user.id,
+#     data.authentik_rbac_permission.can_view_group.id,
+#     data.authentik_rbac_permission.can_access_admin_interface.id ])
+#   role = "club-template"
+#   mode = "role"
+# }
