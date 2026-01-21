@@ -7,7 +7,6 @@ resource "authentik_brand" "authentik-test" {
   branding_logo = "/media/custom/branding/Logo_text_white.png"
   flow_authentication = "default-authentication-flow" # (String)
   flow_invalidation = "default-invalidation-flow" # (String)
-  flow_user_settings = "default-user-settings-flow" # (String)
   attributes = jsonencode({
     settings = {
       theme = {
@@ -17,6 +16,7 @@ resource "authentik_brand" "authentik-test" {
     }
   })
 
+  # flow_user_settings = "default-user-settings-flow" # (String)
   # branding_default_flow_background = "" # (String) Defaults to /static/dist/assets/images/flow_background.jpg.
   # branding_custom_css = "" # (String)
   # client_certificates = "" # (List of String)
