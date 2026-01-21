@@ -2,7 +2,7 @@
 resource "authentik_brand" "authentik-test" {
   domain         = "."
   default        = true
-  branding_title = "CEDILLE-test"
+  branding_title = "CEDILLE-TEST"
   branding_favicon = "/static/dist/assets/icons/icon.png"
   branding_logo = "/media/custom/branding/Logo_text_white.png"
   flow_authentication = "default-authentication-flow" # (String)
