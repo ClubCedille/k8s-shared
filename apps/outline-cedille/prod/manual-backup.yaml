@@ -1,0 +1,12 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Backup
+metadata:
+  name: cnpg-backup-outline-cedille
+  namespace: outline-cedille
+spec:
+  backupOwnerReference: self
+  cluster:
+    name: postgresql-outline-cedille
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
