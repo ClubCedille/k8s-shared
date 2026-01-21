@@ -1,7 +1,7 @@
-variable "AUTHENTIK_TOKEN" {
+variable "authentik_token" {
   type = string
 }
 
-variable "AUTHENTIK_URL" {
+variable "authentik_url" {
   type = string
 }
