@@ -14,9 +14,10 @@ spec:
   storage:
     size: 15Gi
     storageClass: cephfs
-  backup: needs a cleanup cronjob to delete old backups
-  volumeSnapshot:
-    className: csi-cephfsplugin-snapclass
+  # backup:
+  #   retentionPolicy: 7d
+  # volumeSnapshot:
+  #   className: csi-cephfsplugin-snapclass
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
