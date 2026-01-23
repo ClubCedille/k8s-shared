@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: outline-cedille-tls
+spec:
+  secretName: outline-cedille-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: cedille.etsmtl.club
+  dnsNames:
+    - cedille.etsmtl.club
