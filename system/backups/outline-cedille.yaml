@@ -1,0 +1,13 @@
+# Backing all outline-cedille pv
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: outline-cedille-velero-schedule
+  namespace: velero
+spec:
+  schedule: "35 6 * * *"
+  template:
+    ttl: 168h
+    includedNamespaces:
+      - outline-cedille
+    snapshotVolumes: true
