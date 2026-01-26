@@ -18,7 +18,7 @@ spec:
       containers:
         - env:
             - name: APP_URL
-              value: https://wiki.etsmtl.club
+              value: https://docmost.etsmtl.club
             - name: REDIS_URL
               value: redis://redis.docmost.svc.cluster.local:6379
           image: docmost/docmost:0.21.0
