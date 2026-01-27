@@ -7,6 +7,6 @@ spec:
   issuerRef:
     name: letsencrypt-etsmtl
     kind: ClusterIssuer
-  commonName: wiki.staging.etsmtl.club
+  commonName: docmost.staging.etsmtl.club
   dnsNames:
-    - wiki.staging.etsmtl.club
+    - docmost.staging.etsmtl.club

@@ -4,7 +4,7 @@ metadata:
   name: docmost-staging
 spec:
   virtualhost:
-    fqdn: wiki.staging.etsmtl.club
+    fqdn: docmost.staging.etsmtl.club
     tls:
       secretName: docmost-staging-tls
       minimumProtocolVersion: "1.3"

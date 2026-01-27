@@ -4,7 +4,7 @@ metadata:
   name: outline
 spec:
   virtualhost:
-    fqdn: outline.etsmtl.club
+    fqdn: wiki.etsmtl.club
     tls:
       secretName: outline-tls
       minimumProtocolVersion: "1.3"

@@ -38,7 +38,7 @@ spec:
       containers:
         - env:
             - name: URL
-              value: https://outline.etsmtl.club
+              value: https://wiki.etsmtl.club
             - name: REDIS_URL
               value: redis://redis.outline.svc.cluster.local:6379
           image: outlinewiki/outline:1.1.0
