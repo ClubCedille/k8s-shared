@@ -5,3 +5,4 @@ resources:
   - nextcloud.yaml
   - vaultwarden.yaml
   - outline.yaml
+  - outline-cedille.yaml
