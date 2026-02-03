@@ -1,4 +1,3 @@
----
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -15,20 +14,21 @@ spec:
   storage:
     size: 40Gi
     storageClass: cephfs
-  # backup:
-  #   retentionPolicy: 7d
-  # volumeSnapshot:
-  #   className: csi-cephfsplugin-snapclass
+  backup:
+    retentionPolicy: 7d
+    volumeSnapshot:
+      className: csi-cephfsplugin-snapclass
   plugins:
-    - name: barman-cloud.cloudnative-pg.io
-      isWALArchiver: true
-      parameters:
-        barmanObjectName: cnpg-outline-b2
+  - name: barman-cloud.cloudnative-pg.io
+    isWALArchiver: true
+    parameters:
+      barmanObjectName: cnpg-forgejo-b2
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
 metadata:
   name: cnpg-backup-schedule-forgejo
+  namespace: forgejo
 spec:
   schedule: "0 40 6 * * * "
   backupOwnerReference: self
@@ -42,6 +42,7 @@ apiVersion: barmancloud.cnpg.io/v1
 kind: ObjectStore
 metadata:
   name: cnpg-forgejo-b2
+  namespace: forgejo
 spec:
   configuration:
     destinationPath: s3://k8s-shared-bucket/postgresql-forgejo
@@ -63,7 +64,7 @@ spec:
   retentionPolicy: 30d
   instanceSidecarConfiguration:
     env:
-      - name: AWS_REQUEST_CHECKSUM_CALCULATION
-        value: when_required
-      - name: AWS_RESPONSE_CHECKSUM_VALIDATION
-        value: when_required
+    - name: AWS_REQUEST_CHECKSUM_CALCULATION
+      value: when_required
+    - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+      value: when_required

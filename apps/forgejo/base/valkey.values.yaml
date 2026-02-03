@@ -1,21 +1,6 @@
 # Number of Valkey pods to run
 replicaCount: 3
 
-image:
-  # Valkey Docker image to use
-  repository: valkey/valkey
-  # Image pull policy (Always, IfNotPresent, Never)
-  pullPolicy: IfNotPresent
-  # Image tag (leave empty to use .Chart.AppVersion)
-  tag: ""
-
-# List of image pull secrets (for private registries)
-imagePullSecrets: []
-
-# Override the default name or full name of resources
-nameOverride: ""
-fullnameOverride: ""
-
 serviceAccount:
   # Create a service account for Valkey
   create: true
@@ -36,7 +21,7 @@ podSecurityContext:
 securityContext:
   capabilities:
     drop:
-      - ALL
+    - ALL
   readOnlyRootFilesystem: true
   runAsNonRoot: true
   runAsUser: 1000
@@ -50,7 +35,6 @@ service:
 # Network policy to control traffic to the pods
 # More info: https://kubernetes.io/docs/concepts/services-networking/network-policies/
 networkPolicy: {}
-
 
 # TODO USE CEPHFS
 # Persistent storage configuration
@@ -67,7 +51,7 @@ dataStorage:
   className: ""
   # Access modes for the PVC (e.g., ReadWriteOnce, ReadWriteMany)
   accessModes:
-    - ReadWriteOnce
+  - ReadWriteOnce
   # If true, keep the PVC on Helm uninstall
   keepPvc: true
   # Optional annotations to add to the PVC
