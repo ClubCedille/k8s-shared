@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: forgejo-tls
+spec:
+  secretName: forgejo-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: git.etsmtl.club
+  dnsNames:
+    - git.etsmtl.club

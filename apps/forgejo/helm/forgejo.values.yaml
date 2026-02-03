@@ -6,18 +6,7 @@ service:
     loadBalancerIP: 172.16.55.81
 
 ingress:
-  enabled: true
-  className: traefik
-  hosts:
-    - host: git.etsmtl.club
-      paths:
-        - path: /
-          pathType: Prefix
-          port: http
-  tls:
-    - secretName: idk-cert-TODO
-      hosts:
-        - git.etsmtl.club
+  enabled: false
 
 gitea:
   admin:
