@@ -44,7 +44,9 @@ gitea:
       HOST: forgejo-pg-rw.forgejo.svc.cluster.local:5432
       NAME: forgejo
       USER: forgejo
-      PASSWD: change-me-strong-password
+  additionalConfigFromEnvs: 
+    - secret:
+        secretName: postgresql-forgejo-app
 
 persistence:
   enabled: true
