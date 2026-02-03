@@ -1,0 +1,61 @@
+# Sample values to configure Forgejo with external Postgres (CNPG) and Valkey cache
+
+service:
+  ssh:
+    type: LoadBalancer
+    loadBalancerIP: 172.16.55.81
+
+ingress:
+  enabled: true
+  className: traefik
+  hosts:
+    - host: git.etsmtl.club
+      paths:
+        - path: /
+          pathType: Prefix
+          port: http
+  tls:
+    - secretName: idk-cert-TODO
+      hosts:
+        - git.etsmtl.club
+
+gitea:
+  admin:
+    existingSecret: forgejo-admin-secret
+    email: forgejo@etsmtl.club
+  config:
+    server:
+      SSH_DOMAIN: ssh.git.etsmtl.club
+      ROOT_URL: https://git.etsmtl.club/
+    service:
+      DISABLE_REGISTRATION: true
+      DEFAULT_ALLOW_CREATE_ORGANIZATION: false
+    oauth2_client:
+      ENABLE_AUTO_REGISTRATION: true
+      OPENID_CONNECT_SCOPES: "openid profile forgejo email offline_access"
+      USERNAME: nickname
+      ACCOUNT_LINKING: login
+      UPDATE_AVATAR: true
+    repository:
+      DEFAULT_BRANCH: main
+      MAX_CREATION_LIMIT: 0
+      GO_GET_CLONE_URL_PROTOCOL: ssh
+      ALLOW_FORK_WITHOUT_MAXIMUM_LIMIT: false
+    cache:
+      ADAPTER: redis
+      HOST: redis://valkey.forgejo.svc.cluster.local:6379/0
+    session:
+      PROVIDER: redis
+      PROVIDER_CONFIG: redis://valkey.forgejo.svc.cluster.local:6379/1
+    queue:
+      TYPE: redis
+      CONN_STR: redis://valkey.forgejo.svc.cluster.local:6379/2
+    database:
+      DB_TYPE: postgres
+      HOST: forgejo-pg-rw.forgejo.svc.cluster.local:5432
+      NAME: forgejo
+      USER: forgejo
+      PASSWD: change-me-strong-password
+
+persistence:
+  enabled: true

@@ -1,0 +1,18 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: forgejo-pg
+  namespace: forgejo
+spec:
+  instances: 3
+  storage:
+    # TODO USE CEPHFS
+    size: 20Gi
+  superuserSecret:
+    name: forgejo-pg-superuser
+  bootstrap:
+    initdb:
+      database: forgejo
+      owner: forgejo
+      secret:
+        name: forgejo-pg-app
