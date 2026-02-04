@@ -3,8 +3,8 @@
 service:
   ssh:
     type: LoadBalancer
-    loadBalancerIP: 172.16.55.81
-
+    annotations:
+      metallb.io/allow-shared-ip: "shared-sharedmain-ip"
 ingress:
   enabled: false
 
