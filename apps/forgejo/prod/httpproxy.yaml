@@ -10,17 +10,17 @@ spec:
       secretName: forgejo-tls
       minimumProtocolVersion: "1.3"
   routes:
-  - conditions:
-    - prefix: /
-    enableWebsockets: true
-    services:
-    - name: forgejo-http
-      port: 3000
-      # Move header policy here and note the 's' in Headers
-      requestHeadersPolicy:
-        set:
-        - name: X-Forwarded-Proto
-          value: https
-    timeoutPolicy:
-      idle: 600s
-      response: 600s
+    - conditions:
+        - prefix: /
+          enableWebsockets: true
+          services:
+            - name: forgejo-http
+              port: 3000
+              # Move header policy here and note the 's' in Headers
+              requestHeadersPolicy:
+                set:
+                  - name: X-Forwarded-Proto
+                    value: https
+          timeoutPolicy:
+            idle: 600s
+            response: 600s

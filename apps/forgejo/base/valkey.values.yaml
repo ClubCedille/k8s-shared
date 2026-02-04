@@ -51,7 +51,7 @@ dataStorage:
   className: ""
   # Access modes for the PVC (e.g., ReadWriteOnce, ReadWriteMany)
   accessModes:
-  - ReadWriteOnce
+    - ReadWriteOnce
   # If true, keep the PVC on Helm uninstall
   keepPvc: true
   # Optional annotations to add to the PVC

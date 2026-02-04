@@ -50,15 +50,15 @@ gitea:
       ENABLE_OPENID_SIGNUP: false
 
   oauth:
-  - name: 'authentik'
-    provider: openidConnect
-    existingSecret: forgejo-oauth-secret
-    autoDiscoverUrl: 'https://auth.etsmtl.club/application/o/forgejo/.well-known/openid-configuration'
-    scopes: "openid profile email offline_access"
-    adminGroup: admin
-    groupClaimName: groups
-    groupTeamMap: '{"club-lanets": {"LanETS": ["Members"]},"exec-lanets": {"LanETS": ["Owners"]},"exec-cedille": {"cedille": ["Owners"]},"exec-conjure": {"conjure": ["Owners"]}}'
-    groupTeamMapRemoval: 'true'
+    - name: "authentik"
+      provider: openidConnect
+      existingSecret: forgejo-oauth-secret
+      autoDiscoverUrl: "https://auth.etsmtl.club/application/o/forgejo/.well-known/openid-configuration"
+      scopes: "openid profile email offline_access"
+      adminGroup: admin
+      groupClaimName: groups
+      groupTeamMap: '{"club-lanets": {"LanETS": ["Members"]},"exec-lanets": {"LanETS": ["Owners"]},"exec-cedille": {"cedille": ["Owners"]},"exec-conjure": {"conjure": ["Owners"]}}'
+      groupTeamMapRemoval: "true"
 
 persistence:
   enabled: true
@@ -67,4 +67,4 @@ persistence:
   claimName: forgejo-data-claim
   storageClass: cephfs
   accessModes:
-  - ReadWriteMany
+    - ReadWriteMany
