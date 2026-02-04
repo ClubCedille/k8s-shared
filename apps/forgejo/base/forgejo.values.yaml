@@ -14,7 +14,7 @@ gitea:
     email: forgejo@etsmtl.club
   config:
     server:
-      SSH_DOMAIN: ssh.git.etsmtl.club
+      SSH_DOMAIN: git.etsmtl.club
       ROOT_URL: https://git.etsmtl.club/
     service:
       DISABLE_REGISTRATION: true
@@ -25,6 +25,11 @@ gitea:
       USERNAME: nickname
       ACCOUNT_LINKING: login
       UPDATE_AVATAR: true
+    oauth:
+    - name: 'Authentik'
+      provider: 'openidConnect'
+      autoDiscoverUrl: 'https://auth.etsmtl.club/application/o/forgejo/.well-known/openid-configuration'
+      existingSecret: forgejo-oauth-secret
     repository:
       DEFAULT_BRANCH: main
       MAX_CREATION_LIMIT: 0
