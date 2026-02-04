@@ -14,6 +14,8 @@ gitea:
   config:
     server:
       ROOT_URL: https://git.etsmtl.club/
+      PROTOCOL: http
+      DOMAIN: git.etsmtl.club
     service:
       DISABLE_REGISTRATION: true
       DEFAULT_ALLOW_CREATE_ORGANIZATION: false
@@ -53,11 +55,7 @@ gitea:
     provider: 'openidConnect'
     existingSecret: forgejo-oauth-secret
     autoDiscoverUrl: 'https://auth.etsmtl.club/application/o/forgejo/.well-known/openid-configuration'
-    scopes:
-    - openid
-    - profile
-    - email
-    - offline_access
+    scopes: "openid profile email offline_access"
 
 persistence:
   enabled: true
