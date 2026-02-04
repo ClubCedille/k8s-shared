@@ -1,9 +1,8 @@
 service:
   ssh:
-    type: LoadBalancer
-
     annotations:
       metallb.io/allow-shared-ip: "shared-sharedmain-ip"
+
 ingress:
   enabled: false
 
@@ -52,10 +51,14 @@ gitea:
 
   oauth:
   - name: 'authentik'
-    provider: 'openidConnect'
+    provider: openidConnect
     existingSecret: forgejo-oauth-secret
     autoDiscoverUrl: 'https://auth.etsmtl.club/application/o/forgejo/.well-known/openid-configuration'
     scopes: "openid profile email offline_access"
+    adminGroup: admin
+    groupClaimName: groups
+    groupTeamMap: '{"club-lanets": {"LanETS": ["Members"]},"exec-lanets": {"LanETS": ["Owners"]},"exec-cedille": {"cedille": ["Owners"]},"exec-conjure": {"conjure": ["Owners"]}}'
+    groupTeamMapRemoval: 'true'
 
 persistence:
   enabled: true
