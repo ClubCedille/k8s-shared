@@ -59,3 +59,9 @@ gitea:
 
 persistence:
   enabled: true
+  create: true
+  size: 20Gi
+  claimName: forgejo-data-claim
+  storageClass: cephfs
+  accessModes:
+  - ReadWriteMany
