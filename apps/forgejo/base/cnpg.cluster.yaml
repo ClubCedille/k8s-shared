@@ -19,10 +19,10 @@ spec:
     volumeSnapshot:
       className: csi-cephfsplugin-snapclass
   plugins:
-  - name: barman-cloud.cloudnative-pg.io
-    isWALArchiver: true
-    parameters:
-      barmanObjectName: cnpg-forgejo-b2
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: cnpg-forgejo-b2
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
@@ -64,7 +64,7 @@ spec:
   retentionPolicy: 30d
   instanceSidecarConfiguration:
     env:
-    - name: AWS_REQUEST_CHECKSUM_CALCULATION
-      value: when_required
-    - name: AWS_RESPONSE_CHECKSUM_VALIDATION
-      value: when_required
+      - name: AWS_REQUEST_CHECKSUM_CALCULATION
+        value: when_required
+      - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+        value: when_required

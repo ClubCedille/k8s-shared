@@ -6,3 +6,4 @@ resources:
   - vaultwarden.yaml
   - outline.yaml
   - outline-cedille.yaml
+  - forgejo.yaml
