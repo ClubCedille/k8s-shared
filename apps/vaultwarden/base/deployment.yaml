@@ -16,6 +16,9 @@ spec:
       annotations:
         backup.velero.io/backup-volumes: vaultwarden-storage
     spec:
+      securityContext:
+        fsGroup: 10001
+        fsGroupChangePolicy: "OnRootMismatch"
       initContainers:
         - name: init-permissions
           image: busybox
