@@ -2,7 +2,6 @@ apiVersion: projectcontour.io/v1
 kind: HTTPProxy
 metadata:
   name: authentik
-  namespace: authentik
 spec:
   virtualhost:
     fqdn: auth.etsmtl.club
@@ -33,7 +32,6 @@ apiVersion: projectcontour.io/v1
 kind: HTTPProxy
 metadata:
   name: authentik-internal
-  namespace: authentik
 spec:
   ingressClassName: contour-internal
   virtualhost:
