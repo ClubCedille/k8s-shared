@@ -12,7 +12,6 @@ defaultStorageClass: cephfs
 
 global:
   storageClass: cephfs
-  namespace: "authentik"
   security:
     allowInsecureImages: true
   volumes:
@@ -21,7 +20,7 @@ global:
         claimName: authentik-branding-pvc
   volumeMounts:
     - name: authentik-branding
-      mountPath: /media/custom/branding
+      mountPath: /data/media/custom/branding
   initContainers:
     - name: init-permissions
       image: busybox
@@ -62,24 +61,14 @@ global:
 postgresql:
   enabled: true
   image:
-    registry: public.ecr.aws
-    repository: bitnami/postgresql
-    tag: "15.10.0"
+    registry: docker.io
+    repository: library/postgres
+    tag: "17.7-bookworm"
   auth:
     existingSecret: authentik-secrets
     secretKeys:
       adminPasswordKey: AUTHENTIK_POSTGRES_PASSWORD
       userPasswordKey: AUTHENTIK_POSTGRES_PASSWORD
-  persistence:
-    enabled: true
-    storageClass: cephfs
-
-redis:
-  enabled: true
-  image:
-    registry: public.ecr.aws
-    repository: docker/library/redis
-    tag: "8.2.1"
   persistence:
     enabled: true
     storageClass: cephfs
