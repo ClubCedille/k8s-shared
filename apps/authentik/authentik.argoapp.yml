@@ -12,9 +12,9 @@ spec:
     path: apps/authentik
     repoURL: https://github.com/ClubCedille/k8s-shared.git
     targetRevision: HEAD
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
+  syncPolicy: null
+    # automated:
+    #   prune: true
+    #   selfHeal: true
     syncOptions:
       - CreateNamespace=true
