@@ -28,6 +28,7 @@ gitea:
       ROOT_URL: https://git.etsmtl.club/
       PROTOCOL: http
       DOMAIN: git.etsmtl.club
+      LFS_START_SERVER: true
     service:
       DISABLE_REGISTRATION: true
       DEFAULT_ALLOW_CREATE_ORGANIZATION: false
@@ -55,6 +56,9 @@ gitea:
     openid:
       ENABLE_OPENID_SIGNIN: false
       ENABLE_OPENID_SIGNUP: false
+    lfs:
+      STORAGE_TYPE: local
+      PATH: /data/forgejo/lfs
   oauth:
     - name: "authentik"
       provider: openidConnect
