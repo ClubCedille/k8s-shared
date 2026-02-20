@@ -48,6 +48,9 @@ gitea:
     openid:
       ENABLE_OPENID_SIGNIN: false
       ENABLE_OPENID_SIGNUP: false
+    lfs:
+      STORAGE_TYPE: local
+      PATH: /data/forgejo/lfs
 
   oauth:
     - name: "authentik"
