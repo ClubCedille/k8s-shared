@@ -15,6 +15,7 @@ gitea:
       ROOT_URL: https://git.etsmtl.club/
       PROTOCOL: http
       DOMAIN: git.etsmtl.club
+      LFS_START_SERVER: true
     service:
       DISABLE_REGISTRATION: true
       DEFAULT_ALLOW_CREATE_ORGANIZATION: false
