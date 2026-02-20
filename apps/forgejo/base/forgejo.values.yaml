@@ -4,7 +4,7 @@ service:
     type: LoadBalancer
     loadBalancerIP: 142.137.247.75
     annotations:
-      metallb.io/allow-shared-ip: "shared-sharedmain-ip"
+      metallb.universe.tf/allow-shared-ip: "shared-sharedmain-ip"
 
 ingress:
   enabled: true
