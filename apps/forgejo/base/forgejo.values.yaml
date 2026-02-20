@@ -1,10 +1,23 @@
 service:
   ssh:
+    port: 22
+    type: LoadBalancer
+    loadBalancerIP: 142.137.247.75
     annotations:
       metallb.io/allow-shared-ip: "shared-sharedmain-ip"
 
 ingress:
-  enabled: false
+  enabled: true
+  ingressClassName: contour
+  hosts:
+    - host: git.etsmtl.club
+  tls:
+    - secretName: forgejo-tls-secret
+      hosts:
+        - git.etsmtl.club
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-etsmtl
+    kubernetes.io/tls-acme: "true"
 
 gitea:
   admin:
@@ -39,16 +52,9 @@ gitea:
     queue:
       TYPE: redis
       CONN_STR: redis://forgejo-cache-valkey.forgejo.svc.cluster.local:6379/2
-    database:
-      DB_TYPE: postgres
-      HOST: postgresql-forgejo-rw.forgejo.svc.cluster.local:5432
-      NAME: forgejo
-      USER: forgejo
-      PASSWD: change-me-strong-password-123-!
     openid:
       ENABLE_OPENID_SIGNIN: false
       ENABLE_OPENID_SIGNUP: false
-
   oauth:
     - name: "authentik"
       provider: openidConnect
@@ -59,6 +65,9 @@ gitea:
       groupClaimName: groups
       groupTeamMap: '{"club-lanets": {"LanETS": ["Members"]},"exec-lanets": {"LanETS": ["Owners"]},"exec-cedille": {"cedille": ["Owners"]},"exec-conjure": {"conjure": ["Owners"]}}'
       groupTeamMapRemoval: "true"
+  additionalConfigSources:
+    - secret:
+        secretName: database
 
 persistence:
   enabled: true
