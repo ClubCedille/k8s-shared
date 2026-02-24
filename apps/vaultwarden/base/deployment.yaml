@@ -65,7 +65,7 @@ spec:
             - name: SSO_AUTHORITY
               value: "https://auth.etsmtl.club/application/o/vaultwarden/"
             - name: SSO_ALLOW_UNKNOWN_EMAIL_VERIFICATION
-              value: "false"
+              value: "true"
             - name: SSO_CLIENT_CACHE_EXPIRATION
               value: "0"
             - name: SSO_ONLY
