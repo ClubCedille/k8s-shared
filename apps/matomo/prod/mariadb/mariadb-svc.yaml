@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: matomo-mariadb
+spec:
+  selector:
+    app: matomo-mariadb
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: 3306

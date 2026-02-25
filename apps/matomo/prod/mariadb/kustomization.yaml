@@ -1,0 +1,7 @@
+certificateapiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - mariadb-svc.yaml
+  - mariadb-netpol.yaml
+  - mariadb-headless-svc.yaml
+  - mariadb-statefulset.yaml

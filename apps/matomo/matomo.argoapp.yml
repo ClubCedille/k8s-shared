@@ -14,7 +14,7 @@ spec:
 
   source:
     repoURL: https://github.com/ClubCedille/k8s-shared
-    path: apps/matomo
+    path: apps/matomo/prod
     targetRevision: HEAD
 
   syncPolicy:
