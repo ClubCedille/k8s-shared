@@ -4,8 +4,7 @@ metadata:
   name: matomo
   namespace: matomo
 resources:
-  - prod/certificate.yaml
-  - prod/httpproxy.yaml
+  - prod
 helmCharts:
   - name: matomo
     namespace: matomo
