@@ -6,7 +6,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  project: k8s-cedille-production-v2
+  project: k8s-shared
   destination:
     server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
     namespace: vault
