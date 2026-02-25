@@ -8,7 +8,7 @@ metadata:
 spec:
   project: k8s-cedille-production-v2
   destination:
-    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-shared
+    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
     namespace: vault
   source:
     repoURL: https://github.com/ClubCedille/k8s-shared
