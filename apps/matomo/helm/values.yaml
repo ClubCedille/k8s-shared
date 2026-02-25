@@ -16,10 +16,9 @@ mariadb:
   image:
     pullPolicy: Always
   auth:
-    rootPassword: "root"
     database: bitnami_matomo
     username: bn_matomo
-    password: "root"
+    existingSecret: "mariadb-config"
   primary:
     containerSecurityContext:
       enabled: true
