@@ -4,13 +4,17 @@ service:
     type: LoadBalancer
     loadBalancerIP: 142.137.247.75
     annotations:
-      metallb.universe.tf/allow-shared-ip: "shared-sharedmain-ip"
+      metallb.io/allow-shared-ip: "shared-sharedmain-ip"
 
 ingress:
   enabled: true
   ingressClassName: contour
   hosts:
     - host: git.etsmtl.club
+      paths:
+        - path: /
+          pathType: Prefix
+          port: http
   tls:
     - secretName: forgejo-tls-secret
       hosts:
@@ -69,9 +73,12 @@ gitea:
       groupClaimName: groups
       groupTeamMap: '{"club-lanets": {"LanETS": ["Members"]},"exec-lanets": {"LanETS": ["Owners"]},"exec-cedille": {"cedille": ["Owners"]},"exec-conjure": {"conjure": ["Owners"]}}'
       groupTeamMapRemoval: "true"
-  additionalConfigSources:
+  aadditionalConfigSources:
     - secret:
-        secretName: database
+        name: forgejo-db-config
+        items:
+          - key: database
+            path: database.ini
 
 persistence:
   enabled: true
