@@ -12,6 +12,10 @@ spec:
       owner: nextcloud
       secret:
         name: nextcloud-postgresql
+    recovery:
+      backup:
+        name: cnpg-backup-schedule-20260226064000
+
   storage:
     size: 100Gi
     storageClass: cephfs
