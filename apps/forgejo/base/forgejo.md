@@ -3,13 +3,13 @@
 
 1. **base/db-config**
 ```ini
-[database]
 DB_TYPE = postgres
 HOST = postgresql-forgejo-rw.forgejo.svc.cluster.local:5432
 NAME = forgejo
 USER = DB_USER
 PASSWD = "DB_PASSWORD"
 ```
+create the secret using: `kubectl create secret generic forgejo-db-config --from-file=database=db-config`
 2. **base/forgejo-pstgres.secret.yaml**
 ```yaml
 apiVersion: v1

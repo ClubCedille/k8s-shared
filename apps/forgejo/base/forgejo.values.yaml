@@ -73,12 +73,9 @@ gitea:
       groupClaimName: groups
       groupTeamMap: '{"club-lanets": {"LanETS": ["Members"]},"exec-lanets": {"LanETS": ["Owners"]},"exec-cedille": {"cedille": ["Owners"]},"exec-conjure": {"conjure": ["Owners"]}}'
       groupTeamMapRemoval: "true"
-  aadditionalConfigSources:
+  additionalConfigSources:
     - secret:
-        name: forgejo-db-config
-        items:
-          - key: database
-            path: database.ini
+        secretName: forgejo-db-config
 
 persistence:
   enabled: true
