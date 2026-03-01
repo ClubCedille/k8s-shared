@@ -10,7 +10,7 @@ image:
   # pullSecrets:
   #   - myRegistrKeySecretName
 # Number of replicas to be deployed
-replicaCount: 3
+replicaCount: 0
 ## Allowing use of ingress controllers
 ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ##
