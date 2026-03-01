@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: forgejo
+  namespace: argocd
+spec:
+  project: k8s-shared
+
+  destination:
+    namespace: forgejo
+    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
+
+  source:
+    path: apps/forgejo/prod
+    repoURL: https://github.com/ClubCedille/k8s-shared.git
+    targetRevision: HEAD
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
