@@ -12,6 +12,7 @@ spec:
     - name: outline-cedille-backup
       plugin:
         name: barman-cloud.cloudnative-pg.io
+        isWALArchiver: false 
         parameters:
           barmanObjectName: cnpg-outline-cedille-b2
           walRecoveryObjectName: cnpg-outline-cedille-b2
