@@ -1,12 +1,12 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: docmost-tls
+  name: matomo-tls
 spec:
-  secretName: docmost-tls
+  secretName: matomo-tls
   issuerRef:
     name: letsencrypt-etsmtl
     kind: ClusterIssuer
-  commonName: docmost.etsmtl.club
+  commonName: matomo.etsmtl.club
   dnsNames:
-    - docmost.etsmtl.club
+    - matomo.etsmtl.club

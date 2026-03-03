@@ -34,25 +34,19 @@ spec:
               containerPort: 3306
           env:
             - name: MYSQL_DATABASE
-              valueFrom:
-                secretKeyRef:
-                  name: matomo-db-secret
-                  key: database
+              value: matomo
             - name: MYSQL_USER
-              valueFrom:
-                secretKeyRef:
-                  name: matomo-db-secret
-                  key: username
+              value: matomo
             - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: matomo-db-secret
-                  key: password
+                  name: mariadb-config
+                  key: MYSQL_PASSWORD
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: matomo-db-secret
-                  key: password
+                  name: mariadb-config
+                  key: MYSQL_ROOT_PASSWORD
           volumeMounts:
             - name: data
               mountPath: /var/lib/mysql

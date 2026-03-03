@@ -1,12 +1,12 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: docmost-staging-tls
+  name: vault-tls
 spec:
-  secretName: docmost-staging-tls
+  secretName: vault-tls
   issuerRef:
     name: letsencrypt-etsmtl
     kind: ClusterIssuer
-  commonName: docmost.staging.etsmtl.club
+  commonName: vault.etsmtl.club
   dnsNames:
-    - docmost.staging.etsmtl.club
+    - vault.etsmtl.club

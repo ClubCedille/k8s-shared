@@ -1,2 +1,4 @@
 /apps/**/charts
 *secret.yaml
+!config-secret.yaml
+!random-secret.yaml
