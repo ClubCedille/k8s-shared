@@ -48,7 +48,7 @@ spec:
 apiVersion: barmancloud.cnpg.io/v1
 kind: ObjectStore
 metadata:
-  name: cnpg-outline-cedille-mars-03
+  name: cnpg-outline-cedille-b2
 spec:
   configuration:
     destinationPath: s3://k8s-shared-bucket/postgresql-outline-cedille
