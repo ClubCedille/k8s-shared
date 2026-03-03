@@ -12,7 +12,7 @@ spec:
     - name: outline-cedille-backup
       plugin:
         name: barman-cloud.cloudnative-pg.io
-        isWALArchiver: false 
+        isWALArchiver: false
         parameters:
           barmanObjectName: cnpg-outline-cedille-b2
           walRecoveryObjectName: cnpg-outline-cedille-b2
@@ -20,10 +20,10 @@ spec:
   storage:
     size: 15Gi
     storageClass: cephfs
-  backup:
-    # needs a cleanup cronjob to delete old backups
-    volumeSnapshot:
-      className: csi-cephfsplugin-snapclass
+  # backup:
+  #   retentionPolicy: 7d
+  #   volumeSnapshot:
+  #     className: csi-cephfsplugin-snapclass
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
