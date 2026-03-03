@@ -8,7 +8,7 @@ spec:
   bootstrap:
     recovery:
       backup:
-        name: cnpg-backup-schedule-mars-03
+        name: cnpg-outline-cedille-mars-03
     barmanObjectStore:
       destinationPath: "s3://k8s-shared-bucket/postgresql-outline-cedille"
       endpointURL: "https://s3.ca-east-006.backblazeb2.com"
