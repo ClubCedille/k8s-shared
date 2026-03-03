@@ -6,23 +6,17 @@ spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:17.2
   instances: 1
   bootstrap:
-    recovery:
-      source: outline-cedille-backup
-  externalClusters:
-    - name: outline-cedille-backup
-      plugin:
-        name: barman-cloud.cloudnative-pg.io
-        isWALArchiver: false
-        parameters:
-          barmanObjectName: cnpg-outline-cedille-b2
-          walRecoveryObjectName: cnpg-outline-cedille-b2
-          skipWalArchiveCheck: "true"
+    initdb:
+      database: outline
+      owner: outline
+      secret:
+        name: postgresql-outline-app
   storage:
     size: 15Gi
     storageClass: cephfs
   # backup:
   #   retentionPolicy: 7d
-  #   volumeSnapshot:
+  # volumeSnapshot:
   #     className: csi-cephfsplugin-snapclass
   plugins:
     - name: barman-cloud.cloudnative-pg.io
