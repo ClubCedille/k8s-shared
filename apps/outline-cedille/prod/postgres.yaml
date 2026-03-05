@@ -5,9 +5,6 @@ metadata:
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:17.2
   instances: 1
-  backup:
-    barmanObjectName: cnpg-outline-cedille-b2
-    retentionPolicy: 7d
   bootstrap:
     recovery:
       backup:
