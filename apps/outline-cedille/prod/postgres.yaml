@@ -22,7 +22,7 @@ spec:
           secretAccessKey:
             name: b2-creds
             key: ACCESS_SECRET_KEY
-        serverName: postgresql-outline-cedille
+        serverName: postgresql-outline-cedille/postgresql-outline-cedille
         wal:
           maxParallel: 8
   storage:
