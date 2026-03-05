@@ -13,7 +13,7 @@ spec:
   externalClusters:
     - name: outline-backup
       barmanObjectStore:
-        destinationPath: s3://k8s-shared-bucket/postgresql-outline-cedille
+        destinationPath: s3://k8s-shared-bucket/postgresql-outline-cedille/postgresql-outline-cedille
         endpointURL: https://s3.ca-east-006.backblazeb2.com
         s3Credentials:
           accessKeyId:
@@ -22,7 +22,7 @@ spec:
           secretAccessKey:
             name: b2-creds
             key: ACCESS_SECRET_KEY
-        serverName: postgresql-outline-cedille/postgresql-outline-cedille
+        serverName: postgresql-outline-cedille
         wal:
           maxParallel: 8
   storage:
