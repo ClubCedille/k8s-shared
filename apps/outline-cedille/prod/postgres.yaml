@@ -6,14 +6,15 @@ metadata:
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:17.2
   instances: 1
-
   bootstrap:
     recovery:
       source: outline-backup
+      recoveryTarget:
+        backupID: 20260131T064004
   externalClusters:
     - name: outline-backup
       barmanObjectStore:
-        destinationPath: s3://k8s-shared-bucket/postgresql-outline-cedille/postgresql-outline-cedille
+        destinationPath: s3://k8s-shared-bucket/
         endpointURL: https://s3.ca-east-006.backblazeb2.com
         s3Credentials:
           accessKeyId:
