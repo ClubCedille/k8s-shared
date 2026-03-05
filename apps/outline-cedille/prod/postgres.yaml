@@ -5,27 +5,18 @@ metadata:
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:17.2
   instances: 1
+  backup:
+    barmanObjectName: cnpg-outline-cedille-b2
+    retentionPolicy: 7d
   bootstrap:
     recovery:
       backup:
         name: cnpg-backup-schedule-20260125064000
-    barmanObjectStore:
-      destinationPath: "s3://k8s-shared-bucket/postgresql-outline-cedille"
-      endpointURL: "https://s3.ca-east-006.backblazeb2.com"
-      s3Credentials:
-        accessKeyId:
-          name: b2-creds
-          key: ACCESS_KEY_ID
-        secretAccessKey:
-          name: b2-creds
-          key: ACCESS_SECRET_KEY
+      namespace: outline-cedille
+      cluster: postgresql-outline-cedille
   storage:
     size: 15Gi
     storageClass: cephfs
-  # backup:
-  #   retentionPolicy: 7d
-  # volumeSnapshot:
-  #     className: csi-cephfsplugin-snapclass
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
