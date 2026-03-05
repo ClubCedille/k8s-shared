@@ -12,8 +12,6 @@ spec:
     recovery:
       backup:
         name: cnpg-backup-schedule-20260125064000
-      namespace: outline-cedille
-      cluster: postgresql-outline-cedille
   storage:
     size: 15Gi
     storageClass: cephfs
