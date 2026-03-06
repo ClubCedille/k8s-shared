@@ -10,7 +10,8 @@ spec:
     recovery:
       source: outline-backup
       recoveryTarget:
-        backupID: 20260227T064008
+        backupID: 20260303T230935
+
   externalClusters:
     - name: outline-backup
       barmanObjectStore:
@@ -23,7 +24,7 @@ spec:
           secretAccessKey:
             name: b2-creds
             key: ACCESS_SECRET_KEY
-        serverName: postgresql-outline-cedille/postgresql-outline-cedille
+        serverName: cloud
         wal:
           maxParallel: 8
   storage:
