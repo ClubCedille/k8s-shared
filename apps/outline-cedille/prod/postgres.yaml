@@ -8,25 +8,8 @@ spec:
   instances: 1
   bootstrap:
     recovery:
-      source: outline-backup
-      recoveryTarget:
-        backupID: 20260303T230935
-
-  externalClusters:
-    - name: outline-backup
-      barmanObjectStore:
-        destinationPath: s3://k8s-shared-bucket/
-        endpointURL: https://s3.ca-east-006.backblazeb2.com
-        s3Credentials:
-          accessKeyId:
-            name: b2-creds
-            key: ACCESS_KEY_ID
-          secretAccessKey:
-            name: b2-creds
-            key: ACCESS_SECRET_KEY
-        serverName: cloud
-        wal:
-          maxParallel: 8
+      backup:
+        name: cnpg-backup-schedule-20260303064000
   storage:
     size: 15Gi
     storageClass: cephfs
