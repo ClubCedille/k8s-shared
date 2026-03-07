@@ -1,0 +1,13 @@
+# Backing all forgejo pv
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: forgejo-velero-schedule
+  namespace: velero
+spec:
+  schedule: "35 6 * * *"
+  template:
+    ttl: 168h
+    includedNamespaces:
+      - forgejo
+    snapshotVolumes: true
