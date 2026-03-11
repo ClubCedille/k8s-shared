@@ -10,18 +10,6 @@ spec:
     recovery:
       backup:
         name: cnpg-backup-schedule-20260303064000
-  externalClusters:
-    - name: clusterBackup
-      barmanObjectStore:
-        destinationPath: s3://k8s-shared-bucket/
-        endpointURL: https://s3.ca-east-006.backblazeb2.com
-        s3Credentials:
-          accessKeyId:
-            name: b2-creds
-            key: ACCESS_KEY_ID
-          secretAccessKey:
-            name: b2-creds
-            key: ACCESS_SECRET_KEY
   storage:
     size: 15Gi
     storageClass: cephfs
