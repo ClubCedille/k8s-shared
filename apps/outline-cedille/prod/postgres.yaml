@@ -12,9 +12,9 @@ spec:
     externalClusters:
       - name: outline-cedille-backup
         plugin:
-        name: barman-cloud.cloudnative-pg.io
-        parameters:
-          barmanObjectName: cnpg-outline-cedille-b2
+          - name: barman-cloud.cloudnative-pg.io
+            parameters:
+              barmanObjectName: cnpg-outline-cedille-b2
   storage:
     size: 15Gi
     storageClass: cephfs
