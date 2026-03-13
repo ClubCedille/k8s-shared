@@ -2,17 +2,26 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: postgresql-outline-cedille
-  namespace: outline-cedille
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:17.2
   instances: 1
   bootstrap:
     recovery:
-      backup:
-        name: cnpg-backup-schedule-20260303064000
+         # name: cnpg-backup-schedule-20260303064000
+      source: outline-cedille-backup
+    externalClusters:
+      - name: outline-cedille-backup
+        plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: cnpg-outline-cedille-b2
   storage:
     size: 15Gi
     storageClass: cephfs
+  backup:
+    # needs a cleanup cronjob to delete old backups
+    volumeSnapshot:
+      className: csi-cephfsplugin-snapclass
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
