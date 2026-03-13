@@ -1,0 +1,87 @@
+service:
+  ssh:
+    port: 22
+    type: LoadBalancer
+    loadBalancerIP: 142.137.247.75
+    annotations:
+      metallb.io/allow-shared-ip: "shared-sharedmain-ip"
+
+ingress:
+  enabled: true
+  ingressClassName: contour
+  hosts:
+    - host: git.etsmtl.club
+      paths:
+        - path: /
+          pathType: Prefix
+          port: http
+  tls:
+    - secretName: forgejo-tls-secret
+      hosts:
+        - git.etsmtl.club
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-etsmtl
+    kubernetes.io/tls-acme: "true"
+
+gitea:
+  admin:
+    existingSecret: forgejo-admin-secret
+    email: forgejo@etsmtl.club
+  config:
+    server:
+      ROOT_URL: https://git.etsmtl.club/
+      PROTOCOL: http
+      DOMAIN: git.etsmtl.club
+      LFS_START_SERVER: true
+    service:
+      DISABLE_REGISTRATION: true
+      DEFAULT_ALLOW_CREATE_ORGANIZATION: false
+    oauth2_client:
+      REGISTER_EMAIL_CONFIRM: false
+      OPENID_CONNECT_SCOPES: "openid profile email offline_access"
+      ENABLE_AUTO_REGISTRATION: true
+      USERNAME: nickname
+      UPDATE_AVATAR: false
+      ACCOUNT_LINKING: auto
+    repository:
+      DEFAULT_BRANCH: main
+      MAX_CREATION_LIMIT: 0
+      GO_GET_CLONE_URL_PROTOCOL: ssh
+      ALLOW_FORK_WITHOUT_MAXIMUM_LIMIT: false
+    cache:
+      ADAPTER: redis
+      HOST: redis://forgejo-cache-valkey.forgejo.svc.cluster.local:6379/0
+    session:
+      PROVIDER: redis
+      PROVIDER_CONFIG: redis://forgejo-cache-valkey.forgejo.svc.cluster.local:6379/1
+    queue:
+      TYPE: redis
+      CONN_STR: redis://forgejo-cache-valkey.forgejo.svc.cluster.local:6379/2
+    openid:
+      ENABLE_OPENID_SIGNIN: false
+      ENABLE_OPENID_SIGNUP: false
+    lfs:
+      STORAGE_TYPE: local
+      PATH: /data/forgejo/lfs
+  oauth:
+    - name: "authentik"
+      provider: openidConnect
+      existingSecret: forgejo-oauth-secret
+      autoDiscoverUrl: "https://auth.etsmtl.club/application/o/forgejo/.well-known/openid-configuration"
+      scopes: "openid profile email offline_access"
+      adminGroup: admin
+      groupClaimName: groups
+      groupTeamMap: '{"club-lanets": {"LanETS": ["Members"]},"exec-lanets": {"LanETS": ["Owners"]},"exec-cedille": {"cedille": ["Owners"]},"exec-conjure": {"conjure": ["Owners"]}}'
+      groupTeamMapRemoval: "true"
+  additionalConfigSources:
+    - secret:
+        secretName: forgejo-db-config
+
+persistence:
+  enabled: true
+  create: true
+  size: 20Gi
+  claimName: forgejo-data-claim
+  storageClass: cephfs
+  accessModes:
+    - ReadWriteMany
