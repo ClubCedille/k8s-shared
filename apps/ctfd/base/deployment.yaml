@@ -40,10 +40,10 @@ spec:
             - name: DATABASE_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  key: password
-                  name: postgresql-ctfd-app
+                  key: MYSQL_PASSWORD
+                  name: ctfd-secret
             - name: DATABASE_URL
-              value: postgresql://ctfd:$(DATABASE_PASSWORD)@postgresql-ctfd-rw/ctfd
+              value: mysql+pymysql://ctfd_user:$(DATABASE_PASSWORD)@mysql.ctfd.svc.cluster.local/ctfd
 
           volumeMounts:
             - name: uploads
