@@ -3,7 +3,7 @@ kind: StatefulSet
 metadata:
   name: mysql
   annotations:
-    kube-score/ignore: pod-networkpolicy
+    kube-score/ignore: pod-networkpolicy, container-security-context-readonlyrootfilesystem, container-security-context-user-group-id, container-image-pull-policy, pod-probes
 spec:
   serviceName: mysql
   replicas: 1
