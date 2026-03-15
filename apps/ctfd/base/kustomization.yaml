@@ -5,6 +5,7 @@ resources:
   - deployment.yaml
   - service.yaml
   - pvc.yaml
-  - postgres.yaml
+  - mysql-statefulset.yaml
+  - mysql-service.yaml
   - redis-service.yaml
   - redis-statefulset.yaml
