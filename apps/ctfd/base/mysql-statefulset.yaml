@@ -25,22 +25,22 @@ spec:
             - name: MYSQL_USER
               valueFrom:
                 secretKeyRef:
-                  name: habitek-secret
+                  name: ctfd-secret
                   key: MYSQL_USER
             - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: habitek-secret
+                  name: ctfd-secret
                   key: MYSQL_PASSWORD
             - name: MYSQL_DATABASE
               valueFrom:
                 secretKeyRef:
-                  name: habitek-secret
+                  name: ctfd-secret
                   key: MYSQL_DATABASE
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: habitek-secret
+                  name: ctfd-secret
                   key: MYSQL_ROOT_PASSWORD
           volumeMounts:
             - name: mysql-pv-claim
