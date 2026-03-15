@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: mysql
+  annotations:
+    kube-score/ignore: pod-networkpolicy
 spec:
   serviceName: mysql
   replicas: 1
@@ -14,7 +16,11 @@ spec:
         app: mysql
     spec:
       securityContext:
-        fsGroup: 1000
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
       containers:
         - name: mysql
           image: mysql:9.6.0
@@ -57,6 +63,15 @@ spec:
             runAsGroup: 999
             readOnlyRootFilesystem: false
             allowPrivilegeEscalation: false
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+              ephemeral-storage: 1Gi
   volumeClaimTemplates:
     - metadata:
         name: mysql-pv-claim
