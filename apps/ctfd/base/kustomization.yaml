@@ -9,3 +9,4 @@ resources:
   - mysql-service.yaml
   - redis-service.yaml
   - redis-statefulset.yaml
+  - pdb.yaml
