@@ -19,9 +19,9 @@ spec:
             - name: argocd-server
               port: 80
               protocol: h2c
-    - services:
-        - name: argocd-server
-          port: 80
+        - services:
+            - name: argocd-server
+              port: 80
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
