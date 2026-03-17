@@ -7,14 +7,9 @@ spec:
   instances: 1
   bootstrap:
     recovery:
-         # name: cnpg-backup-schedule-20260303064000
+      name: cnpg-backup-schedule-20260303064000
       source: outline-cedille-backup
-    externalClusters:
-      - name: outline-cedille-backup
-        plugin:
-          - name: barman-cloud.cloudnative-pg.io
-            parameters:
-              barmanObjectName: cnpg-outline-cedille-b2
+
   storage:
     size: 15Gi
     storageClass: cephfs

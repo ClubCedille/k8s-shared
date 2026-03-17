@@ -1,0 +1,42 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: argocd
+
+resources:
+  - resources/base.yaml
+  - resources/argocd-image-updater.yaml
+  - resources/argocd-projects.yaml
+  - resources/ingress.yaml
+  - resources/network-policy.yaml
+
+secretGenerator:
+  - name: cluster-kubernetes.default.svc
+    options:
+      labels:
+        argocd.argoproj.io/secret-type: cluster
+        etsmtl.club/external-network: "true"
+      annotations:
+        etsmtl.club/external-ip: 142.137.247.74
+    literals:
+      - server=https://kubernetes.default.svc
+      - name=k8s-shared
+      - namespace=*
+
+helmCharts:
+  - name: argo-cd
+    repo: https://argoproj.github.io/argo-helm
+    releaseName: argocd
+    version: 9.4.11
+    valuesFile: helm/values.yaml
+
+# patches:
+#   - patch: |-
+#       - op: replace
+#         path: /metadata/name
+#         value: '{{.name}}'
+#       - op: replace
+#         path: /spec/destinations/0/server
+#         value: '{{.server}}'
+#     target:
+#       kind: AppProject

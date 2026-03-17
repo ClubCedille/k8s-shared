@@ -1,0 +1,77 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: default
+spec:
+  sourceRepos:
+    - 'https://github.com/clubcedille/k8s-base.git'
+  destinations:
+    - namespace: '!kube-system'
+      server: 'https://kubernetes.default.svc'
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: k8s-shared
+spec:
+  sourceRepos:
+    - '*'
+  destinations:
+    - namespace: '!kube-system'
+      server: 'https://kubernetes.default.svc'
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: k8s-cedille-sandbox
+spec:
+  sourceRepos:
+    - 'https://github.com/clubcedille/k8s-cedille-sandbox.git'
+  destinations:
+    - namespace: '!kube-system'
+      server: 'https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-sandbox'
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: k8s-cedille-production-v2
+spec:
+  sourceRepos:
+    - 'https://github.com/clubcedille/k8s-cedille-production-v2.git'
+  destinations:
+    - namespace: '!kube-system'
+      server: 'https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-production-v2'
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: k8s-cedille-management-v2
+spec:
+  sourceRepos:
+    - 'https://github.com/clubcedille/k8s-cedille-management-v2.git'
+  destinations:
+    - namespace: '!kube-system'
+      server: 'https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-management-v2'
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  # roles:
+  # # A role which provides read-only access to all applications in the project
+  # - name: read-only
+  #   description: Read-only privileges to my-project
+  #   policies:
+  #   - p, proj:my-project:read-only, applications, get, my-project/*, allow
+  #   groups:
+  #   - my-oidc-group
