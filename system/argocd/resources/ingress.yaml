@@ -11,17 +11,17 @@ spec:
     tls:
       secretName: argocd-tls
   routes:
-  - conditions:
-    - header:
-        contains: application/grpc
-        name: Content-Type
-    services:
-    - name: argocd-server
-      port: 80
-      protocol: h2c
-  - services:
-    - name: argocd-server
-      port: 80
+    - conditions:
+      - header:
+          contains: application/grpc
+          name: Content-Type
+      services:
+        - name: argocd-server
+          port: 80
+          protocol: h2c
+    - services:
+      - name: argocd-server
+        port: 80
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
