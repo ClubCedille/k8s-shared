@@ -18,13 +18,13 @@ metadata:
 rules:
   - apiGroups:
       - ""
-      resources:
-        - secrets
-        - configmaps
-      verbs:
-        - get
-        - list
-        - watch
+    resources:
+      - secrets
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
   - apiGroups:
       - argoproj.io
     resources:
@@ -36,10 +36,10 @@ rules:
       - patch
   - apiGroups:
       - ""
-      resources:
-        - events
-      verbs:
-        - create
+    resources:
+      - events
+    verbs:
+      - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

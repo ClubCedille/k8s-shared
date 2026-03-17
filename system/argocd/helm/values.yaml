@@ -1309,7 +1309,7 @@ redis:
         type: RuntimeDefault
       capabilities:
         drop:
-        - ALL
+          - ALL
 
     ## Probes for Redis exporter (optional)
     ## Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
