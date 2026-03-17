@@ -6,7 +6,7 @@ metadata:
 spec:
   project: "k8s-shared"
   source:
-    repoURL: https://github.com/ClubCedille/k8s-base/
+    repoURL: https://github.com/ClubCedille/k8s-base.git
     targetRevision: HEAD
     path: .
   destination:
