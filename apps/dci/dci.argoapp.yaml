@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dci
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/clubcedille/dci-summercampsite:latest
+    argocd-image-updater.argoproj.io/webapp.update-strategy: digest
+    argocd-image-updater.argoproj.io/webapp.pull-secret: pullsecret:argocd/ghcr-clubcedille-secret
+spec:
+  project: k8s-cedille-production-v2
+  destination:
+    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-production-v2
+    namespace: dci
+  source:
+    repoURL: https://github.com/ClubCedille/k8s-cedille-production-v2
+    path: apps/dci/prod
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
