@@ -1,20 +1,20 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: dci
+  name: dci-summercamp2026
   namespace: argocd
   annotations:
-    argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/clubcedille/dci-summercampsite:latest
+    argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/clubcedille/dci-summercamp2026:latest
     argocd-image-updater.argoproj.io/webapp.update-strategy: digest
     argocd-image-updater.argoproj.io/webapp.pull-secret: pullsecret:argocd/ghcr-clubcedille-secret
 spec:
-  project: k8s-cedille-production-v2
+  project: k8s-shared
   destination:
-    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-production-v2
-    namespace: dci
+    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
+    namespace: dci-summercamp2026
   source:
     repoURL: https://github.com/ClubCedille/k8s-cedille-production-v2
-    path: apps/dci/prod
+    path: apps/dci-summercamp2026/prod
     targetRevision: HEAD
   syncPolicy:
     syncOptions:

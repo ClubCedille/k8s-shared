@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dci
+  name: dci-summercamp2026
   annotations:
     kube-score/ignore: pod-networkpolicy,container-image-tag
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: dci
+      app: dci-summercamp2026
   template:
     metadata:
       labels:
-        app: dci
+        app: dci-summercamp2026
     spec:
       imagePullSecrets:
         - name: ghcr-clubcedille-secret
@@ -23,7 +23,7 @@ spec:
           emptyDir: {}
       containers:
         - name: dci
-          image: ghcr.io/clubcedille/dci-summercampsite:latest
+          image: ghcr.io/clubcedille/dci-summercamp2026:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
