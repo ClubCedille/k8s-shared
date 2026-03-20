@@ -350,8 +350,8 @@ configs:
     policy.csv: |
       g, authentik Admins, role:admin
       g, authentik Read-only, role:readonly
-      g, authentik Exec-Cedille, role:readonly
-      g, authentik Club-Cedille, role:readonly
+      g, exec-cedille, role:readonly
+      g, club-cedille, role:readonly
 
     # Policy rules are in the form:
     #  p, subject, resource, action, object, effect
