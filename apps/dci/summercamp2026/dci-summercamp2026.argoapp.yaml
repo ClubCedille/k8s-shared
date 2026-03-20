@@ -13,7 +13,7 @@ spec:
     server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
     namespace: dci-summercamp2026
   source:
-    repoURL: https://github.com/ClubCedille/k8s-cedille-production-v2
+    repoURL: https://github.com/ClubCedille/k8s-shared
     path: apps/dci/summercamp2026/prod
     targetRevision: HEAD
   syncPolicy:
