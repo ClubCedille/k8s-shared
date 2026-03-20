@@ -1,0 +1,84 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dci-summercamp2026
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-http
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/tls-acme: "true"
+spec:
+  ingressClassName: contour
+  tls:
+    - secretName: dci-summercamp2026
+      hosts:
+        - summercamp2026.etsmtl.club
+  rules:
+    - host: summercamp2026.etsmtl.club
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: dci-summercamp2026-svc
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dci-summercamp2026-dciets
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-http
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/tls-acme: "true"
+spec:
+  ingressClassName: contour
+  tls:
+    - secretName: dci-summercamp2026-dciets-tls
+      hosts:
+        - summercamp.dciets.com
+  rules:
+    - host: summercamp.dciets.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: dci-summercamp2026-svc
+                port:
+                  number: 80
+# ---
+# apiVersion: projectcontour.io/v1
+# kind: HTTPProxy
+# metadata:
+#   name: dci-summercamp2026-dciets
+#   namespace: dci-summercamp2026
+# spec:
+#   virtualhost:
+#     fqdn: summercamp.dciets.com
+#     tls:
+#       secretName: dci-summercamp2026-dciets-tls
+#       minimumProtocolVersion: "1.3"
+#   routes:
+#     - conditions:
+#         - prefix: /
+#       services:
+#         - name: dci-summercamp2026-svc
+#           port: 80
+#       enableWebsockets: true
+# ---
+# apiVersion: cert-manager.io/v1
+# kind: Certificate
+# metadata:
+#   name: dci-summercamp2026-dciets-tls
+#   namespace: dci-summercamp2026
+# spec:
+#   secretName: dci-summercamp2026-dciets-tls
+#   issuerRef:
+#     name: letsencrypt-http
+#     kind: ClusterIssuer
+#   commonName: summercamp.dciets.com
+#   dnsNames:
+#     - summercamp.dciets.com

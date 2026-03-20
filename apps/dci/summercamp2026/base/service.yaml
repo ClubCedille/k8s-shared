@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dci-summercamp2026-svc
+spec:
+  selector:
+    app: dci-summercamp2026
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
