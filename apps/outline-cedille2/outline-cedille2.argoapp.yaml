@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: outline-cedille2-shared
+  namespace: argocd
+spec:
+  destination:
+    namespace: outline-cedille2
+    server: https://cedille2.kubernetes.omni.siderolabs.io?cluster=k8s-shared
+  project: k8s-shared
+  source:
+    path: apps/outline-cedille2/prod
+    repoURL: https://github.com/ClubCedille/k8s-shared.git
+    targetRevision: HEAD
+  # syncPolicy:
+  #   automated:
+  #     prune: false
+  #     selfHeal: false
+  #   syncOptions:
+  #     - CreateNamespace=true
