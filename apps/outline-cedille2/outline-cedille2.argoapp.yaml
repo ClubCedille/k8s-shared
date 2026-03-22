@@ -12,9 +12,9 @@ spec:
     path: apps/outline-cedille2/prod
     repoURL: https://github.com/ClubCedille/k8s-shared.git
     targetRevision: HEAD
-  # syncPolicy:
-  #   automated:
-  #     prune: false
-  #     selfHeal: false
-  #   syncOptions:
-  #     - CreateNamespace=true
+    # syncPolicy:
+    #   automated:
+    #     prune: false
+    #     selfHeal: false
+    #   syncOptions:
+    #     - CreateNamespace=true
