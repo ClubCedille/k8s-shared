@@ -20,21 +20,25 @@ global:
         claimName: authentik-branding-pvc
   volumeMounts:
     - name: authentik-branding
-      mountPath: /data/media/custom/branding
-  initContainers:
-    - name: init-permissions
-      image: busybox
-      command:
-        - /bin/sh
-        - -c
-        - |
-          chown -R <1000>:<1000> /data/media/custom/branding
+      mountPath: /data/media/
+  # initContainers:
+  #   - name: init-permissions
+  #     image: busybox
+  #     command:
+  #       - /bin/sh
+  #       - -c
+  #       - |
+  #         chown -R <1000>:<1000> /data/media/
   securityContext:
     runAsUser: 1000
     runAsGroup: 1000
     fsGroup: 1000
 
   env:
+    - name: AUTHENTIK_STORAGE__BACKEND
+      value: "file"
+    - name: AUTHENTIK_STORAGE__FILE__PATH
+      value: "/data/media"
     - name: AUTHENTIK_SECRET_KEY
       valueFrom:
         secretKeyRef:
