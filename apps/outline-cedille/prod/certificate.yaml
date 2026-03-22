@@ -7,6 +7,6 @@ spec:
   issuerRef:
     name: letsencrypt-etsmtl
     kind: ClusterIssuer
-  commonName: cedille2.etsmtl.club
+  commonName: cedille-backup.etsmtl.club
   dnsNames:
-    - cedille2.etsmtl.club
+    - cedille-backup.etsmtl.club
