@@ -4,7 +4,7 @@ metadata:
   name: outline-cedille2
 spec:
   virtualhost:
-    fqdn: cedille2.etsmtl.club
+    fqdn: cedille.etsmtl.club
     tls:
       secretName: outline-cedille2-tls
       minimumProtocolVersion: "1.3"
