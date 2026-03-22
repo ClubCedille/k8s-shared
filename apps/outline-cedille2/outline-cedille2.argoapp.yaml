@@ -6,15 +6,15 @@ metadata:
 spec:
   destination:
     namespace: outline-cedille2
-    server: https://cedille2.kubernetes.omni.siderolabs.io?cluster=k8s-shared
+    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
   project: k8s-shared
   source:
     path: apps/outline-cedille2/prod
     repoURL: https://github.com/ClubCedille/k8s-shared.git
     targetRevision: HEAD
-  # syncPolicy:
-  #   automated:
-  #     prune: false
-  #     selfHeal: false
-  #   syncOptions:
-  #     - CreateNamespace=true
+    # syncPolicy:
+    #   automated:
+    #     prune: false
+    #     selfHeal: false
+    #   syncOptions:
+    #     - CreateNamespace=true
