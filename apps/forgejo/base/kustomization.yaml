@@ -4,7 +4,7 @@ kind: Kustomization
 helmCharts:
   - name: valkey
     releaseName: forgejo-cache
-    repo: https:// valkey.io/valkey-helm/
+    repo: https://valkey.io/valkey-helm/
     version: 0.9.3
     valuesFile: valkey.values.yaml
     namespace: forgejo
