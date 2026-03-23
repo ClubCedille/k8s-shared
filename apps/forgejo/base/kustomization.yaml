@@ -17,6 +17,6 @@ helmCharts:
   - name: forgejo
     releaseName: forgejo
     repo: oci://code.forgejo.org/forgejo-helm
-    version: 16.0.0
+    version: 16.2.1
     valuesFile: forgejo.values.yaml
     namespace: forgejo
