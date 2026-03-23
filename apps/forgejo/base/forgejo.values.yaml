@@ -3,8 +3,6 @@ service:
     port: 22
     type: LoadBalancer
     loadBalancerIP: 142.137.247.76
-    annotations:
-      metallb.io/allow-shared-ip: "shared-sharedmain-ip"
 
 ingress:
   enabled: true
