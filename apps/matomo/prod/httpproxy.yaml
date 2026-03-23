@@ -14,7 +14,7 @@ spec:
       enableWebsockets: true
       services:
         - name: matomo-svc
-          port: 2000
+          port: 80
       timeoutPolicy:
         idle: 600s
         response: 600s
