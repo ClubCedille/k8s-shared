@@ -72,7 +72,10 @@ spec:
             - name: MATOMO_DATABASE_USERNAME
               value: matomo
             - name: MATOMO_DATABASE_PASSWORD
-              valueFrom: {secretKeyRef: {name: matomo-config, key: MYSQL_PASSWORD}}
+              valueFrom:
+                secretKeyRef:
+                  name: mariadb-config
+                  key: MYSQL_PASSWORD
             - name: MATOMO_DATABASE_DBNAME
               value: matomo
             - name: MATOMO_DATABASE_ADAPTER

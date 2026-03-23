@@ -40,7 +40,7 @@ spec:
             - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mariadb-config
+                  name: mariadb-condig
                   key: MYSQL_PASSWORD
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
