@@ -1,7 +1,7 @@
 
 # Creation de fichiers secrets:
 
-1. **base/db-config**
+1. **db-config**
 ```ini
 DB_TYPE = postgres
 HOST = postgresql-forgejo-rw.forgejo.svc.cluster.local:5432
@@ -10,7 +10,7 @@ USER = DB_USER
 PASSWD = "DB_PASSWORD"
 ```
 create the secret using: `kubectl create secret generic forgejo-db-config --from-file=database=db-config`
-2. **base/forgejo-pstgres.secret.yaml**
+2. **forgejo-pstgres.secret**
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -22,7 +22,7 @@ stringData:
   username: DB_USER
   password: "DB_PASSWORD"
 ```
-3. **base/forgejo-user.secret.yaml**
+3. **forgejo-user.secret**
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -36,7 +36,7 @@ stringData:
   password: "ADMIN_USER_PASSWORD"
 ```
 
-4. **base/oidc.secret.yaml**
+4. **oidc.secret**
 ```yaml
 apiVersion: v1
 kind: Secret
