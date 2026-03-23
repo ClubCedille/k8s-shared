@@ -2,7 +2,7 @@ service:
   ssh:
     port: 22
     type: LoadBalancer
-    loadBalancerIP: 142.137.247.75
+    loadBalancerIP: 142.137.247.76
     annotations:
       metallb.io/allow-shared-ip: "shared-sharedmain-ip"
 
@@ -33,6 +33,7 @@ gitea:
       PROTOCOL: http
       DOMAIN: git.etsmtl.club
       LFS_START_SERVER: true
+      SSH_DOMAIN: ssh.git.etsmtl.club
     service:
       DISABLE_REGISTRATION: true
       DEFAULT_ALLOW_CREATE_ORGANIZATION: false
