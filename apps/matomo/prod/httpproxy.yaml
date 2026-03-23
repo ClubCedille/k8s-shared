@@ -13,7 +13,7 @@ spec:
         - prefix: /
       enableWebsockets: true
       services:
-        - name: matomo
+        - name: matomo-svc
           port: 2000
       timeoutPolicy:
         idle: 600s
