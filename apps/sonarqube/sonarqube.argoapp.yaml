@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sonarqube
+  namespace: argocd
+spec:
+  destination:
+    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
+    namespace: sonarqube
+  project: k8s-shared
+  sources:
+    - repoURL: "https://github.com/ClubCedille/k8s-shared.git"
+      path: apps/sonarqube/resources
+      targetRevision: HEAD
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
