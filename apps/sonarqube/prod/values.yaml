@@ -17,7 +17,12 @@ community:
 
 # Settings to configure elasticsearch host requirements
 elasticsearch:
-  bootstrapChecks: true
+  bootstrapChecks: false
+
+setAdminPassword:
+  # The above values can be also provided by a secret that contains "password" and "currentPassword" as keys. You can generate such a secret in your cluster
+  # using "kubectl create secret generic admin-password-secret-name --from-literal=password=admin --from-literal=currentPassword=admin"
+  passwordSecretName: "sonarqube-admin-password-secret"
 
 # Those proxy settings will be propagated to the install-plugin and prometheus-exporter init containers
 # if httpProxySecret is set the other one will be ignored
@@ -47,45 +52,45 @@ ingress:
 
 initSysctl:
   enabled: false
-## Array of extra containers to run alongside the SonarQube container
-##
-## Example:
-## - name: myapp-container
-##   image: busybox
-##   command: ['sh', '-c', 'echo Hello && sleep 3600']
-##
-extraVolumes:
-  - name: webapp
-    emptyDir:
-      sizeLimit: 50Mi
-extraVolumeMounts:
-  - name: webapp
-    mountPath: /opt/sonarqube/web
-extraInitContainers:
-  - name: download-webapp
-    image: busybox:1.37
-    volumeMounts:
-      - name: webapp
-        mountPath: /web
-    command:
-      - sh
-      - -c
-      - wget -O /tmp/sonarqube-webapp.zip https://github.com/mc1arke/sonarqube-community-branch-plugin/releases/download/26.2.0/sonarqube-webapp.zip &&
-        unzip -o /tmp/sonarqube-webapp.zip -d /web &&
-        chmod -R 755 /web &&
-        chown -R 1000:0 /web &&
-        rm -f /tmp/sonarqube-webapp.zip
+  ## Array of extra containers to run alongside the SonarQube container
+  ##
+  ## Example:
+  ## - name: myapp-container
+  ##   image: busybox
+  ##   command: ['sh', '-c', 'echo Hello && sleep 3600']
+  ##
+  # extraVolumes:
+  #   - name: webapp
+  #     emptyDir:
+  #       sizeLimit: 50Mi
+  # extraVolumeMounts:
+  #   - name: webapp
+  #     mountPath: /opt/sonarqube/web
+  # extraInitContainers:
+  #   - name: download-webapp
+  #     image: busybox:1.37
+  #     volumeMounts:
+  #       - name: webapp
+  #         mountPath: /web
+  #     command:
+  #       - sh
+  #       - -c
+  #       - wget -O /tmp/sonarqube-webapp.zip https://github.com/mc1arke/sonarqube-community-branch-plugin/releases/download/26.2.0/sonarqube-webapp.zip &&
+  #         unzip -o /tmp/sonarqube-webapp.zip -d /web &&
+  #         chmod -R 755 /web &&
+  #         chown -R 1000:0 /web &&
+  #         rm -f /tmp/sonarqube-webapp.zip
 
-# List of plugins to install.
-# For example:
-# plugins:
-#  install:
-#    - "https://github.com/AmadeusITGroup/sonar-stash/releases/download/1.3.0/sonar-stash-plugin-1.3.0.jar"
-#    - "https://github.com/SonarSource/sonar-ldap/releases/download/2.2-RC3/sonar-ldap-plugin-2.2.0.601.jar"
-#
-plugins:
-  install:
-    - https://github.com/mc1arke/sonarqube-community-branch-plugin/releases/download/26.2.0/sonarqube-community-branch-plugin-26.2.0.jar
+  # List of plugins to install.
+  # For example:
+  # plugins:
+  #  install:
+  #    - "https://github.com/AmadeusITGroup/sonar-stash/releases/download/1.3.0/sonar-stash-plugin-1.3.0.jar"
+  #    - "https://github.com/SonarSource/sonar-ldap/releases/download/2.2-RC3/sonar-ldap-plugin-2.2.0.601.jar"
+  #
+  # plugins:
+  #   install:
+  #     - https://github.com/mc1arke/sonarqube-community-branch-plugin/releases/download/26.2.0/sonarqube-community-branch-plugin-26.2.0.jar
 
   # For use behind a corporate proxy when downloading plugins
   # httpProxy: ""
@@ -109,35 +114,37 @@ sonarProperties:
   sonar.core.serverBaseURL: https://sonarqube.etsmtl.club
   sonar.lf.enableGravatar: true
   sonar.log.level: INFO
-  sonar.web.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-26.2.0.jar=web"
-  sonar.ce.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-26.2.0.jar=ce"
+  # sonar.web.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-26.2.0.jar=web"
+  # sonar.ce.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-26.2.0.jar=ce"
   sonar.auth.saml.enabled: true
+  # applicationId == authentik Audience
   sonar.auth.saml.applicationId: sonarqube
   sonar.auth.saml.providerName: authentik
+  sonar.auth.saml.certificate.secured: "Provide the certificate as a single, continuous string without headers or line breaks"
+  # providerId == authentik Issuer
   sonar.auth.saml.providerId: https://auth.etsmtl.club/
+  # loginUrl == authentik SSO URL (Redirect)
   sonar.auth.saml.loginUrl: https://auth.etsmtl.club/application/saml/sonarqube/sso/binding/redirect/
+  # user.* == authentik > Provider > Previewe
   sonar.auth.saml.user.login: http://schemas.goauthentik.io/2021/02/saml/username
   sonar.auth.saml.user.name: http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name
   sonar.auth.saml.user.email: http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress
   sonar.auth.saml.group.name: http://schemas.xmlsoap.org/claims/Group
 
-sonarSecretProperties: sonarqube-saml-secret
+# sonarSecretProperties: sonarqube-saml-secret
 
 ## Override JDBC values
 ## for external Databases
 jdbcOverwrite:
-  enabled: false
+  enabled: true
   # The JDBC url of the external DB
-  jdbcUrl: "jdbc:postgresql://myPostgres/myDatabase"
+  jdbcUrl: "jdbc:postgresql://postgresql-sonarqube-cluster-rw.sonarqube.svc.cluster.local/sonarqube"
   # The DB user that should be used for the JDBC connection
-  jdbcUsername: "sonarUser"
-  # Use this if you don't mind the DB password getting stored in plain text within the values file
-  # (DEPRECATED) Please use `jdbcOverwrite.jdbcSecretName` along with `jdbcOverwrite.jdbcSecretPasswordKey` instead
-  jdbcPassword: "sonarPass"
+  jdbcUsername: "sonarqube"
   ## Alternatively, use a pre-existing k8s secret containing the DB password
-  # jdbcSecretName: "sonarqube-jdbc"
+  jdbcSecretName: "postgres-secret-sonarqube"
   ## and the secretValueKey of the password found within that secret
-  # jdbcSecretPasswordKey: "jdbc-password"
+  jdbcSecretPasswordKey: "password"
   # To install the oracle JDBC driver, set the following URL (in this example, we set the URL for the Oracle 11 driver. Please update it to your target driver URL.).
   # If downloading the driver requires authentication, please set the .netrc secret file with a key "netrc" to use basic auth.
   # oracleJdbcDriver:
