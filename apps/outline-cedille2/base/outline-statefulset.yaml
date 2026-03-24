@@ -22,7 +22,6 @@ spec:
           command: ["sh", "-c", "chown -R 10001:10001 /var/lib/outline/data"]
           securityContext:
             runAsUser: 10001
-            runAsNonRoot: false
           volumeMounts:
             - name: outline-cedille2-pv-claim
               mountPath: /var/lib/outline/data
