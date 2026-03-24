@@ -108,7 +108,6 @@ sonarProperties:
   # applicationId == authentik Audience
   sonar.auth.saml.applicationId: sonarqube
   sonar.auth.saml.providerName: authentik
-  sonar.auth.saml.certificate.secured: "Provide the certificate as a single, continuous string without headers or line breaks"
   # providerId == authentik Issuer
   sonar.auth.saml.providerId: https://auth.etsmtl.club/
   # loginUrl == authentik SSO URL (Redirect)
@@ -119,7 +118,7 @@ sonarProperties:
   sonar.auth.saml.user.email: http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress
   sonar.auth.saml.group.name: http://schemas.xmlsoap.org/claims/Group
 
-# sonarSecretProperties: sonarqube-saml-secret
+sonarSecretProperties: "sonarqube-saml-secret"
 
 ## Override JDBC values
 ## for external Databases
