@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: littlelink
+  namespace: argocd
+spec:
+  destination:
+    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
+    namespace: littlelink
+  project: k8s-shared
+  sources:
+    - repoURL: https://github.com/ClubCedille/k8s-shared.git
+      targetRevision: HEAD
+      path: apps/littlelink/helm
+      helm:
+        releaseName: littlelink
+    - repoURL: https://github.com/ClubCedille/k8s-shared.git
+      targetRevision: HEAD
+      path: apps/littlelink/resources
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

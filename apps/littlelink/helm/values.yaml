@@ -1,0 +1,22 @@
+fullnameOverride: littleLink
+
+replicaCount: 1
+
+image:
+  repository: docker.io/momo4dev/littlelink
+  tag: littlelink-build1
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+
+resources:
+  requests:
+    cpu: 25m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+    

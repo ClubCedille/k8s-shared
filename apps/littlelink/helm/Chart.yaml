@@ -1,0 +1,6 @@
+apiVersion: v2
+name: littlelink
+description: LittleLink deployment
+type: application
+version: 0.1.0
+appVersion: "littlelink-build1"
