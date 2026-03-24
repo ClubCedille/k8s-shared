@@ -21,7 +21,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: matomo-plugin
+  name: matomo-plugins
 spec:
   accessModes: ["ReadWriteOnce"]
   resources:
