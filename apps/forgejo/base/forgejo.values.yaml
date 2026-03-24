@@ -84,3 +84,17 @@ persistence:
   storageClass: cephfs
   accessModes:
     - ReadWriteMany
+
+# The helm chart advices against using this because of storage write concurency problems that occur with ReadWriteOnce storage on most Kubernetes setups.
+# In our case our storage is configured to ReadWriteMany allowing multiple instances to update files concurently. We also have DB et Cache setup to support
+# multiple instances of Forgejo concurently.
+# In this case the two pods would be on only for a franction of a second:
+# maxUnavailable:0 means k8s can't have any "active" pods unavailable
+# maxSurge: 1 tells k8s it's allowed to have 1 pod over the limit for exception situations.
+# What will happen with the rolling update is it will keep the old pod up. When the new one is 100% ready it will start killing the old one. So we will only have
+# 2 pods in the fraction of a second where new pod is ready but old pod hasn't been destroyed it.
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
