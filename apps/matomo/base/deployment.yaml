@@ -24,6 +24,14 @@ spec:
         - name: matomo-data
           persistentVolumeClaim:
             claimName: matomo-data
+
+        initContainers:
+          - name: extract-matomo
+            image: alpine:latest
+            command: [ "sh", "-c"]
+            args:
+              - >
+                tar --no-same-owner --no-same-permissions -xf /tmp/matomo.tar.gz -C /var/www/html/
       # initContainers:
       #   - name: fix-perms
       #     image: busybox:1.36
