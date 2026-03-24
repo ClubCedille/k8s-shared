@@ -70,7 +70,7 @@ gitea:
       scopes: "openid profile email offline_access"
       adminGroup: admin
       groupClaimName: groups
-      groupTeamMap: '{"club-lanets": {"LanETS": ["Members"]},"exec-lanets": {"LanETS": ["Owners"]},"exec-cedille": {"cedille": ["Owners"]},"exec-conjure": {"conjure": ["Owners"]}}'
+      groupTeamMap: '{"club-lanets": {"Lan_ETS": ["Members"]},"exec-lanets": {"Lan_ETS": ["Owners"]},"exec-cedille": {"cedille": ["Owners"]},"exec-conjure": {"conjure": ["Owners"]}}'
       groupTeamMapRemoval: "true"
   additionalConfigSources:
     - secret:
