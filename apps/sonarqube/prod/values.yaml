@@ -24,18 +24,6 @@ setAdminPassword:
   # using "kubectl create secret generic admin-password-secret-name --from-literal=password=admin --from-literal=currentPassword=admin"
   passwordSecretName: "sonarqube-admin-password-secret"
 
-# Those proxy settings will be propagated to the install-plugin and prometheus-exporter init containers
-# if httpProxySecret is set the other one will be ignored
-# the secret should contain exactly the keys http_proxy, https_proxy and no_proxy
-httpProxySecret: ""
-httpProxy: ""
-httpsProxy: ""
-noProxy: ""
-
-# will be used as default for ingress path and probes path, will be injected in .Values.env as SONAR_WEB_CONTEXT
-# if .Values.env.SONAR_WEB_CONTEXT is set, this value will be ignored
-sonarWebContext: ""
-
 ingress:
   enabled: true
   ingressClassName: contour
