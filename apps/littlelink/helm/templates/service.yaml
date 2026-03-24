@@ -4,10 +4,10 @@ metadata:
   name: littlelink
   namespace: littlelink
 spec:
-  type: {{ .Values.service.type }}
+  type: {{.Values.service.type}}
   selector:
     app: littlelink
   ports:
     - name: http
-      port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.targetPort }}
+      port: {{.Values.service.port}}
+      targetPort: {{.Values.service.targetPort}}

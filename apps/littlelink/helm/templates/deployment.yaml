@@ -4,7 +4,7 @@ metadata:
   name: littlelink
   namespace: littlelink
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{.Values.replicaCount}}
   selector:
     matchLabels:
       app: littlelink
@@ -19,8 +19,8 @@ spec:
           type: RuntimeDefault
       containers:
         - name: littlelink
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+          image: "{{.Values.image.repository}}:{{.Values.image.tag}}"
+          imagePullPolicy: "{{.Values.image.pullPolicy}}"
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -28,7 +28,7 @@ spec:
                 - ALL
           ports:
             - name: http
-              containerPort: {{ .Values.service.targetPort }}
+              containerPort: {{.Values.service.targetPort}}
           readinessProbe:
             httpGet:
               path: /
@@ -43,8 +43,8 @@ spec:
             periodSeconds: 20
           resources:
             requests:
-              cpu: {{ .Values.resources.requests.cpu | quote }}
-              memory: {{ .Values.resources.requests.memory | quote }}
+              cpu: {{.Values.resources.requests.cpu | quote}}
+              memory: {{.Values.resources.requests.memory | quote}}
             limits:
-              cpu: {{ .Values.resources.limits.cpu | quote }}
-              memory: {{ .Values.resources.limits.memory | quote }}
+              cpu: {{.Values.resources.limits.cpu | quote}}
+              memory: {{.Values.resources.limits.memory | quote}}
