@@ -4,6 +4,18 @@ Le nom de domaine prévu est :
 
 l’application est servie comme un site statique via **NGINX** dans Kubernetes.
 
+J'ai testé déployed le namespace via Helm et tout fonctionne. J'ai supprimé ensuite le namespace apres l'avoir testé.
+
+# Sequence des commandes du test et deploy:
+- kubectl create namespace littlelink
+- helm upgrade --install littlelink .\apps\littlelink\helm -n littlelink --create-namespace
+- kubectl get pods -n littlelink -w
+- kubectl port-forward -n littlelink svc/littlelink 8080:80
+
+# Suppression du namespace:
+- helm uninstall littlelink -n littlelink
+- kubectl delete namespace littlelink
+
 ## Structure du dossier : Généré avec le plugin ASCII Tree Generator
 
 ```text
@@ -39,3 +51,5 @@ Après correction :
 - un listener du conteneur sur le port **8080** ;
 - l’ajout d’un `securityContext` dans le `Deployment`.
 ```
+# Vous pouvez verifier que ca ne tourne plus en non-root via la cmd suivante:
+- kubectl exec -n littlelink deploy/littlelink -- id
