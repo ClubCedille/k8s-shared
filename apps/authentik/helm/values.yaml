@@ -7,6 +7,13 @@ server:
     enabled: false
     hosts:
       - auth.etsmtl.club
+  pdb:
+    enabled: true
+    minAvailable: 1
+  autoscaling:
+    enabled: true
+    maxReplicas: 5
+    minReplicas: 2
 
 defaultStorageClass: cephfs
 
