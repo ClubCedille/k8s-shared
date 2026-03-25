@@ -38,7 +38,7 @@ global:
     - name: AUTHENTIK_STORAGE__BACKEND
       value: "file"
     - name: AUTHENTIK_STORAGE__FILE__PATH
-      value: "/data/media"
+      value: "/media"
     - name: AUTHENTIK_SECRET_KEY
       valueFrom:
         secretKeyRef:
