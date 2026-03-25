@@ -14,12 +14,12 @@ spec:
       labels:
         app: matomo
     spec:
-      # securityContext:
-      #   runAsNonRoot: true
-      #   runAsUser: 10001
-      #   runAsGroup: 10001
-      #   fsGroup: 10001
-      #   fsGroupChangePolicy: "OnRootMismatch"
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: "OnRootMismatch"
       volumes:
         - name: matomo-data
           persistentVolumeClaim:
