@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: matomo-data
 spec:
-  accessModes: ["ReadWriteOnce"]
+  accessModes: ["ReadWriteMany"]
   resources:
     requests:
       storage: 15Gi
@@ -13,7 +13,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: matomo-tmp
 spec:
-  accessModes: ["ReadWriteOnce"]
+  accessModes: ["ReadWriteMany"]
   resources:
     requests:
       storage: 5Gi
@@ -23,7 +23,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: matomo-plugins
 spec:
-  accessModes: ["ReadWriteOnce"]
+  accessModes: ["ReadWriteMany"]
   resources:
     requests:
       storage: 5Gi
