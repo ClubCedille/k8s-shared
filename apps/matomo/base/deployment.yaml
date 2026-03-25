@@ -25,11 +25,9 @@ spec:
           persistentVolumeClaim:
             claimName: matomo-data
         - name: matomo-tmp
-          persistentVolumeClaim:
-            claimName: matomo-tmp
+          emptyDir: {}
         - name: matomo-plugins
-          persistentVolumeClaim:
-            claimName: matomo-plugins
+          emptyDir: {}
       containers:
         - name: matomo
           image: matomo:5.8.0-fpm
