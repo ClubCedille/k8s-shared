@@ -28,6 +28,19 @@ spec:
           emptyDir: {}
         - name: matomo-plugins
           emptyDir: {}
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ["sh", "-c", "chown -R 10001:10001 /var/www/html"]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: matomo-data
+              mountPath: /var/www/html/config
+            - name: matomo-plugins
+              mountPath: /var/www/html/plugins
+            - name: matomo-tmp
+              mountPath: /var/www/html/tmp
       containers:
         - name: matomo
           image: matomo:5.8.0-fpm
