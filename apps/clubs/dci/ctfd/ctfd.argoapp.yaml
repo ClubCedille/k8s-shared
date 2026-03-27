@@ -12,7 +12,7 @@ spec:
   project: k8s-shared
   source:
     repoURL: https://github.com/ClubCedille/k8s-shared.git
-    path: apps/ctfd/prod
+    path: apps/clubs/dci/ctfd/prod
     targetRevision: HEAD
   syncPolicy:
     automated:
