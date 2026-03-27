@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: exutoire
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-http
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/tls-acme: "true"
+spec:
+  ingressClassName: contour
+  tls:
+    - secretName: exutoire
+      hosts:
+        - exutoire.etsmtl.club
+  rules:
+    - host: exutoire.etsmtl.club
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: exutoire-svc
+                port:
+                  number: 80

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exutoire
+  annotations:
+    kube-score/ignore: pod-networkpolicy,container-image-tag
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: exutoire
+  template:
+    metadata:
+      labels:
+        app: exutoire
+    spec:
+      imagePullSecrets:
+        - name: ghcr-clubcedille-secret
+      volumes:
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+      containers:
+        - name: exutoire
+          image: ghcr.io/clubcedille/exutoire:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+              ephemeral-storage: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+            seccompProfile:
+              type: RuntimeDefault
