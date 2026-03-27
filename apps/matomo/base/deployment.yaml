@@ -24,26 +24,46 @@ spec:
         - name: matomo-data
           persistentVolumeClaim:
             claimName: matomo-data
+        - name: tmp
+          emptyDir: {}
         - name: matomo-tmp
           emptyDir: {}
-        - name: matomo-plugins
-          emptyDir: {}
       initContainers:
-        - name: fix-permissions
-          image: busybox
-          command: ["sh", "-c", "chown -R 10001:10001 /var/www/html"]
+        - name: fix-perms
+          image: busybox:1.36
+          imagePullPolicy: Always
+          command: ["sh", "-c"]
+          args:
+            - >
+              chown -R 10001:10001 /var/www/html/config /var/www/html/tmp || true;
+              chmod -R g+rwX /var/www/html/config /var/www/html/tmp || true
           securityContext:
-            runAsUser: 0
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+          resources:
+            requests:
+              cpu: 5m
+              memory: 16Mi
+              ephemeral-storage: 8Mi
+            limits:
+              cpu: 50m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
           volumeMounts:
             - name: matomo-data
               mountPath: /var/www/html/config
-            - name: matomo-plugins
-              mountPath: /var/www/html/plugins
             - name: matomo-tmp
               mountPath: /var/www/html/tmp
       containers:
         - name: matomo
-          image: matomo:5.8.0-fpm
+          image: matomo:5.5.1-fpm
           imagePullPolicy: Always
           ports:
             - name: http
@@ -67,8 +87,8 @@ spec:
           volumeMounts:
             - name: matomo-data
               mountPath: /var/www/html/config
-            - name: matomo-plugins
-              mountPath: /var/www/html/plugins
+            - name: tmp
+              mountPath: /tmp
             - name: matomo-tmp
               mountPath: /var/www/html/tmp
           resources:
@@ -82,7 +102,9 @@ spec:
               ephemeral-storage: 1Gi
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
             seccompProfile:
               type: RuntimeDefault
           readinessProbe:
