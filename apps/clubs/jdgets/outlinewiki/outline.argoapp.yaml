@@ -9,7 +9,7 @@ spec:
     server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
   project: k8s-shared
   source:
-    path: apps/jdgets/outlinewiki/prod
+    path: apps/clubs/jdgets/outlinewiki/prod
     repoURL: https://github.com/ClubCedille/k8s-shared
     targetRevision: HEAD
   syncPolicy:
