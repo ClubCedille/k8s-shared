@@ -4,7 +4,7 @@ metadata:
   name: jdgets-outlinewiki
 spec:
   virtualhost:
-    fqdn: jdgets-outlinewiki.etsmtl.club
+    fqdn: wiki.jdgets.etsmtl.club
     tls:
       secretName: outline-cedille-tls
       minimumProtocolVersion: "1.3"
