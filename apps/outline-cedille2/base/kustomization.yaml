@@ -1,8 +1,0 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-  - outline-service.yaml
-  - outline-statefulset.yaml
-  - outline-pdb.yaml
-  - redis-service.yaml
-  - redis-statefulset.yaml
