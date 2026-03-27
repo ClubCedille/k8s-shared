@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: outline-sync-config
+data:
+  OUTLINE_URL: "https://jdgets-outlinewiki.etsmtl.club"
+  AUTHENTIK_URL: "https://auth.etsmtl.club"
+  AUTO_CREATE_GROUPS: "False"
+  SYNC_GROUP_REGEX: "^club-.*"
