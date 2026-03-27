@@ -14,7 +14,7 @@ spec:
     namespace: dci-summercamp2026
   source:
     repoURL: https://github.com/ClubCedille/k8s-shared
-    path: apps/dci/summercamp2026/prod
+    path: apps/clubs/dci/summercamp2026/prod
     targetRevision: HEAD
   syncPolicy:
     syncOptions:
