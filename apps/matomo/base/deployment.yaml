@@ -44,8 +44,8 @@ spec:
               drop: ["ALL"]
             seccompProfile:
               type: RuntimeDefault
-            runAsNonRoot: true
-            runAsUser: 10001
+            runAsUser: 0
+            runAsNonRoot: false
             runAsGroup: 10001
           resources:
             requests:
