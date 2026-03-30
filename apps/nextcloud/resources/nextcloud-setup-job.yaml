@@ -14,7 +14,7 @@ spec:
         - name: nextcloud-setup
           image: alpine:3.20
           imagePullPolicy: Always
-          command: [ "/bin/sh", "-lc" ]
+          command: ["/bin/sh", "-lc"]
           args:
             - |
               set -euo pipefail
