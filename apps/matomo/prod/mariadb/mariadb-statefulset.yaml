@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: matomo-mariadb
-  namespace: matomo
 spec:
   serviceName: matomo-mariadb-hl
   replicas: 1
