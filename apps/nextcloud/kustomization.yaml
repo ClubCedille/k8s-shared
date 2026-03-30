@@ -1,11 +1,11 @@
 ---
 namespace: nextcloud
 resources:
-  - postgresql.yaml
-  - httpproxy.yaml
-  - certificate.yaml
-  - pvc.yaml
-  - cronjob.yaml
+  - resources/postgresql.yaml
+  - resources/httpproxy.yaml
+  - resources/certificate.yaml
+  - resources/pvc.yaml
+  - resources/cronjob.yaml
 patches:
   - target:
       kind: Deployment
@@ -28,18 +28,18 @@ helmCharts:
     version: 6.6.10
     releaseName: nextcloud
     namespace: nextcloud
-    valuesFile: nextcloud-values.yaml
+    valuesFile: ./helm/nextcloud-values.yaml
   - name: collabora-online
     repo: https://collaboraonline.github.io/online
-    version: 1.1.38
+    version: 1.1.60
     releaseName: collabora
     namespace: nextcloud
-    valuesFile: collabora-values.yaml
+    valuesFile: ./helm/collabora-values.yaml
 configMapGenerator:
   - name: nextcloud-setup-job
     files:
       - ../../data/nextcloud-external-sites.yaml
       - ../../data/clubs.yaml
-      - nextcloud-setup.bash
+      - ./resources/nextcloud-setup.bash
 generatorOptions:
   disableNameSuffixHash: true
