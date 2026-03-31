@@ -6,4 +6,3 @@ resources:
   - outline-pdb.yaml
   - redis-service.yaml
   - redis-statefulset.yaml
-  - postgres.yaml
