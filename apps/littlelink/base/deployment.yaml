@@ -21,36 +21,54 @@ spec:
       containers:
         - name: littlelink
           image: timothystewart6/littlelink-server:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: littlelink-env
           ports:
             - containerPort: 3000
               name: http
+          startupProbe:
+            httpGet:
+              path: /healthcheck
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 12
           readinessProbe:
             httpGet:
               path: /healthcheck
               port: 3000
             initialDelaySeconds: 5
             periodSeconds: 10
+            failureThreshold: 3
           livenessProbe:
-            httpGet:
-              path: /healthcheck
+            tcpSocket:
               port: 3000
-            initialDelaySeconds: 10
+            initialDelaySeconds: 20
             periodSeconds: 20
+            failureThreshold: 3
           resources:
             requests:
               cpu: 50m
               memory: 128Mi
+              ephemeral-storage: 128Mi
             limits:
               cpu: 250m
               memory: 256Mi
+              ephemeral-storage: 512Mi
           securityContext:
             allowPrivilegeEscalation: false
-            runAsUser: 101
-            runAsNonRoot: true            
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
             capabilities:
               drop:
                 - ALL
+          volumeMounts:
+            - name: tmp-volume
+              mountPath: /tmp
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
