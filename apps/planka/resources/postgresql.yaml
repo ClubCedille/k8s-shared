@@ -2,7 +2,6 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: postgresql-planka
-  argocd.argoproj.io/sync-wave: "-1"
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:17.2
   instances: 1
