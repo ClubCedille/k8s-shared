@@ -8,6 +8,6 @@ helmCharts:
   - name: sonarqube
     releaseName: sonarqube
     repo: https://SonarSource.github.io/helm-chart-sonarqube
-    version: 2026.1.0
+    version: 2026.2.1
     valuesFile: values.yaml
     namespace: sonarqube
