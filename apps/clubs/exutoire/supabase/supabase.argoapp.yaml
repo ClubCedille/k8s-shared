@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: supabase
+  name: exutoire-supabase
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "2"
