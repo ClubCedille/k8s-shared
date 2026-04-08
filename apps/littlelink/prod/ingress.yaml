@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: littlelink
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-etsmtl
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/tls-acme: "true"
+spec:
+  ingressClassName: contour
+  tls:
+    - hosts:
+        - littlelink.etsmtl.club
+      secretName: littlelink-tls
+  rules:
+    - host: littlelink.etsmtl.club
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: littlelink-service
+                port:
+                  name: http
