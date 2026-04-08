@@ -93,7 +93,7 @@ sonarProperties:
   sonar.auth.saml.providerId: https://auth.etsmtl.club/
   # loginUrl == authentik SSO URL (Redirect)
   sonar.auth.saml.loginUrl: https://auth.etsmtl.club/application/saml/sonarqube/sso/binding/redirect/
-  # user.* == authentik > Provider > Previewe
+  # user.* == authentik > Provider > Preview
   sonar.auth.saml.user.login: http://schemas.goauthentik.io/2021/02/saml/username
   sonar.auth.saml.user.name: http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name
   sonar.auth.saml.user.email: http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress
@@ -118,6 +118,23 @@ jdbcOverwrite:
   # oracleJdbcDriver:
   #   url: "https://download.oracle.com/otn-pub/otn_software/jdbc/2113/ojdbc11.jar"
   #   netrcCreds: ""
+
+persistence:
+  enabled: true
+
+  ## Specify an existing volume claim instead of creating a new one.
+  ## When using this option all following options like storageClass, accessMode and size are ignored.
+  # existingClaim:
+
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  storageClass: cephfs
+  accessMode: ReadWriteOnce
+  size: 20Gi
 
 monitoringPasscode: "Bacon123"
 
