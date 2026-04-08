@@ -11,3 +11,31 @@ spec:
   commonName: vaultwarden.etsmtl.club
   dnsNames:
     - vaultwarden.etsmtl.club
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vaultwarden-tls-pwd
+  namespace: vaultwarden
+spec:
+  secretName: vaultwarden-tls-pwd
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: pwd.etsmtl.club
+  dnsNames:
+    - pwd.etsmtl.club
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vaultwarden-tls-mdp
+  namespace: vaultwarden
+spec:
+  secretName: vaultwarden-tls-mdp
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: mdp.etsmtl.club
+  dnsNames:
+    - mdp.etsmtl.club
