@@ -22,7 +22,7 @@ elasticsearch:
 setAdminPassword:
   # The above values can be also provided by a secret that contains "password" and "currentPassword" as keys. You can generate such a secret in your cluster
   # using "kubectl create secret generic admin-password-secret-name --from-literal=password=admin --from-literal=currentPassword=admin"
-  passwordSecretName: "sonarqube-admin-password-secret"
+  passwordSecretName: "sonarqube-secrets"
 
 ingress:
   enabled: true
@@ -158,7 +158,8 @@ persistence:
   accessMode: ReadWriteOnce
   size: 20Gi
 
-monitoringPasscode: "Bacon123"
+monitoringPasscodeSecretName: "sonarqube-secrets"
+monitoringPasscodeSecretKey: "monitoringPasscode"
 
 # extraConfig is used to load Environment Variables from Secrets and ConfigMaps
 # which may have been written by other tools, such as external orchestrators.
