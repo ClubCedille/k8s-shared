@@ -47,27 +47,8 @@ initSysctl:
   ##   image: busybox
   ##   command: ['sh', '-c', 'echo Hello && sleep 3600']
   ##
-  # extraVolumes:
-  #   - name: webapp
-  #     emptyDir:
-  #       sizeLimit: 50Mi
-  # extraVolumeMounts:
-  #   - name: webapp
-  #     mountPath: /opt/sonarqube/web
-  # extraInitContainers:
-  #   - name: download-webapp
-  #     image: busybox:1.37
-  #     volumeMounts:
-  #       - name: webapp
-  #         mountPath: /web
-  #     command:
-  #       - sh
-  #       - -c
-  #       - wget -O /tmp/sonarqube-webapp.zip https://github.com/mc1arke/sonarqube-community-branch-plugin/releases/download/26.2.0/sonarqube-webapp.zip &&
-  #         unzip -o /tmp/sonarqube-webapp.zip -d /web &&
-  #         chmod -R 755 /web &&
-  #         chown -R 1000:0 /web &&
-  #         rm -f /tmp/sonarqube-webapp.zip
+tests:
+  enabled: false
 
   # List of plugins to install.
   # For example:
