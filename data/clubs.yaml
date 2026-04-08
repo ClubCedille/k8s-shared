@@ -20,3 +20,5 @@
   quota: 3000
 - name: synapse
   quota: 500
+- name: musiquets
+  quota: 1000
