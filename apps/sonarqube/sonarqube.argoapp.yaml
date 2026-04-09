@@ -10,7 +10,7 @@ spec:
   project: k8s-shared
   sources:
     - repoURL: "https://github.com/ClubCedille/k8s-shared.git"
-      path: apps/sonarqube/resources
+      path: apps/sonarqube/prod
       targetRevision: HEAD
   syncPolicy:
     automated:
