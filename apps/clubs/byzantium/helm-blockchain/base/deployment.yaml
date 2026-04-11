@@ -29,6 +29,11 @@ spec:
               value: /data/.helm-index.db
             - name: HELM_BLOCK_FILE
               value: /data/.helm-block-data.dat
+            - name: HELM_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: helm-config
+                  key: secret-key
           ports:
             - containerPort: 3333
           volumeMounts:
