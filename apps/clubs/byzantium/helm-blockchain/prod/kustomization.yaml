@@ -4,4 +4,4 @@ kind: Kustomization
 resources:
   - ../base/
   - ingress.yaml
-  - secret.yaml
+  - vault-secret.yaml
