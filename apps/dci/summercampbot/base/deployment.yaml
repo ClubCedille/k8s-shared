@@ -54,10 +54,6 @@ spec:
                 - ALL
             seccompProfile:
               type: RuntimeDefault
-      volumes:
-        - name: app-data
-          persistentVolumeClaim:
-            claimName: app-data-pvc
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
