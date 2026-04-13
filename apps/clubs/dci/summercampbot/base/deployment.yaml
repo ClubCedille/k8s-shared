@@ -42,7 +42,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: dci-summercampbot-secret
-                  key: token_token
+                  key: token_secret
             - name: DISCORD_TOKEN
               valueFrom:
                 secretKeyRef:
