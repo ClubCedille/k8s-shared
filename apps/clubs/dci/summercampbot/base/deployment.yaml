@@ -47,7 +47,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: dci-summercampbot-secret
-                  key: discord_secret
+                  key: discord_token
           volumeMounts:
             - name: app-data
               mountPath: /app/data
