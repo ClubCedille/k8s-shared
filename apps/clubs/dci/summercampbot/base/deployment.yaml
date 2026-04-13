@@ -35,19 +35,19 @@ spec:
               value: "8000"
             - name: JWT_SECRET
               valueFrom:
-               secretKeyRef:
-                 name: dci-summercampbot-secret
-                 key: jwt_secret
+                secretKeyRef:
+                  name: dci-summercampbot-secret
+                  key: jwt_secret
             - name: TOKEN_SECRET
               valueFrom:
-               secretKeyRef:
-                 name: dci-summercampbot-secret
-                 key: token_secret
+                secretKeyRef:
+                  name: dci-summercampbot-secret
+                  key: token_secret
             - name: DISCORD_SECRET
               valueFrom:
-               secretKeyRef:
-                 name: dci-summercampbot-secret
-                 key: discord_secret
+                secretKeyRef:
+                  name: dci-summercampbot-secret
+                  key: discord_secret
           volumeMounts:
             - name: app-data
               mountPath: /app/data
