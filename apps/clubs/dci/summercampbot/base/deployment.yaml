@@ -21,9 +21,6 @@ spec:
           emptyDir: {}
         - name: nginx-run
           emptyDir: {}
-        - name: app-data
-          persistentVolumeClaim:
-            claimName: app-data-pvc
       containers:
         - name: dci
           image: ghcr.io/clubcedille/dci-summercampbot:latest
