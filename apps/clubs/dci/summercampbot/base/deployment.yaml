@@ -24,6 +24,9 @@ spec:
         - name: app-data
           persistentVolumeClaim:
             claimName: app-data-pvc
+        - name: secrets-volume
+          secret:
+            secretName: dci-summercampbot-secret
       containers:
         - name: dci
           image: ghcr.io/clubcedille/dci-summercampbot:latest
@@ -33,24 +36,12 @@ spec:
           env:
             - name: PORT
               value: "8000"
-            - name: JWT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: dci-summercampbot-secret
-                  key: jwt_secret
-            - name: TOKEN_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: dci-summercampbot-secret
-                  key: token_secret
-            - name: DISCORD_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: dci-summercampbot-secret
-                  key: discord_token
           volumeMounts:
             - name: app-data
               mountPath: /app/data
+            - name: secrets-volume
+              mountPath: /run/secrets
+              subPath: secrets
           resources:
             requests:
               cpu: 100m
