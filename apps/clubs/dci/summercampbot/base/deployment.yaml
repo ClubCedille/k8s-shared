@@ -47,7 +47,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: dci-summercampbot-secret
-                  key: discord_token\
+                  key: discord_token
             - name: MONGO_URI
               value: mongo.dci-summercampbot.svc.cluster.local
           volumeMounts:
