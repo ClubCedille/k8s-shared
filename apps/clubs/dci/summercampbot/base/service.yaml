@@ -1,44 +1,43 @@
-   apiVersion: apps/v1
-   kind: Deployment
-   metadata:
-     name: mongo
-   spec:
-     replicas: 1
-     selector:
-       matchLabels:
-         app: mongo
-     template:
-       metadata:
-         labels:
-           app: mongo
-       spec:
-         containers:
-         - name: mongo
-           image: mongo:7.0
-           ports:
-           - containerPort: 27017
-           livenessProbe:
-             exec:
-               command: ["mongosh", "--eval", "db.adminCommand('ping')"]
-             initialDelaySeconds: 30
-             timeoutSeconds: 5
-             periodSeconds: 10
-             FailureThreshold: 3
-           readinessProbe:
-             exec:
-               command: ["mongosh", "--eval", "db.adminCommand('ping')"]
-             initialDelaySeconds: 30
-             timeoutSeconds: 5
-             periodSeconds: 5
-             failureThreshold: 3
-           volumeMounts:
-             - name: mongo-storage
-               mountPath: /data/db
-       volumes:
-         - name: mongo-storage
-           persistentVolumeClaim:
-             claimName: mongo-data
-
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:7.0
+          ports:
+            - containerPort: 27017
+          livenessProbe:
+            exec:
+              command: ["mongosh", "--eval", "db.adminCommand('ping')"]
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["mongosh", "--eval", "db.adminCommand('ping')"]
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: mongo-storage
+              mountPath: /data/db
+      volumes:
+        - name: mongo-storage
+          persistentVolumeClaim:
+            claimName: mongo-data
 ---
 apiVersion: v1
 kind: Service
