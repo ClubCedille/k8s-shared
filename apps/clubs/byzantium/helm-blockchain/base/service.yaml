@@ -15,7 +15,7 @@ kind: Service
 metadata:
   name: byzantium-helm-p2p-svc
   annotations:
-    metallb.universe.tf/ip-allocated-from-pool: public-ip
+    # metallb.universe.tf/ip-allocated-from-pool: public-ip
 spec:
   allocateLoadBalancerNodePorts: true
   selector:
