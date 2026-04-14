@@ -7,7 +7,7 @@ metadata:
 spec:
   destination:
     namespace: nextcloud
-    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
+    server: https://kubernetes.default.svc
   project: k8s-shared
   sources:
     - path: apps/nextcloud
