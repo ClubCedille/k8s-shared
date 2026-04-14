@@ -22,4 +22,16 @@ spec:
               service:
                 name: byzantium-helm-svc
                 port:
-                  number: 80
+                  name: http
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: byzantium-p2p
+spec:
+  virtualhost:
+    fqdn: helm.byzantium.etsmtl.club
+  tcpproxy:
+    services:
+      - name: byzantium-helm-svc
+        port: 9000
