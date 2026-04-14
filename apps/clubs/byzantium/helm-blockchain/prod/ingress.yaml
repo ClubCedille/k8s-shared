@@ -31,6 +31,8 @@ metadata:
 spec:
   virtualhost:
     fqdn: helm.byzantium.etsmtl.club
+    tls:
+      secretName: byzantium-helm
   tcpproxy:
     services:
       - name: byzantium-helm-svc
