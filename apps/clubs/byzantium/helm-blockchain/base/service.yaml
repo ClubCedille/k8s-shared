@@ -9,3 +9,6 @@ spec:
     - name: http
       port: 80
       targetPort: 3333
+    - name: p2p
+      port: 9000
+      targetPort: 9000

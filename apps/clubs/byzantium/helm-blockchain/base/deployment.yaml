@@ -36,6 +36,7 @@ spec:
                   key: secret-key
           ports:
             - containerPort: 3333
+            - containerPort: 9000
           volumeMounts:
             - name: helm-data
               mountPath: /data
