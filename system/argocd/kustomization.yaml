@@ -10,18 +10,18 @@ resources:
   - resources/ingress.yaml
   - resources/network-policy.yaml
 
-secretGenerator:
-  - name: cluster-kubernetes.default.svc
-    options:
-      labels:
-        argocd.argoproj.io/secret-type: cluster
-        etsmtl.club/external-network: "true"
-      annotations:
-        etsmtl.club/external-ip: 142.137.247.74
-    literals:
-      - server=https://kubernetes.default.svc
-      - name=k8s-shared-local
-      - namespace=*
+# secretGenerator:
+#   - name: cluster-kubernetes.default.svc
+#     options:
+#       labels:
+#         argocd.argoproj.io/secret-type: cluster
+#         etsmtl.club/external-network: "true"
+#       annotations:
+#         etsmtl.club/external-ip: 142.137.247.74
+#     literals:
+#       - server=https://kubernetes.default.svc
+#       - name=k8s-shared-local
+#       - namespace=*
 
 helmCharts:
   - name: argo-cd
