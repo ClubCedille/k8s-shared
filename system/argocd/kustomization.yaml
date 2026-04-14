@@ -20,7 +20,7 @@ secretGenerator:
         etsmtl.club/external-ip: 142.137.247.74
     literals:
       - server=https://kubernetes.default.svc
-      - name=k8s-shared
+      - name=k8s-shared-local
       - namespace=*
 
 helmCharts:

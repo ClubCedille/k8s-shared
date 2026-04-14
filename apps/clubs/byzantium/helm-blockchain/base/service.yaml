@@ -9,3 +9,26 @@ spec:
     - name: http
       port: 80
       targetPort: 3333
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: byzantium-helm-p2p-svc
+  annotations:
+    # metallb.universe.tf/ip-allocated-from-pool: public-ip
+spec:
+  allocateLoadBalancerNodePorts: true
+  selector:
+    app: byzantium-helm
+  ports:
+    - protocol: TCP
+      port: 9000
+      targetPort: 9000
+  loadBalancerIP: 142.137.247.76
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+      - ip: 142.137.247.76
+        ipMode: VIP
+---

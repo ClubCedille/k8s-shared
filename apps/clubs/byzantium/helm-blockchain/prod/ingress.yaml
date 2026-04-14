@@ -22,4 +22,4 @@ spec:
               service:
                 name: byzantium-helm-svc
                 port:
-                  number: 80
+                  name: http
