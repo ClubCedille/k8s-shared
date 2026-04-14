@@ -68,20 +68,6 @@ spec:
     - group: '*'
       kind: '*'
 ---
-apiVersion: argoproj.io/v1alpha1
-kind: AppProject
-metadata:
-  name: k8s-cedille-management-v2
-spec:
-  sourceRepos:
-    - 'https://github.com/clubcedille/k8s-cedille-management-v2.git'
-    - 'https://github.com/clubcedille/k8s-base.git'
-  destinations:
-    - namespace: '!kube-system'
-      server: 'https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-management-v2'
-  clusterResourceWhitelist:
-    - group: '*'
-      kind: '*'
   # roles:
   # # A role which provides read-only access to all applications in the project
   # - name: read-only
