@@ -19,12 +19,7 @@ metadata:
   name: k8s-shared
 spec:
   sourceRepos:
-    - 'https://github.com/clubcedille/k8s-*'
-    - 'https://*.github.io/helm-charts*'
-    - 'registry-1.docker.io/bitnamicharts'
-    - 'https://vmware-tanzu.github.io/helm-charts/'
-    - 'https://charts.jetstack.io'
-    - 'http://plankanban.github.io/planka'
+    - '*'
   destinations:
     - namespace: '!kube-system'
       server: 'https://kubernetes.default.svc'
