@@ -17,7 +17,9 @@ secretGenerator:
         argocd.argoproj.io/secret-type: cluster
         etsmtl.club/external-network: "true"
       annotations:
-        etsmtl.club/external-ip: 142.137.247.74
+        etsmtl.club/external-ip: 142.137.247.75
+        etsmtl.club/forgejo-ip: 142.137.247.76
+        etsmtl.club/byzantium-ip: 142.137.247.78
     literals:
       - server=https://kubernetes.default.svc
       - name=k8s-shared-local
