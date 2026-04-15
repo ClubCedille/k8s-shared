@@ -10,7 +10,7 @@ metadata:
 spec:
   project: k8s-shared
   destination:
-    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
+    server: https://kubernetes.default.svc
     namespace: dci-summercampbot
   source:
     repoURL: https://github.com/ClubCedille/k8s-shared
