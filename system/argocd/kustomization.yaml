@@ -22,7 +22,7 @@ secretGenerator:
         etsmtl.club/byzantium-ip: 142.137.247.78
     literals:
       - server=https://kubernetes.default.svc
-      - name=k8s-shared-local
+      - name=k8s-shared
       - namespace=*
 
 helmCharts:
