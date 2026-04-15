@@ -44,14 +44,12 @@ kind: Service
 metadata:
   name: summercamp-server
 spec:
-  type: NodePort
-  ports:
-    - port: 8000
-      targetPort: 8000
-      nodePort: 30000
   selector:
-    app: summercamp-server
-
+    app: dci-summercampbot
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
 ---
 apiVersion: v1
 kind: Service
