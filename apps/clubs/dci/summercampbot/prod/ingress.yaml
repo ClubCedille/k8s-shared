@@ -11,9 +11,9 @@ spec:
   tls:
     - secretName: dci-summercampbot
       hosts:
-        - summercampbot.dci.etsmtl.club
+        - summercampbot.dciets.etsmtl.club
   rules:
-    - host: summercampbot.dci.etsmtl.club
+    - host: summercampbot.dciets.etsmtl.club
       http:
         paths:
           - pathType: Prefix
