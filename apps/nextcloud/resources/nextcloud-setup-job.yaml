@@ -2,11 +2,10 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: nextcloud-setup-
+  name: nextcloud-setup-
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
-    last-triggered: "2026-04-20"
 spec:
   template:
     spec:
