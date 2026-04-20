@@ -22,3 +22,5 @@
   quota: 500
 - name: musiquets
   quota: 1000
+- name: baja
+  quota: 1000
