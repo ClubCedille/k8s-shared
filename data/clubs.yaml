@@ -21,6 +21,6 @@
 - name: synapse
   quota: 500
 - name: musiquets
-  quota: 500
+  quota: 1000
 - name: baja
-  quota: 500
+  quota: 1000
