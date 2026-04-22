@@ -79,6 +79,14 @@ spec:
       services:
         - name: collabora-collabora-online
           port: 9980
+      # Add this section for session affinity
+      loadBalancerPolicy:
+        strategy: Cookie
+      # Add this section to fix cookie attributes for iframe compatibility
+      cookieRewritePolicies:
+      - name: X-Contour-Session-Affinity
+        sameSite: None
+        secure: true
   virtualhost:
     fqdn: collabora-nextcloud.etsmtl.club
     tls:
@@ -107,6 +115,14 @@ spec:
       services:
         - name: collabora-collabora-online
           port: 9980
+      # Add this section for session affinity
+      loadBalancerPolicy:
+        strategy: Cookie
+      # Add this section to fix cookie attributes for iframe compatibility
+      cookieRewritePolicies:
+      - name: X-Contour-Session-Affinity
+        sameSite: None
+        secure: true
   virtualhost:
     fqdn: collabora-nextcloud.etsmtl.club
     tls:
