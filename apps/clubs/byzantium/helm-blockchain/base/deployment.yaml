@@ -25,6 +25,8 @@ spec:
           image: ghcr.io/clubcedille/byzantium-helm:latest
           imagePullPolicy: Always
           env:
+            - name: RUST_LOG
+              value: debug
             - name: HELM_INDEX_DB_PATH
               value: /data/.helm-index.db
             - name: HELM_BLOCK_FILE
