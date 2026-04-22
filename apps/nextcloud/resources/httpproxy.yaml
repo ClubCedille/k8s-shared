@@ -82,9 +82,9 @@ spec:
       loadBalancerPolicy:
         strategy: Cookie
       cookieRewritePolicies:
-      - name: X-Contour-Session-Affinity
-        sameSite: None
-        secure: true
+        - name: X-Contour-Session-Affinity
+          sameSite: None
+          secure: true
   virtualhost:
     fqdn: collabora-nextcloud.etsmtl.club
     tls:
@@ -116,9 +116,9 @@ spec:
       loadBalancerPolicy:
         strategy: Cookie
       cookieRewritePolicies:
-      - name: X-Contour-Session-Affinity
-        sameSite: None
-        secure: true
+        - name: X-Contour-Session-Affinity
+          sameSite: None
+          secure: true
   virtualhost:
     fqdn: collabora-nextcloud.etsmtl.club
     tls:
