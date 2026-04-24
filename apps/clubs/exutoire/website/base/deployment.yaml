@@ -27,7 +27,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: VITE_SUPABASE_URL
-              value: https://supabase.exutoire.etsmtl.club
+              value: "https://supabase.exutoire.etsmtl.club"
             - name: VITE_SUPABASE_ANON_KEY
               valueFrom:
                 secretKeyRef:
