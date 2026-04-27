@@ -26,6 +26,9 @@ gitea:
     existingSecret: forgejo-admin-secret
     email: forgejo@etsmtl.club
   config:
+    actions:
+      enabled: true
+      DEFAULT_ACTIONS_URL: https://github.com
     server:
       ROOT_URL: https://git.etsmtl.club/
       PROTOCOL: http
@@ -79,7 +82,7 @@ gitea:
 persistence:
   enabled: true
   create: true
-  size: 20Gi
+  size: 120Gi
   claimName: forgejo-data-claim
   storageClass: cephfs
   accessModes:

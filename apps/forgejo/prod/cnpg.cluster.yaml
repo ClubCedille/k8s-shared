@@ -12,7 +12,7 @@ spec:
       secret:
         name: postgresql-forgejo-app
   storage:
-    size: 40Gi
+    size: 80Gi
     storageClass: cephfs
   backup:
     retentionPolicy: 7d
