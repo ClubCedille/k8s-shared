@@ -26,6 +26,9 @@ gitea:
     existingSecret: forgejo-admin-secret
     email: forgejo@etsmtl.club
   config:
+    actions:
+      enabled: true
+      DEFAULT_ACTIONS_URL: https://github.com
     server:
       ROOT_URL: https://git.etsmtl.club/
       PROTOCOL: http
@@ -66,11 +69,14 @@ gitea:
     - name: "authentik"
       provider: openidConnect
       existingSecret: forgejo-oauth-secret
-      autoDiscoverUrl: "https://auth.etsmtl.club/application/o/forgejo/.well-known/openid-configuration"
+      autoDiscoverUrl: "https://auth.etsmtl.club/application/o/forgejo/.well-known/op\
+        enid-configuration"
       scopes: "openid profile email offline_access"
       adminGroup: admin
       groupClaimName: groups
-      groupTeamMap: '{"club-lanets": {"Lan_ETS": ["Members"]},"exec-lanets": {"Lan_ETS": ["Owners"]},"exec-cedille": {"cedille": ["Owners"]},"exec-conjure": {"conjure": ["Owners"]}}'
+      groupTeamMap: "{\"club-lanets\": {\"Lan_ETS\": [\"Members\"]},\"exec-lanets\":
+        {\"Lan_ETS\": [\"Owners\"]},\"exec-cedille\": {\"cedille\":
+        [\"Owners\"]},\"exec-conjure\": {\"conjure\": [\"Owners\"]}}"
       groupTeamMapRemoval: "true"
   additionalConfigSources:
     - secret:
@@ -79,7 +85,7 @@ gitea:
 persistence:
   enabled: true
   create: true
-  size: 20Gi
+  size: 120Gi
   claimName: forgejo-data-claim
   storageClass: cephfs
   accessModes:
