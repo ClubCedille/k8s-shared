@@ -4,7 +4,7 @@ metadata:
   name: postgresql-outline-cedille
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:17.2
-  instances: 1
+  instances: 3
   bootstrap:
     initdb:
       database: outline
@@ -12,7 +12,7 @@ spec:
       secret:
         name: postgresql-outline-app
   storage:
-    size: 16Gi
+    size: 26Gi
     storageClass: cephfs
   # backup:
   #   retentionPolicy: 7d
