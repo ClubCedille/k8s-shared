@@ -66,3 +66,4 @@ spec:
         value: when_required
       - name: AWS_RESPONSE_CHECKSUM_VALIDATION
         value: when_required
+---
