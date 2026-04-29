@@ -1,39 +1,38 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: postgresql-forgejo
+  name: postgresql-campusparent
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:17.2
-  instances: 3
+  instances: 1
   bootstrap:
     initdb:
-      database: forgejo
-      owner: forgejo
+      database: campusparent
+      owner: campusparent
       secret:
-        name: postgresql-forgejo-app
+        name: postgresql-campusparent
   storage:
-    size: 80Gi
+    size: 15Gi
     storageClass: cephfs
   backup:
-    retentionPolicy: 7d
+    # needs a cleanup cronjob to delete old backups
     volumeSnapshot:
       className: csi-cephfsplugin-snapclass
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
       parameters:
-        barmanObjectName: cnpg-forgejo-b2
+        barmanObjectName: cnpg-campusparent-b2
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
 metadata:
-  name: cnpg-backup-schedule-forgejo
-  namespace: forgejo
+  name: cnpg-backup-schedule
 spec:
   schedule: "0 40 6 * * * "
   backupOwnerReference: self
   cluster:
-    name: postgresql-forgejo
+    name: postgresql-campusparent
   method: plugin
   pluginConfiguration:
     name: barman-cloud.cloudnative-pg.io
@@ -41,11 +40,10 @@ spec:
 apiVersion: barmancloud.cnpg.io/v1
 kind: ObjectStore
 metadata:
-  name: cnpg-forgejo-b2
-  namespace: forgejo
+  name: cnpg-campusparent-b2
 spec:
   configuration:
-    destinationPath: s3://k8s-shared-bucket/postgresql-forgejo
+    destinationPath: s3://k8s-shared-bucket/postgresql-campusparent
     endpointURL: https://s3.ca-east-006.backblazeb2.com
     s3Credentials:
       accessKeyId:
@@ -68,3 +66,4 @@ spec:
         value: when_required
       - name: AWS_RESPONSE_CHECKSUM_VALIDATION
         value: when_required
+---

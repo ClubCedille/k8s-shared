@@ -22,9 +22,11 @@ spec:
             claimName: byzantium-helm-pvc
       containers:
         - name: byzantium-helm
-          image: ghcr.io/clubcedille/byzantium-helm:releases-0.1.0
+          image: ghcr.io/clubcedille/byzantium-helm:latest
           imagePullPolicy: Always
           env:
+            - name: RUST_LOG
+              value: debug
             - name: HELM_INDEX_DB_PATH
               value: /data/.helm-index.db
             - name: HELM_BLOCK_FILE

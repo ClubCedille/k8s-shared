@@ -21,7 +21,7 @@ spec:
     app: byzantium-helm
   ports:
     - protocol: TCP
-      port: 9000
+      port: 80
       targetPort: 9000
   loadBalancerIP: 142.137.247.78
   type: LoadBalancer
