@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: littlelink
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: k8s-shared
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: littlelink
+  source:
+    repoURL: https://github.com/ClubCedille/k8s-shared.git
+    path: apps/littlelink/prod
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

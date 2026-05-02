@@ -6,7 +6,7 @@ metadata:
 spec:
   destination:
     namespace: outline
-    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
+    server: https://kubernetes.default.svc
   project: k8s-shared
   source:
     path: apps/outline/prod

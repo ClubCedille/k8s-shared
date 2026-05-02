@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: byzantium-helm
+  annotations:
+    kube-score/ignore: pod-networkpolicy,container-image-tag
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: byzantium-helm
+  template:
+    metadata:
+      labels:
+        app: byzantium-helm
+    spec:
+      imagePullSecrets:
+        - name: ghcr-clubcedille-secret
+      volumes:
+        - name: helm-data
+          persistentVolumeClaim:
+            claimName: byzantium-helm-pvc
+      containers:
+        - name: byzantium-helm
+          image: ghcr.io/clubcedille/byzantium-helm:latest
+          imagePullPolicy: Always
+          env:
+            - name: RUST_LOG
+              value: debug
+            - name: HELM_INDEX_DB_PATH
+              value: /data/.helm-index.db
+            - name: HELM_BLOCK_FILE
+              value: /data/.helm-block-data.dat
+            - name: HELM_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: helm-config
+                  key: secret-key
+          ports:
+            - containerPort: 3333
+            - containerPort: 9000
+          volumeMounts:
+            - name: helm-data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 4Gi
+              ephemeral-storage: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault

@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: supabase
+  name: exutoire-supabase
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
   project: k8s-shared
   destination:
-    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
+    server: https://kubernetes.default.svc
     namespace: exutoire
   source:
     repoURL: https://github.com/ClubCedille/k8s-shared.git

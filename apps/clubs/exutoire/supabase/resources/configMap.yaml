@@ -1,0 +1,78 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kong-config
+data:
+  kong.yaml: |
+    _format_version: "2.1"
+
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - HEAD
+            - PUT
+            - PATCH
+            - POST
+            - DELETE
+            - OPTIONS
+          headers:
+            - Authorization
+            - apikey
+            - content-type
+            - range
+            - x-supabase-api-version
+            - x-client-info
+            - content-profile
+          exposed_headers:
+            - content-range
+            - content-length
+            - x-supabase-api-version
+            - x-client-info
+          max_age: 3600
+          credentials: true
+
+    services:
+      - name: rest
+        url: http://rest:3000
+        routes:
+          - name: rest-v1
+            paths:
+              - /rest/v1/
+            strip_path: true
+
+      - name: auth
+        url: http://auth:9999
+        routes:
+          - name: auth-v1
+            paths:
+              - /auth/v1/
+            strip_path: true
+
+      - name: storage
+        url: http://storage:5000
+        routes:
+          - name: storage-v1
+            paths:
+              - /storage/v1/
+            strip_path: true
+
+      - name: realtime
+        url: http://realtime:4000
+        routes:
+          - name: realtime-v1
+            paths:
+              - /realtime/v1/
+            strip_path: true
+
+      - name: meta
+        url: http://meta:8080
+        routes:
+          - name: meta
+            paths:
+              - /pg
+            strip_path: false

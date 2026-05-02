@@ -8,7 +8,7 @@ spec:
 
   destination:
     namespace: forgejo
-    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
+    server: https://kubernetes.default.svc
 
   source:
     path: apps/forgejo/prod

@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: byzantium-helm
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-http
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/tls-acme: "true"
+spec:
+  ingressClassName: contour
+  tls:
+    - secretName: byzantium-helm
+      hosts:
+        - helm.byzantium.etsmtl.club
+  rules:
+    - host: helm.byzantium.etsmtl.club
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: byzantium-helm-svc
+                port:
+                  name: http

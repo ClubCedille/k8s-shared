@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dci-summercampbot
+  annotations:
+    kube-score/ignore: pod-networkpolicy,container-image-tag
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dci-summercampbot
+  template:
+    metadata:
+      labels:
+        app: dci-summercampbot
+    spec:
+      imagePullSecrets:
+        - name: ghcr-clubcedille-secret
+      volumes:
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+        - name: app-data
+          persistentVolumeClaim:
+            claimName: app-data-pvc
+      containers:
+        - name: dci
+          image: ghcr.io/clubcedille/dci-summercampbot:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: PORT
+              value: "8000"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: dci-summercampbot-secret
+                  key: jwt_secret
+            - name: TOKEN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: dci-summercampbot-secret
+                  key: token_secret
+            - name: DISCORD_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: dci-summercampbot-secret
+                  key: discord_token
+            - name: MONGO_URI
+              value: mongo.dci-summercampbot.svc.cluster.local
+          volumeMounts:
+            - name: app-data
+              mountPath: /app/data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+              ephemeral-storage: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: app-data-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: cephfs

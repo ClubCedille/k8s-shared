@@ -189,8 +189,14 @@ deployment:
     nodeSelector: {}
     tolerations: []
     affinity: {}
-    volumeMounts: {}
-    volumes: {}
+    volumeMounts:
+      - name: kong-config
+        mountPath: /var/lib/kong
+    volumes:
+      - name: kong-config
+        configMap:
+          name: kong-config
+
     resources: {}
 
   meta:
@@ -523,6 +529,10 @@ environment:
     PGRST_DB_ANON_ROLE: anon
     PGRST_DB_USE_LEGACY_GUCS: false
     PGRST_APP_SETTINGS_JWT_EXP: 3600
+    PGRST_DB_USE_LEGACY_GUC_TUPLE_LIMIT: "true"
+    PGRST_SERVER_CORS_ALLOWED_ORIGINS: "http://localhost:5173"
+    PGRST_SERVER_CORS_ALLOWED_METHODS: "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"
+    PGRST_SERVER_CORS_ALLOWED_HEADERS: "Authorization, content-type, accept-profile, apikey, prefer, range, x-requested-with"
 
   storage:
     DB_USER: supabase_storage_admin

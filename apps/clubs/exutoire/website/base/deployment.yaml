@@ -25,6 +25,14 @@ spec:
         - name: exutoire
           image: ghcr.io/clubcedille/exutoire:latest
           imagePullPolicy: Always
+          env:
+            - name: VITE_SUPABASE_URL
+              value: "https://supabase.exutoire.etsmtl.club"
+            - name: VITE_SUPABASE_ANON_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: supabase-secret
+                  key: anonKey
           ports:
             - containerPort: 80
           resources:

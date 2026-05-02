@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: littlelink-env
+data:
+  META_TITLE: "Club CEDILLE"
+  META_DESCRIPTION: "Liens officiels du Club CEDILLE"
+  META_AUTHOR: "Club CEDILLE"
+  META_KEYWORDS: "CEDILLE, ETS, Club, Open Source, DevOps"
+  LANG: "fr"
+  META_INDEX_STATUS: "all"
+
+  THEME: "Dark"
+
+  FAVICON_URL: "https://avatars.githubusercontent.com/u/6483038?s=200&v=4"
+  AVATAR_URL: "https://avatars.githubusercontent.com/u/6483038?s=200&v=4"
+  AVATAR_2X_URL: "https://avatars.githubusercontent.com/u/6483038?s=400&v=4"
+  AVATAR_ALT: "Logo du Club CEDILLE"
+
+  NAME: "Club CEDILLE"
+  BIO: "Liens officiels et ressources publiques du Club CEDILLE."
+  FOOTER: "Club CEDILLE"
+
+  GITHUB: "https://github.com/ClubCedille"
+  INSTAGRAM: "https://www.instagram.com/cedille.etsmtl/"
+  DISCORD: "https://discord.gg/jC6ubpz8RT"
+
+  CUSTOM_BUTTON_TEXT: "k8s-shared,Plateforme"
+  CUSTOM_BUTTON_URL: "https://github.com/ClubCedille/k8s-shared,https://github.com/ClubCedille/Plateforme-Cedille"
+  CUSTOM_BUTTON_COLOR: "#111827,#111827"
+  CUSTOM_BUTTON_TEXT_COLOR: "#ffffff,#ffffff"
+  CUSTOM_BUTTON_ALT_TEXT: "Dépôt GitOps k8s-shared,Plateforme CEDILLE"
+  CUSTOM_BUTTON_NAME: "K8SSHARED,PLATFORM"
+  CUSTOM_BUTTON_ICON: "fas fa-server,fas fa-layer-group"
+
+  BUTTON_ORDER: "GITHUB,INSTAGRAM,DISCORD,K8SSHARED,PLATFORM"
+  BUTTON_TARGET: "_blank"
+
+  SKIP_HEALTH_CHECK_LOGS: "true"

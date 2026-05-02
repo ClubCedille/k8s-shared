@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dci-summercampbot
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/clubcedille/dci-summercampbot:latest
+    argocd-image-updater.argoproj.io/webapp.update-strategy: digest
+    argocd-image-updater.argoproj.io/webapp.pull-secret: pullsecret:argocd/ghcr-clubcedille-secret
+spec:
+  project: k8s-shared
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dci-summercampbot
+  source:
+    repoURL: https://github.com/ClubCedille/k8s-shared
+    path: apps/clubs/dci/summercampbot/prod
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

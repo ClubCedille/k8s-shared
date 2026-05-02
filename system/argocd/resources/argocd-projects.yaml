@@ -7,7 +7,7 @@ spec:
     - 'https://github.com/clubcedille/k8s-base.git'
     - 'https://*.github.io/helm-charts/'
   destinations:
-    - namespace: '!kube-system'
+    - namespace: '*'
       server: 'https://kubernetes.default.svc'
   clusterResourceWhitelist:
     - group: '*'
@@ -19,16 +19,11 @@ metadata:
   name: k8s-shared
 spec:
   sourceRepos:
-    - 'https://github.com/clubcedille/k8s-*'
-    - 'https://*.github.io/helm-charts*'
-    - 'registry-1.docker.io/bitnamicharts'
-    - 'https://vmware-tanzu.github.io/helm-charts/'
-    - 'https://charts.jetstack.io'
-    - 'http://plankanban.github.io/planka'
+    - '*'
   destinations:
-    - namespace: '!kube-system'
+    - namespace: '*'
       server: 'https://kubernetes.default.svc'
-    - namespace: '!kube-system'
+    - namespace: '*'
       server: 'https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared'
   clusterResourceWhitelist:
     - group: '*'
@@ -40,14 +35,9 @@ metadata:
   name: k8s-cedille-sandbox
 spec:
   sourceRepos:
-    - 'https://github.com/clubcedille/k8s-cedille-sandbox.git'
-    - 'https://github.com/clubcedille/k8s-base.git'
-    - 'https://*.github.io/helm-charts*'
-    - 'registry-1.docker.io/bitnamicharts'
-    - 'https://vmware-tanzu.github.io/helm-charts/'
-    - 'https://charts.jetstack.io'
+    - '*'
   destinations:
-    - namespace: '!kube-system'
+    - namespace: '*'
       server: 'https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-sandbox'
   clusterResourceWhitelist:
     - group: '*'
@@ -59,34 +49,14 @@ metadata:
   name: k8s-cedille-production-v2
 spec:
   sourceRepos:
-    - 'https://github.com/clubcedille/k8s-cedille-production-v2.git'
-    - 'https://github.com/clubcedille/k8s-base.git'
-    - 'registry-1.docker.io/bitnamicharts'
-    - 'https://vmware-tanzu.github.io/helm-charts/'
-    - 'https://charts.jetstack.io'
-    - 'https://*.github.io/helm-charts*'
-    - 'https://helm.influxdata.com'
+    - '*'
   destinations:
-    - namespace: '!kube-system'
+    - namespace: '*'
       server: 'https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-production-v2'
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'
 ---
-apiVersion: argoproj.io/v1alpha1
-kind: AppProject
-metadata:
-  name: k8s-cedille-management-v2
-spec:
-  sourceRepos:
-    - 'https://github.com/clubcedille/k8s-cedille-management-v2.git'
-    - 'https://github.com/clubcedille/k8s-base.git'
-  destinations:
-    - namespace: '!kube-system'
-      server: 'https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-management-v2'
-  clusterResourceWhitelist:
-    - group: '*'
-      kind: '*'
   # roles:
   # # A role which provides read-only access to all applications in the project
   # - name: read-only
