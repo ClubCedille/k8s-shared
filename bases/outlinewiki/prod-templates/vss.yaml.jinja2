@@ -1,0 +1,41 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: outline-secrets
+spec:
+  mount: kv-v2
+  path: kubernetes/outlinewiki/{{ nom_club }}/outline_secrets
+  destination:
+    name: outline-secrets
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: outline-postgresql
+spec:
+  type: kubernetes.io/basic-auth
+  mount: kv-v2
+  path: kubernetes/outlinewiki/{{ nom_club }}/outline-postgresql
+  destination:
+    name: outline-postgresql
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: b2-creds
+spec:
+  mount: kv-v2
+  path: kubernetes/outlinewiki/{{ nom_club }}/b2-creds
+  destination:
+    name: b2-creds
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: dockerhub-secret
+spec:
+  type: kubernetes.io/dockerconfigjson
+  mount: kv-v2
+  path: kubernetes/outlinewiki/{{ nom_club }}/dockerhub-secret
+  destination:
+    name: dockerhub-secret

@@ -1,0 +1,134 @@
+name: Demande pour un Wiki Outline
+
+on:
+  workflow_dispatch:
+    inputs:
+      nom_club:
+        type: string
+        required: true
+        description: "Nom du club, sans caractères spéciaux et majuscules sauf pour '-' et '_'. Le domaine sera configuré selon le nom (e.g wiki.votre-club.etsmtl.club)"
+
+jobs:
+  create_pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      CLUB: ${{ inputs.nom_club }}
+      ROOT_DIR: apps/clubs/${{ inputs.nom_club }}/outlinewiki
+      BASE_DIR: apps/clubs/${{ inputs.nom_club }}/outlinewiki/base
+      PROD_DIR: apps/clubs/${{ inputs.nom_club }}/outlinewiki/prod
+      TEMPLATE_ROOT_DIR: bases/outlinewiki
+      TEMPLATE_BASE_DIR: bases/outlinewiki/base-templates
+      TEMPLATE_PROD_DIR: bases/outlinewiki/prod-templates
+      j2_vars: |
+        nom_club=${{ inputs.nom_club }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update Terraform clubs.json
+        run: |
+          cd terraform/outline/authentik-vault
+          jq '. += ["${{ env.CLUB }}"] | unique' clubs.json > clubs_temp.json
+          mv clubs_temp.json clubs.json
+
+      - name: Create k8s folder
+        run: |
+          mkdir -p ${{ env.BASE_DIR }}
+          mkdir -p ${{ env.PROD_DIR }}
+
+      # -- BASE --
+      - name: Create ConfigMap Manifest
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: ${{ env.TEMPLATE_BASE_DIR }}/configmap.yaml.jinja2
+          output_file: ${{ env.BASE_DIR }}/configmap.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+
+      - name: Create Redis Manifest
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: ${{ env.TEMPLATE_BASE_DIR }}/redis.yaml.jinja2
+          output_file: ${{ env.BASE_DIR }}/redis.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+
+      - name: Create Outline Manifest
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: ${{ env.TEMPLATE_BASE_DIR }}/outline.yaml.jinja2
+          output_file: ${{ env.BASE_DIR }}/outline.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+
+      - name: Create Base Kustomize
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: ${{ env.TEMPLATE_BASE_DIR }}/kustomization.yaml.jinja2
+          output_file: ${{ env.BASE_DIR }}/kustomization.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+
+      # -- PROD --
+      - name: Create Postgres Manifest
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: ${{ env.TEMPLATE_PROD_DIR }}/postgres.yaml.jinja2
+          output_file: ${{ env.PROD_DIR }}/postgres.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+
+      - name: Create Network Manifest
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: ${{ env.TEMPLATE_PROD_DIR }}/networking.yaml.jinja2
+          output_file: ${{ env.PROD_DIR }}/networking.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+
+      - name: Create VSS Manifest
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: ${{ env.TEMPLATE_PROD_DIR }}/vss.yaml.jinja2
+          output_file: ${{ env.PROD_DIR }}/vss.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+
+      - name: Create Prod Kustomize
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: ${{ env.TEMPLATE_PROD_DIR }}/kustomization.yaml.jinja2
+          output_file: ${{ env.PROD_DIR }}/kustomization.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+      
+      # -- ARGO --
+      - name: Create Argo Manifest
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: ${{ env.TEMPLATE_ROOT_DIR }}/argo.yaml.jinja2
+          output_file: ${{ env.ROOT_DIR }}/argo.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+
+      # -- PR --
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          branch: outlinewiki/${{ env.CLUB }}
+          labels: |
+            outlinewiki
+            ${{ env.CLUB }}
+          title: "Deploy: Create a Outline Wiki for ${{ env.CLUB }}"
+          team-reviewers: |
+            SRE
+          body: |
+            PR automatisé pour création de Wiki Outline
+            Nom du club: `${{ env.CLUB }}`
+
+            **Changements inclus:**
+            - Ajout du club à `clubs.json` pour Terraform (Authentik/Vault).
+            - Génération des manifestes K8s via Jinja2.
