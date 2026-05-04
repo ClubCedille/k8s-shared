@@ -16,6 +16,10 @@ spec:
     spec:
       imagePullSecrets:
         - name: ghcr-clubcedille-secret
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: campusparent-pvc
       containers:
         - name: campusparent
           image: ghcr.io/clubcedille/backend-campusparentv2:latest
@@ -74,3 +78,6 @@ spec:
             runAsGroup: 10001
             seccompProfile:
               type: RuntimeDefault
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/uploads
