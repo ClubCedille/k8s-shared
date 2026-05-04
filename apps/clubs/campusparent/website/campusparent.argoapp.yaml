@@ -8,13 +8,13 @@ metadata:
     argocd-image-updater.argoproj.io/webapp.update-strategy: digest
     argocd-image-updater.argoproj.io/webapp.pull-secret: pullsecret:argocd/ghcr-campusparent-secret
 spec:
-  project: k8s-cedille-production-v2
+  project: k8s-shared
   destination:
-    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-production-v2
+    server: https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-shared
     namespace: campusparent
   source:
-    repoURL: https://github.com/ClubCedille/k8s-cedille-production-v2
-    path: apps/campusparent/prod
+    repoURL: https://github.com/ClubCedille/k8s-shared
+    path: apps/clubs/campusparent/website/prod
     targetRevision: HEAD
   syncPolicy:
     syncOptions:
