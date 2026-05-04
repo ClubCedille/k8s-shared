@@ -29,7 +29,7 @@ helmCharts:
   - name: argo-cd
     repo: https://argoproj.github.io/argo-helm
     releaseName: argocd
-    version: 9.4.11
+    version: 9.5.11
     valuesFile: helm/values.yaml
 
 # patches:
