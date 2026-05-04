@@ -25,7 +25,7 @@ provider "authentik" {
   url   = "https://auth.etsmtl.club"
   token = var.AUTHENTIK_API_TOKEN
 }
-  
+
 provider "vault" {
   address = "https://vault.etsmtl.club"
 }
@@ -36,11 +36,12 @@ locals {
 
 resource "random_password" "outline_client_secret" {
   for_each = toset(local.clubs)
-  
+
   length           = 48
   special          = true
   override_special = "!-_="
 }
+
 resource "random_password" "outline_secret_key" {
   for_each = toset(local.clubs)
   length   = 64
@@ -87,8 +88,8 @@ resource "vault_kv_secret_v2" "b2-creds" {
   name  = "kubernetes/outlinewiki/${each.key}/b2-creds"
 
   data_json = jsonencode({
-    ACCESS_KEY_ID = var.b2_id 
-    ACCESS_SECRET_KEY = var.b2_secret 
+    ACCESS_KEY_ID = var.b2_id
+    ACCESS_SECRET_KEY = var.b2_secret
   })
 }
 

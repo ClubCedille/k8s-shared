@@ -104,7 +104,7 @@ jobs:
           output_file: ${{ env.PROD_DIR }}/kustomization.yaml
           strict: true
           variables: ${{ env.j2_vars }}
-      
+
       # -- ARGO --
       - name: Create Argo Manifest
         uses: cuchi/jinja2-action@v1.3.0
