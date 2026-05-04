@@ -11,9 +11,9 @@ spec:
   tls:
     - secretName: campusparent-tls
       hosts:
-        - campusparent.prodv2.cedille.club
+        - campusparent.etsmtl.club
   rules:
-    - host: campusparent.prodv2.cedille.club
+    - host: campusparent.etsmtl.club
       http:
         paths:
           - pathType: Prefix
