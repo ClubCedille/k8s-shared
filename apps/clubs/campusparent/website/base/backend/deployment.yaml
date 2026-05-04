@@ -71,6 +71,7 @@ spec:
               memory: 700Mi
               ephemeral-storage: 1Gi
           securityContext:
+            fsGroup: 10001
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             runAsNonRoot: true
