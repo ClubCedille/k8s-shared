@@ -7,8 +7,8 @@ spec:
   sourceNamespaces: []
   destinations: []
   namespaceResourceBlacklist:
-  - group: '*'
-    kind: '*'
+    - group: '*'
+      kind: '*'
   orphanedResources:
     warn: true
 ---
