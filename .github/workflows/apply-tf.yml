@@ -1,0 +1,40 @@
+name: Apply Terraform for Authentik and Vault
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/outline/authentik-vault/**'
+
+jobs:
+  terraform_apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v2
+
+      - name: Setup Kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Tofu Init & Apply
+        env:
+          TF_IN_AUTOMATION: true
+          TF_VAR_AUTHENTIK_API_TOKEN: ${{ secrets.AUTHENTIK_TOKEN }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+          TF_VAR_db_user: ${{ secrets.OUTLINE_DB_USER }}
+          TF_VAR_db_password: ${{ secrets.OUTLINE_DB_PASSWORD }}
+          TF_VAR_b2_id: ${{ secrets.B2_ID }}
+          TF_VAR_b2_secret: ${{ secrets.B2_SECRET }}
+          TF_VAR_dockerhub_secret: ${{ secrets.DOCKERHUB_SECRET }}
+        run: |
+          cd terraform/outline/authentik-vault
+
+          tofu init
+          tofu apply -auto-approve
