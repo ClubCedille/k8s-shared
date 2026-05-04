@@ -51,12 +51,12 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: campusparent-backend
-                  key: clientid
+                  key: google-clientid
             - name: MICROSOFT_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: campusparent-backend
-                  key: clientsecret
+                  key: google-clientsecret
           resources:
             requests:
               cpu: 300m
