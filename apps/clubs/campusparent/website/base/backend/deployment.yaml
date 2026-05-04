@@ -14,6 +14,13 @@ spec:
       labels:
         app: campusparent-backend
     spec:
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ["sh", "-c", "chown -R 10001:10001 /app/uploads"]
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/uploads
       imagePullSecrets:
         - name: ghcr-clubcedille-secret
       volumes:
