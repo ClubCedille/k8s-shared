@@ -3,6 +3,20 @@ kind: AppProject
 metadata:
   name: default
 spec:
+  sourceRepos: []
+  sourceNamespaces: []
+  destinations: []
+  namespaceResourceBlacklist:
+    - group: '*'
+      kind: '*'
+  orphanedResources:
+    warn: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: common
+spec:
   sourceRepos:
     - 'https://github.com/clubcedille/k8s-base.git'
     - 'https://*.github.io/helm-charts/'
@@ -12,6 +26,8 @@ spec:
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'
+  orphanedResources:
+    warn: true
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
@@ -28,6 +44,8 @@ spec:
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'
+  orphanedResources:
+    warn: true
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
@@ -42,6 +60,8 @@ spec:
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'
+  orphanedResources:
+    warn: true
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
@@ -56,12 +76,22 @@ spec:
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'
+  orphanedResources:
+    warn: true
 ---
-  # roles:
-  # # A role which provides read-only access to all applications in the project
-  # - name: read-only
-  #   description: Read-only privileges to my-project
-  #   policies:
-  #   - p, proj:my-project:read-only, applications, get, my-project/*, allow
-  #   groups:
-  #   - my-oidc-group
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: LanETS
+spec:
+  sourceRepos:
+    - '*'
+  destinations:
+    - namespace: 'lanets-*'
+      server: 'https://kubernetes.default.svc'
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  orphanedResources:
+    warn: true
+---
