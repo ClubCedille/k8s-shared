@@ -17,7 +17,7 @@ variable "clubs" {
 }
 
 module "clubs" {
-  source = "./modules/club_groups"
+  source = "./modules/groups"
 
   for_each = var.clubs
   name     = each.value
