@@ -1,21 +1,3 @@
-variable "clubs" {
-  type = set(string)
-  default = [
-    "cedille",
-    "conjure",
-    "chinook",
-    "capra",
-    "pontacier",
-    "raconteursdangle",
-    "veloom",
-    "comets",
-    "lanets",
-    "synapse",
-    "musiquets",
-    "baja",
-  ]
-}
-
 module "clubs" {
   source = "./modules/groups"
 
