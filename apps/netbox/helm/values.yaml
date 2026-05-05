@@ -4,15 +4,6 @@ allowedHosts:
   - "netbox.etsmtl.club"
   - "*"
 
-#admin account default
-
-
-superuser:
-  name: "admin"
-  email: "admin@etsmtl.club"
-  password: "bacon123"
-  apiToken: ""
-  existingSecret: ""
 
 # Email settings
 email:
@@ -70,11 +61,18 @@ persistence:
 remoteAuth:
   enabled: true
   backends:
-    - social_core.backends.open_id_connect.OpenIdConnectAuth
+    - "social_core.backends.open_id_connect.OpenIdConnectAuth"
   autoCreateUser: true
-
-extraConfig:
-  - secret:
+extraVolumes:
+  - name: sso-secret-volume
+    secret:
       secretName: sso-secret
-  - values:
-      SOCIAL_AUTH_OIDC_OIDC_ENDPOINT: "https://auth.etsmtl.club/application/o/netbox"
+
+extraVolumeMounts:
+  - name: sso-secret-volume
+    mountPath: /etc/netbox/config/sso.py
+    subPath: sso.py
+    readOnly: true
+
+config:
+  debug: true
