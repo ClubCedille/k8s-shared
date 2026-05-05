@@ -11,3 +11,7 @@ provider "authentik" {
   url = var.authentik_url
   token = var.authentik_token
 }
+
+variable "clubs" {
+  type = set(string)
+}
