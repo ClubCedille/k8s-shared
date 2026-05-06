@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: authentik-branding-pvc
+  name: netbox-pvc
 spec:
   accessModes:
     - ReadWriteMany
