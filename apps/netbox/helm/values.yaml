@@ -1,4 +1,4 @@
-#Setting Django
+# (Setting Django
 existingSecret: "django-secret"
 allowedHosts:
   - "netbox.etsmtl.club"
@@ -25,7 +25,7 @@ email:
 ingress:
   enabled: false
 
-#DB Django (with CNPG)
+# DB Django (with CNPG)
 postgresql:
   enabled: false
 
@@ -46,7 +46,7 @@ externalDatabase:
 
 valkey:
   enabled: true
-  architecture: standalone 
+  architecture: standalone
   auth:
     enabled: true
     existingSecretName: valkey-secret
@@ -57,7 +57,7 @@ persistence:
   accessMode: ReadWriteOnce
   size: 5Gi
 
-#SSO Gestion
+# SSO Gestion
 remoteAuth:
   enabled: true
   backends:
