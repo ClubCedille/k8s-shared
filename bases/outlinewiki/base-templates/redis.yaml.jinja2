@@ -75,7 +75,7 @@ spec:
             readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
       imagePullSecrets:
-        - name: dockerhub-pull
+        - name: dockerhub-secret
   volumeClaimTemplates:
     - metadata:
         name: {{ nom_club }}-redis-pv-claim

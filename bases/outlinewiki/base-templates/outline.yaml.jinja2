@@ -91,7 +91,7 @@ spec:
             timeoutSeconds: 5
             failureThreshold: 3
       imagePullSecrets:
-        - name: dockerhub-pull
+        - name: dockerhub-secret
       restartPolicy: Always
   volumeClaimTemplates:
     - metadata:
