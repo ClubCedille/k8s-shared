@@ -120,9 +120,10 @@ jobs:
         with:
           branch: outlinewiki/${{ env.CLUB }}
           labels: |
+            automated
             outlinewiki
             ${{ env.CLUB }}
-          title: "PR Automatisé: Créer un wiki Outline pour ${{ env.CLUB }}"
+          title: "Créer un wiki Outline pour ${{ env.CLUB }}"
           team-reviewers: |
             SRE
           body: |
