@@ -89,11 +89,11 @@ jobs:
           strict: true
           variables: ${{ env.j2_vars }}
 
-      - name: Create VSS Manifest
+      - name: Create Vault Manifest
         uses: cuchi/jinja2-action@v1.3.0
         with:
-          template: ${{ env.TEMPLATE_PROD_DIR }}/vss.yaml.jinja2
-          output_file: ${{ env.PROD_DIR }}/vss.yaml
+          template: ${{ env.TEMPLATE_PROD_DIR }}/vault.yaml.jinja2
+          output_file: ${{ env.PROD_DIR }}/vault.yaml
           strict: true
           variables: ${{ env.j2_vars }}
 
