@@ -54,11 +54,10 @@ resource "random_password" "outline_utils_secret" {
   special  = false
 }
 
-resource "vault_kv_secret_v2" "outline_secrets" {
+resource "vault_kv_secret" "outline-secrets" {
   for_each = toset(local.clubs)
 
-  mount = "kv-v2"
-  name  = "kubernetes/outlinewiki/${each.key}/outline_secrets"
+  path = "kv/data/${each.key}-outlinewiki/default/outline-secrets"
 
   data_json = jsonencode({
     OIDC_CLIENT_ID     = authentik_provider_oauth2.outline_provider[each.key].client_id
@@ -69,38 +68,14 @@ resource "vault_kv_secret_v2" "outline_secrets" {
   })
 }
 
-resource "vault_kv_secret_v2" "outline-postgresql" {
+resource "vault_kv_secret" "outline-postgresql" {
   for_each = toset(local.clubs)
 
-  mount = "kv-v2"
-  name  = "kubernetes/outlinewiki/${each.key}/outline-postgresql"
+  path = "kv/data/${each.key}-outlinewiki/default/outline-postgresql"
 
   data_json = jsonencode({
     username = var.db_user
     password = var.db_password
-  })
-}
-
-resource "vault_kv_secret_v2" "b2-creds" {
-  for_each = toset(local.clubs)
-
-  mount = "kv-v2"
-  name  = "kubernetes/outlinewiki/${each.key}/b2-creds"
-
-  data_json = jsonencode({
-    ACCESS_KEY_ID = var.b2_id
-    ACCESS_SECRET_KEY = var.b2_secret
-  })
-}
-
-resource "vault_kv_secret_v2" "dockerhub-secret" {
-  for_each = toset(local.clubs)
-
-  mount = "kv-v2"
-  name  = "kubernetes/outlinewiki/${each.key}/dockerhub-secret"
-
-  data_json = jsonencode({
-    ".dockerconfigjson" = var.dockerhub_secret
   })
 }
 
