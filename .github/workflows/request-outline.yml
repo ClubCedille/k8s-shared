@@ -28,7 +28,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Update Terraform clubs.json
+      - name: Update clubs.json
         run: |
           cd terraform/outline/authentik-vault
           jq '. += ["${{ env.CLUB }}"] | unique' clubs.json > clubs_temp.json
@@ -122,7 +122,7 @@ jobs:
           labels: |
             outlinewiki
             ${{ env.CLUB }}
-          title: "Deploy: Create a Outline Wiki for ${{ env.CLUB }}"
+          title: "PR Automatisé: Créer un wiki Outline pour ${{ env.CLUB }}"
           team-reviewers: |
             SRE
           body: |

@@ -18,9 +18,11 @@ jobs:
         uses: opentofu/setup-opentofu@v2
 
       - name: Setup Kubeconfig
+        env:
+          KUBECONFIG_SECRET: ${{ secrets.KUBECONFIG }}
         run: |
           mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+          echo "$KUBECONFIG_SECRET" > ~/.kube/config
           chmod 600 ~/.kube/config
 
       - name: Tofu Init & Apply
@@ -30,9 +32,6 @@ jobs:
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           TF_VAR_db_user: ${{ secrets.OUTLINE_DB_USER }}
           TF_VAR_db_password: ${{ secrets.OUTLINE_DB_PASSWORD }}
-          TF_VAR_b2_id: ${{ secrets.B2_ID }}
-          TF_VAR_b2_secret: ${{ secrets.B2_SECRET }}
-          TF_VAR_dockerhub_secret: ${{ secrets.DOCKERHUB_SECRET }}
         run: |
           cd terraform/outline/authentik-vault
 
