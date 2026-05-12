@@ -1,0 +1,64 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: {{ nom_club }}-auth
+spec:
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    audiences:
+    - vault
+    role: secret-reader
+    serviceAccount: default
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: outline-secrets
+spec:
+  vaultAuthRef: {{ nom_club }}-auth
+  type: kv-v1
+  mount: kv
+  path: data/{{ nom_club }}-outlinewiki/default/outline-secrets
+  destination:
+    name: outline-secrets
+    create: true
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: outline-postgresql
+spec:
+  vaultAuthRef: {{ nom_club }}-auth
+  type: kv-v1
+  mount: kv
+  path: data/{{ nom_club }}-outlinewiki/default/outline-postgresql
+  destination:
+    name: outline-postgresql
+    create: true
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: b2-creds
+spec:
+  vaultAuthRef: {{ nom_club }}-auth
+  type: kv-v1
+  mount: kv-system
+  path: default_passwords/b2-creds
+  destination:
+    name: b2-creds
+    create: true
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: dockerhub-secret
+spec:
+  vaultAuthRef: {{ nom_club }}-auth
+  type: kv-v1
+  mount: kv-system
+  path: default_passwords/docker
+  destination:
+    name: dockerhub-secret
+    create: true

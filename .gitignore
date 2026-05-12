@@ -2,3 +2,9 @@
 *secret.yaml
 !config-secret.yaml
 !random-secret.yaml
+
+# Terraform
+.terraform
+*.secret
+*.tfvars
+*.terraform.lock.hcl
