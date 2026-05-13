@@ -36,6 +36,7 @@ spec:
   destination:
     name: outline-postgresql
     create: true
+    type: kubernetes.io/basic-auth
 ---
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultStaticSecret
@@ -62,3 +63,4 @@ spec:
   destination:
     name: dockerhub-secret
     create: true
+    type: kubernetes.io/dockerconfigjson

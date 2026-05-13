@@ -42,16 +42,14 @@ resource "random_password" "outline_client_secret" {
   override_special = "!-_="
 }
 
-resource "random_password" "outline_secret_key" {
-  for_each = toset(local.clubs)
-  length   = 64
-  special  = false
+resource "random_id" "outline_secret_key" {
+  for_each    = toset(local.clubs)
+  byte_length = 32
 }
 
-resource "random_password" "outline_utils_secret" {
-  for_each = toset(local.clubs)
-  length   = 64
-  special  = false
+resource "random_id" "outline_utils_secret" {
+  for_each    = toset(local.clubs)
+  byte_length = 32
 }
 
 resource "vault_kv_secret" "outline-secrets" {
@@ -62,9 +60,9 @@ resource "vault_kv_secret" "outline-secrets" {
   data_json = jsonencode({
     OIDC_CLIENT_ID     = authentik_provider_oauth2.outline_provider[each.key].client_id
     OIDC_CLIENT_SECRET = authentik_provider_oauth2.outline_provider[each.key].client_secret
-    SECRET_KEY         = random_password.outline_secret_key[each.key].result
-    UTILS_SECRET       = random_password.outline_utils_secret[each.key].result
-    DATABASE_URL       = "postgres://${var.db_user}:${var.db_password}@${each.key}-postgres-svc.${each.key}-outlinewiki.svc.cluster.local:5432/outline"
+    SECRET_KEY         = random_id.outline_secret_key[each.key].result
+    UTILS_SECRET       = random_id.outline_utils_secret[each.key].result
+    DATABASE_URL       = "postgres://${var.db_user}:${var.db_password}@postgresql-outline-${each.key}-rw.${each.key}-outlinewiki.svc.cluster.local:5432/outline"
   })
 }
 
