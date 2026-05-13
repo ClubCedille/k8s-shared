@@ -109,8 +109,8 @@ jobs:
       - name: Create Argo Manifest
         uses: cuchi/jinja2-action@v1.3.0
         with:
-          template: ${{ env.TEMPLATE_ROOT_DIR }}/argo.yaml.jinja2
-          output_file: ${{ env.ROOT_DIR }}/argo.yaml
+          template: ${{ env.TEMPLATE_ROOT_DIR }}/argoapp.yaml.jinja2
+          output_file: ${{ env.ROOT_DIR }}/${{ env.CLUB }}-outlinewiki.argoapp.yaml
           strict: true
           variables: ${{ env.j2_vars }}
 
