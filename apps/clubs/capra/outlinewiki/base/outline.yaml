@@ -46,7 +46,7 @@ spec:
               memory: "256Mi"
               ephemeral-storage: "256Mi"
       containers:
-          image: outlinewiki/outline:1.7.0
+        - image: outlinewiki/outline:1.7.0
           name: outline
           imagePullPolicy: Always
           envFrom:
