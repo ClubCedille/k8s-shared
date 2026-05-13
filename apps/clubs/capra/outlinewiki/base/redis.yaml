@@ -58,14 +58,14 @@ spec:
           livenessProbe:
             exec:
               command:
-                - cli
+                - redis-cli
                 - ping
             initialDelaySeconds: 30
             periodSeconds: 10
           readinessProbe:
             exec:
               command:
-                - cli
+                - redis-cli
                 - ping
             initialDelaySeconds: 5
             periodSeconds: 10
