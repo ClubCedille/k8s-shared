@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: netbox-v1
+  namespace: netbox
+resources:
+  - resources/certificate.yaml
+  - resources/httpproxy.yaml
+  - resources/pvc.yaml
+helmCharts:
+  - name: netbox
+    version: "8.1.6"
+    repo: "https://charts.netbox.oss.netboxlabs.com/"
+    releaseName: "netbox"
+    namespace: netbox
+    valuesFile: "helm/values.yaml"

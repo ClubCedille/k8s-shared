@@ -1,0 +1,78 @@
+# (Setting Django
+existingSecret: "django-secret"
+allowedHosts:
+  - "netbox.etsmtl.club"
+  - "*"
+
+
+# Email settings
+email:
+  server: localhost
+  port: 25
+  username: "bacon143"
+  password: ""
+  useSSL: false
+  useTLS: false
+  sslCertFile: ""
+  sslKeyFile: ""
+  # Timeout in seconds
+  timeout: 10
+  from: ""
+  existingSecretName: ""
+  existingSecretKey: ""
+
+
+ingress:
+  enabled: false
+
+# DB Django (with CNPG)
+postgresql:
+  enabled: false
+
+externalDatabase:
+  host: "netbox-db-rw.netbox.svc.cluster.local"
+  port: 5432
+  database: "netbox"
+  username: "netbox"
+  existingSecretName: "netbox-db-app"
+  existingSecretKey: "password"
+  engine: django.db.backends.postgresql
+  connMaxAge: 300
+  disableServerSideCursors: false
+  options:
+    sslmode: "prefer"
+    target_session_attrs: "read-write"
+
+
+valkey:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: true
+    existingSecretName: valkey-secret
+    existingSecretKey: valkey-password
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 5Gi
+
+# SSO Gestion
+remoteAuth:
+  enabled: true
+  backends:
+    - "social_core.backends.open_id_connect.OpenIdConnectAuth"
+  autoCreateUser: true
+extraVolumes:
+  - name: sso-secret-volume
+    secret:
+      secretName: sso-secret
+
+extraVolumeMounts:
+  - name: sso-secret-volume
+    mountPath: /etc/netbox/config/sso.py
+    subPath: sso.py
+    readOnly: true
+
+config:
+  debug: true
