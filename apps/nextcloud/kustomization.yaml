@@ -25,7 +25,7 @@ patches:
 helmCharts:
   - name: nextcloud
     repo: https://nextcloud.github.io/helm
-    version: 6.6.10
+    version: 7.0.4
     releaseName: nextcloud
     namespace: nextcloud
     valuesFile: ./helm/nextcloud-values.yaml
