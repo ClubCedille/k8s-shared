@@ -1,9 +1,7 @@
-# (Setting Django
+# Setting Django
 existingSecret: "django-secret"
 allowedHosts:
   - "netbox.etsmtl.club"
-  - "*"
-
 
 # Email settings
 email:
@@ -74,5 +72,18 @@ extraVolumeMounts:
     subPath: sso.py
     readOnly: true
 
+livenessProbe:
+  enabled: true
+  path: "/"
+  initialDelaySeconds: 360
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+worker:
+  livenessProbe:
+    initialDelaySeconds: 60
+
+
 config:
-  debug: true
+  debug: false
