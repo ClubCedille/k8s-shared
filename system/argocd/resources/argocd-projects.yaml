@@ -95,3 +95,21 @@ spec:
   orphanedResources:
     warn: true
 ---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: applets
+spec:
+  sourceRepos:
+    - '*'
+  destinations:
+    - namespace: 'applets-*'
+      server: 'https://kubernetes.default.svc'
+    - namespace: 'planifets'
+      server: 'https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-production-v2'
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  orphanedResources:
+    warn: true
+---

@@ -348,22 +348,16 @@ configs:
     # -- File containing user-defined policies and role definitions.
     # @default -- `''` (See [values.yaml])
     policy.csv: |
+      #  g, subject, inherited-subject
       g, authentik Admins, role:admin
       g, authentik Read-only, role:readonly
       g, exec-cedille, role:readonly
       g, club-cedille, role:readonly
+      g, club-applets, role:readonly
+      g, exec-applets, role:applets
 
-    # Policy rules are in the form:
-    #  p, subject, resource, action, object, effect
-    # Role definitions and bindings are in the form:
-    #  g, subject, inherited-subject
-    # policy.csv: |
-    #   p, role:org-admin, applications, *, */*, allow
-    #   p, role:org-admin, clusters, get, *, allow
-    #   p, role:org-admin, repositories, *, *, allow
-    #   p, role:org-admin, logs, get, *, allow
-    #   p, role:org-admin, exec, create, */*, allow
-    #   g, your-github-org:your-team, role:org-admin
+      #  p, subject, resource, action, object, effect
+      p, role:applets, applications, *, applets/*, allow
 
     # -- OIDC scopes to examine during rbac enforcement (in addition to `sub` scope).
     # The scope value can be a string, or a list of strings.
