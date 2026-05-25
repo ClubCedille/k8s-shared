@@ -60,8 +60,8 @@ resource "vault_kv_secret" "outline-secrets" {
   data_json = jsonencode({
     OIDC_CLIENT_ID     = authentik_provider_oauth2.outline_provider[each.key].client_id
     OIDC_CLIENT_SECRET = authentik_provider_oauth2.outline_provider[each.key].client_secret
-    SECRET_KEY         = random_id.outline_secret_key[each.key].result
-    UTILS_SECRET       = random_id.outline_utils_secret[each.key].result
+    SECRET_KEY         = random_id.outline_secret_key[each.key].hex
+    UTILS_SECRET       = random_id.outline_utils_secret[each.key].hex
     DATABASE_URL       = "postgres://${var.db_user}:${var.db_password}@postgresql-outline-${each.key}-rw.${each.key}-outlinewiki.svc.cluster.local:5432/outline"
   })
 }
@@ -85,6 +85,18 @@ data "authentik_flow" "default-invalidation-flow" {
   slug = "default-provider-invalidation-flow"
 }
 
+data "authentik_property_mapping_provider_scope" "openid" {
+  managed = "goauthentik.io/providers/oauth2/scope-openid"
+}
+
+data "authentik_property_mapping_provider_scope" "email" {
+  managed = "goauthentik.io/providers/oauth2/scope-email"
+}
+
+data "authentik_property_mapping_provider_scope" "profile" {
+  managed = "goauthentik.io/providers/oauth2/scope-profile"
+}
+
 resource "authentik_provider_oauth2" "outline_provider" {
   for_each = toset(local.clubs)
 
@@ -93,6 +105,17 @@ resource "authentik_provider_oauth2" "outline_provider" {
   client_secret      = random_password.outline_client_secret[each.key].result
   authorization_flow = data.authentik_flow.default-authorization-flow.id
   invalidation_flow  = data.authentik_flow.default-invalidation-flow.id
+  property_mappings = [
+    data.authentik_property_mapping_provider_scope.openid.id,
+    data.authentik_property_mapping_provider_scope.email.id,
+    data.authentik_property_mapping_provider_scope.profile.id,
+  ]
+  allowed_redirect_uris = [
+    {
+      "matching_mode" = "strict"
+      "url"           = "https://wiki.${each.key}.etsmtl.club/auth/oidc.callback"
+    },
+  ]
 }
 
 resource "authentik_application" "outline_app" {
