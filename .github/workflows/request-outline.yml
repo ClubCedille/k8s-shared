@@ -124,8 +124,6 @@ jobs:
             outlinewiki
             ${{ env.CLUB }}
           title: "Créer un wiki Outline pour ${{ env.CLUB }}"
-          team-reviewers: |
-            SRE
           body: |
             PR automatisé pour création de Wiki Outline
             Nom du club: `${{ env.CLUB }}`
