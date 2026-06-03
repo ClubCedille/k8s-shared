@@ -15,9 +15,8 @@ spec:
         app: matomo
     spec:
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 10001
-        runAsGroup: 10001
+        runAsUser: 0
+        runAsNonRoot: false
         fsGroup: 10001
         fsGroupChangePolicy: "OnRootMismatch"
       volumes:
