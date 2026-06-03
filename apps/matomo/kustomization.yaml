@@ -1,0 +1,10 @@
+---
+namespace: nextcloud
+
+helmCharts:
+  - name: matomo
+    repo: oci://registry-1.docker.io/digitalist/matomo
+    version: 11.0.64
+    releaseName: matomo
+    namespace: matomo
+    valuesFile: ./helm/values.yaml
