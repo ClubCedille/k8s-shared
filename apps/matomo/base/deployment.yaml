@@ -15,8 +15,9 @@ spec:
         app: matomo
     spec:
       securityContext:
-        runAsUser: 0
-        runAsNonRoot: false
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
         fsGroup: 10001
         fsGroupChangePolicy: "OnRootMismatch"
       volumes:
@@ -24,7 +25,7 @@ spec:
           emptyDir: {}
       containers:
         - name: matomo
-          image: matomo:5.10-apache
+          image: digitalist/matomo:latest
           imagePullPolicy: Always
           ports:
             - name: fpm
