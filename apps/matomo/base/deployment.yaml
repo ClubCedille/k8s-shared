@@ -24,7 +24,7 @@ spec:
           emptyDir: {}
       containers:
         - name: matomo
-          image: matomo:5.10-apache
+          image: digitalist/matomo:latest
           imagePullPolicy: Always
           ports:
             - name: fpm
