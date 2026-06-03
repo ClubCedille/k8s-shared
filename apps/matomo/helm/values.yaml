@@ -13,11 +13,8 @@ global:
   # -- Global image registry
   imageRegistry: ""
   ## As:
-  ## imagePullSecrets:
-  ##   - myRegistryKeySecretName
-  ##
-  # -- Global image pull secrets
-  imagePullSecrets: []
+  imagePullSecrets:
+    - ghcr-clubcedille-secret
 # -- Namespace to install Matomo in, default matomo.
 namespace: matomo
 matomo:
