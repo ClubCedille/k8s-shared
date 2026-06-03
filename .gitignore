@@ -2,6 +2,7 @@
 *secret.yaml
 !config-secret.yaml
 !random-secret.yaml
+!vault-secret.yaml
 
 # Terraform
 .terraform
