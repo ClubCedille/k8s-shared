@@ -351,7 +351,7 @@ configs:
       #  g, subject, inherited-subject
       g, authentik Admins, role:admin
       g, authentik Read-only, role:readonly
-      g, exec-cedille, role:readonly
+      g, exec-cedille, role:admin
       g, club-cedille, role:readonly
       g, club-applets, role:readonly
       g, exec-applets, role:applets
