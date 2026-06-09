@@ -2,9 +2,9 @@
 imagePullSecrets:
   - name: dockerhub-pull
 collabora:
-  replicaCount: 3
+  replicaCount: 8
   autoscaling:
-    enabled: true
+    enabled: false
   aliasgroups:
     - host: https://nextcloud.etsmtl.club:443
   extra_params: --o:ssl.enable=false --o:ssl.termination=true --o:num_prespawn_children=4
