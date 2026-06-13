@@ -90,6 +90,13 @@ secret:
     secretRefKey:
       cryptoKey: cryptoKey
 
+  ## GarageHQ s3 bucket
+  s3:
+    secretRef: "supabase-secret"
+    secretRefKey:
+      keyId: S3_ACCESS_KEY_ID
+      accessKey: S3_SECRET_ACCESS_KEY
+
 deployment:
   analytics:
     enabled: true
@@ -283,6 +290,12 @@ deployment:
     volumeMounts: {}
     volumes: {}
     resources: {}
+    environment:
+      GLOBAL_S3_ENDPOINT: http://10.0.21.50:3900
+      STORAGE_BACKEND: s3
+      GLOBAL_S3_PROTOCOL: http
+      GLOBAL_S3_FORCE_PATH_STYLE: true
+      AWS_DEFAULT_REGION: stub
 
   studio:
     enabled: true
@@ -359,12 +372,6 @@ image:
     repository: supabase/postgres-meta
     pullPolicy: IfNotPresent
     tag: "v0.95.2"
-    pullSecrets: []
-
-  minio:
-    repository: cgr.dev/chainguard/minio
-    pullPolicy: IfNotPresent
-    tag: "latest"
     pullSecrets: []
 
   realtime:

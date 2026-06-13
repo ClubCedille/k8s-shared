@@ -105,7 +105,7 @@ spec:
   destinations:
     - namespace: 'applets-*'
       server: 'https://kubernetes.default.svc'
-    - namespace: 'planifets'
+    - namespace: 'planifets-*'
       server: 'https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-production-v2'
   clusterResourceWhitelist:
     - group: '*'
