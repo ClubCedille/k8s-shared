@@ -552,7 +552,7 @@ environment:
     FILE_STORAGE_BACKEND_PATH: /var/lib/storage
     TENANT_ID: stub
     REGION: stub
-    GLOBAL_S3_BUCKET: stub
+    GLOBAL_S3_BUCKET: exutoire-media
     ENABLE_IMAGE_TRANSFORMATION: "true"
 
   studio:
