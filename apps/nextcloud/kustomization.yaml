@@ -1,11 +1,14 @@
 ---
 namespace: nextcloud
+
 resources:
   - resources/postgresql.yaml
   - resources/httpproxy.yaml
   - resources/certificate.yaml
   - resources/pvc.yaml
   - resources/cronjob.yaml
+  - resources/vault-secret.yaml
+
 patches:
   - target:
       kind: Deployment
@@ -22,6 +25,7 @@ patches:
               app.kubernetes.io/backup: velero
             annotations:
               backup.velero.io/backup-volumes: nextcloud-main
+
 helmCharts:
   - name: nextcloud
     repo: https://nextcloud.github.io/helm
@@ -35,11 +39,13 @@ helmCharts:
     releaseName: collabora
     namespace: nextcloud
     valuesFile: ./helm/collabora-values.yaml
+
 configMapGenerator:
   - name: nextcloud-setup-job
     files:
       - ../../data/nextcloud-external-sites.yaml
       - ../../data/clubs.yaml
       - ./resources/nextcloud-setup.bash
+
 generatorOptions:
   disableNameSuffixHash: true
