@@ -279,6 +279,11 @@ cronjob:
       cpu: 350m
       memory: 1Gi
       ephemeral-storage: 2Gi
+  securityContext:
+    runAsUser: 33
+    runAsGroup: 33
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
 service:
   type: ClusterIP
   port: 8080
