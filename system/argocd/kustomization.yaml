@@ -42,27 +42,15 @@ patches:
   #   kubectl get secrets -n argocd -l argocd.argoproj.io/secret-type=cluster \
   #     -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.data.name | @base64d}{"\n"}{end}'
   #
-  # Fill in the correct secret name and IPs below, then uncomment.
+  # The production-v2 cluster Secret is managed by Omni (not this kustomization),
+  # so it cannot be patched here. To enable MetalLB on production-v2, run once:
   #
-  # - target:
-  #     kind: Secret
-  #     name: <cluster-secret-name-for-production-v2>
-  #   patch: |-
-  #     - op: add
-  #       path: /metadata/labels/etsmtl.club~1external-network
-  #       value: "true"
-  #     - op: add
-  #       path: /metadata/labels/etsmtl.club~1internal-network
-  #       value: "true"
-  #     - op: add
-  #       path: /metadata/annotations/etsmtl.club~1external-ip
-  #       value: "<PROD_V2_EXTERNAL_IP>"
-  #     - op: add
-  #       path: /metadata/annotations/etsmtl.club~1internal-ip
-  #       value: "<PROD_V2_INTERNAL_IP>"
-  #     - op: add
-  #       path: /metadata/annotations/etsmtl.club~1forgejo-ssh-ip
-  #       value: "<PROD_V2_FORGEJO_SSH_IP>"
-  #     - op: add
-  #       path: /metadata/annotations/etsmtl.club~1byzantium-ip
-  #       value: "<PROD_V2_BYZANTIUM_IP>"
+  #   kubectl patch secret cluster-cedille.kubernetes.omni.siderolabs.io-2827971969 \
+  #     -n argocd --type=json -p='[
+  #       {"op":"add","path":"/metadata/labels/etsmtl.club~1external-network","value":"true"},
+  #       {"op":"add","path":"/metadata/annotations/etsmtl.club~1external-ip","value":"142.137.247.79"}
+  #     ]'
+  #
+  # external-ip: 142.137.247.79 (resolved from *.prodv2.cedille.club DNS)
+  # forgejo-ssh-ip / byzantium-ip: not present on production-v2; the
+  # external-ip ApplicationSet conditionally skips those patches when absent.
