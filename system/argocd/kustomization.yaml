@@ -32,13 +32,25 @@ helmCharts:
     version: 9.5.11
     valuesFile: helm/values.yaml
 
-# patches:
-#   - patch: |-
-#       - op: replace
-#         path: /metadata/name
-#         value: '{{.name}}'
-#       - op: replace
-#         path: /spec/destinations/0/server
-#         value: '{{.server}}'
-#     target:
-#       kind: AppProject
+patches:
+  # Patch the production-v2 cluster Secret (managed by Omni/Sidero) to add the
+  # MetalLB labels and IP annotations required by the external-ip and internal-ip
+  # ApplicationSets. Without these labels the LoadBalancer services for
+  # contour-external and contour-internal stay <Pending> and all ingress is broken.
+  #
+  # To find the secret name:
+  #   kubectl get secrets -n argocd -l argocd.argoproj.io/secret-type=cluster \
+  #     -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.data.name | @base64d}{"\n"}{end}'
+  #
+  # The production-v2 cluster Secret is managed by Omni (not this kustomization),
+  # so it cannot be patched here. To enable MetalLB on production-v2, run once:
+  #
+  #   kubectl patch secret cluster-cedille.kubernetes.omni.siderolabs.io-2827971969 \
+  #     -n argocd --type=json -p='[
+  #       {"op":"add","path":"/metadata/labels/etsmtl.club~1external-network","value":"true"},
+  #       {"op":"add","path":"/metadata/annotations/etsmtl.club~1external-ip","value":"142.137.247.79"}
+  #     ]'
+  #
+  # external-ip: 142.137.247.79 (resolved from *.prodv2.cedille.club DNS)
+  # forgejo-ssh-ip / byzantium-ip: not present on production-v2; the
+  # external-ip ApplicationSet conditionally skips those patches when absent.
