@@ -3,6 +3,8 @@ kind: IPAddressPool
 metadata:
   name: forgejo-ip
   namespace: metallb-system
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
 spec:
   addresses:
     - 142.137.247.76/32
@@ -15,6 +17,8 @@ kind: IPAddressPool
 metadata:
   name: byzantium-ip
   namespace: metallb-system
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
 spec:
   addresses:
     - 142.137.247.78/32
