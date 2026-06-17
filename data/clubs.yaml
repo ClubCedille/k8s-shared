@@ -24,3 +24,5 @@
   quota: 1000
 - name: baja
   quota: 1000
+- name: eclipse
+  quota: 8000
