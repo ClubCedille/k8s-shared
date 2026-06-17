@@ -68,23 +68,17 @@ global:
           name: authentik-secrets
           key: AUTHENTIK_BOOTSTRAP_PASSWORD
 
+    - name: AUTHENTIK_POSTGRESQL__HOST
+      value: postgresql-authentik-rw
+    - name: AUTHENTIK_POSTGRESQL__NAME
+      value: authentik
+    - name: AUTHENTIK_POSTGRESQL__USER
+      value: authentik
     - name: AUTHENTIK_POSTGRESQL__PASSWORD
       valueFrom:
         secretKeyRef:
-          name: authentik-secrets
-          key: AUTHENTIK_POSTGRES_PASSWORD
+          name: authentik-cnpg-app
+          key: password
 
 postgresql:
-  enabled: true
-  image:
-    registry: docker.io
-    repository: library/postgres
-    tag: "15-bookworm"
-  auth:
-    existingSecret: authentik-secrets
-    secretKeys:
-      adminPasswordKey: AUTHENTIK_POSTGRES_PASSWORD
-      userPasswordKey: AUTHENTIK_POSTGRES_PASSWORD
-  persistence:
-    enabled: true
-    storageClass: cephfs
+  enabled: false

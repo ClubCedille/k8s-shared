@@ -7,6 +7,7 @@ resources:
   - resources/certificate.yaml
   - resources/httpproxy.yaml
   - resources/pvc.yaml
+  - resources/postgresql.yaml
 helmCharts:
   - name: authentik
     version: "2025.12"
