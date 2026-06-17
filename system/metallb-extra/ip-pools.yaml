@@ -1,0 +1,36 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: forgejo-ip
+  namespace: metallb-system
+spec:
+  addresses:
+    - 142.137.247.76/32
+  serviceAllocation:
+    namespaces:
+      - forgejo
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: byzantium-ip
+  namespace: metallb-system
+spec:
+  addresses:
+    - 142.137.247.78/32
+  serviceAllocation:
+    namespaces:
+      - byzantium-helm
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: extra-ips
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - forgejo-ip
+    - byzantium-ip
+  nodeSelectors:
+    - matchLabels:
+        etsmtl.club/external-network: "true"
