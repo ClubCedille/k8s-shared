@@ -268,7 +268,7 @@ redis:
 ## ref: https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/background_jobs_configuration.html#cron
 ##
 cronjob:
-  enabled: true
+  enabled: false
   type: cronjob
   # command: [/cron.sh]
   # resources:
