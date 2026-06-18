@@ -13,11 +13,11 @@ spec:
       secret:
         name: nextcloud-postgresql
   storage:
-    size: 100Gi
+    size: 105Gi
     storageClass: cephfs
-  # walStorage:
-  #   size: 20Gi
-  #   storageClass: cephfs
+  walStorage:
+    size: 20Gi
+    storageClass: ceph-rbd
   postgresql:
     parameters:
       wal_compression: "on"
