@@ -14,6 +14,9 @@ spec:
   storage:
     size: 80Gi
     storageClass: cephfs
+  walStorage:
+    size: 20Gi
+    storageClass: ceph-rbd
   backup:
     retentionPolicy: 7d
     volumeSnapshot:
