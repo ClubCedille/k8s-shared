@@ -1,0 +1,49 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgresql-forgejo-recovery
+  namespace: forgejo
+  labels:
+    app: postgresql-forgejo-recovery
+spec:
+  # Use same Postgres image as production to avoid compatibility issues
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.2
+  # You can reduce replicas for a recovery cluster if desired
+  instances: 3
+
+  # Bootstrap recovery settings. Two approaches are common:
+  # 1) Specify a base backup resource (backup.name) and let CNPG replay WALs
+  # 2) Specify a recovery target time (PITR) with recovery.target.recoveryTargetTime
+  # Fill one or both as appropriate before applying. Do NOT apply until you
+  # have verified WAL coverage for the chosen target time.
+  bootstrap:
+    recovery:
+      # Use the provided completed backup as the base for recovery
+      backup:
+        name: cnpg-backup-schedule-forgejo-20260618064000
+
+      # PITR target: set to 1.5 hours ago (UTC). Change if you want a different point.
+      target:
+        recoveryTargetTime: "2026-06-19T01:05:25Z"
+        # recoveryTargetAction: what to do once the target is reached; promote will make
+        # the recovered instance primary.
+        recoveryTargetAction: promote
+
+  storage:
+    size: 80Gi
+    storageClass: cephfs
+
+  walStorage:
+    size: 20Gi
+    storageClass: ceph-rbd
+
+  # Keep other settings minimal; cluster will use defaults. Adjust resources,
+  # monitoring, and plugins to match production if you need a closer replica.
+
+# Notes:
+# - This manifest is a template. Set recovery.backup.name or recovery.target.recoveryTargetTime
+#   before applying. Prefer restoring into a separate namespace/name to avoid clobbering
+#   production resources.
+# - Ensure the object store contains WALs and .history files spanning from the
+#   base backup to the recovery target time. Missing history files (eg 00000008.history)
+#   will prevent recovery.
