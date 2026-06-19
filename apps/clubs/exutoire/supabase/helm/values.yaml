@@ -849,6 +849,7 @@ ingress:
     cert-manager.io/cluster-issuer: "letsencrypt-http"
     ingress.kubernetes.io/force-ssl-redirect: "true"
     kubernetes.io/tls-acme: "true"
+    gatus.cedille/protocol: "tcp"
   tls:
     - secretName: supabase-tls
       hosts:
