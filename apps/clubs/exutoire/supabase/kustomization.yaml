@@ -11,3 +11,26 @@ helmCharts:
     releaseName: "supabase"
     namespace: exutoire
     valuesFile: "helm/values.yaml"
+
+patches:
+  ## Inject S3 credentials into imgproxy so it can fetch images directly from GarageHQ
+  - target:
+      kind: Deployment
+      name: supabase-supabase-imgproxy
+    patch: |
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: supabase-secret
+              key: S3_ACCESS_KEY_ID
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-secret
+              key: S3_SECRET_ACCESS_KEY

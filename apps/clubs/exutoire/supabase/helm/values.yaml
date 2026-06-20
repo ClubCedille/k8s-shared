@@ -484,9 +484,12 @@ environment:
 
   imgproxy:
     IMGPROXY_BIND: ":5001"
-    IMGPROXY_LOCAL_FILESYSTEM_ROOT: /
     IMGPROXY_USE_ETAG: "true"
     IMGPROXY_ENABLE_WEBP_DETECTION: "true"
+    ## Use S3 to fetch source images directly from GarageHQ
+    IMGPROXY_USE_S3: "true"
+    IMGPROXY_S3_ENDPOINT: "http://10.0.21.50:3900"
+    IMGPROXY_S3_REGION: "stub"
 
   kong:
     KONG_DATABASE: "off"
