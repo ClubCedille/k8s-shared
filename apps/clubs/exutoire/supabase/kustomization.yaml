@@ -13,26 +13,54 @@ helmCharts:
     valuesFile: "helm/values.yaml"
 
 patches:
-  ## Fix imgproxy: replace its own PVC with the storage PVC so it can read files
-  ## that the storage API writes. Both pods must be on the same node (RWO constraint).
+  ## Override STORAGE_BACKEND to s3 (chart hardcodes "file" when minio is disabled)
   - target:
       kind: Deployment
-      name: supabase-supabase-imgproxy
+      name: supabase-supabase-storage
     patch: |
-      - op: replace
-        path: /spec/template/spec/volumes/0/persistentVolumeClaim/claimName
-        value: supabase-storage
-  ## Ensure imgproxy and storage land on the same node (required for RWO PVC sharing)
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: STORAGE_BACKEND
+          value: "s3"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: GLOBAL_S3_ENDPOINT
+          value: "http://10.0.21.50:3900"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: GLOBAL_S3_PROTOCOL
+          value: "http"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: GLOBAL_S3_FORCE_PATH_STYLE
+          value: "true"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AWS_DEFAULT_REGION
+          value: "garage"
+  ## Inject S3 credentials into imgproxy for direct S3 access
   - target:
       kind: Deployment
       name: supabase-supabase-imgproxy
     patch: |
       - op: add
-        path: /spec/template/spec/affinity
+        path: /spec/template/spec/containers/0/env/-
         value:
-          podAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              - labelSelector:
-                  matchLabels:
-                    app.kubernetes.io/name: supabase-storage
-                topologyKey: kubernetes.io/hostname
+          name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: supabase-secret
+              key: S3_ACCESS_KEY_ID
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-secret
+              key: S3_SECRET_ACCESS_KEY
