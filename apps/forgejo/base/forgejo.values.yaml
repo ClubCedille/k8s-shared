@@ -29,13 +29,13 @@ gitea:
     actions:
       enabled: true
       DEFAULT_ACTIONS_URL: https://github.com
-      server:
-        ROOT_URL: https://git.etsmtl.club/
-        PROTOCOL: https
-        OFFLINE_MODE: false
-        DOMAIN: git.etsmtl.club
-        LFS_START_SERVER: true
-        SSH_DOMAIN: ssh.git.etsmtl.club
+    server:
+      ROOT_URL: https://git.etsmtl.club/
+      PROTOCOL: https
+      OFFLINE_MODE: false
+      DOMAIN: git.etsmtl.club
+      LFS_START_SERVER: true
+      SSH_DOMAIN: ssh.git.etsmtl.club
     picture:
       ENABLE_FEDERATED_AVATAR: true
       DISABLE_GRAVATAR: false
@@ -91,3 +91,6 @@ persistence:
   storageClass: cephfs
   accessModes:
     - ReadWriteMany
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
