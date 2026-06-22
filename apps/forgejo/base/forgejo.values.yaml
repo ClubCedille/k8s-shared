@@ -33,9 +33,9 @@ gitea:
         ROOT_URL: https://git.etsmtl.club/
         PROTOCOL: https
         OFFLINE_MODE: false
-      DOMAIN: git.etsmtl.club
-      LFS_START_SERVER: true
-      SSH_DOMAIN: ssh.git.etsmtl.club
+        DOMAIN: git.etsmtl.club
+        LFS_START_SERVER: true
+        SSH_DOMAIN: ssh.git.etsmtl.club
     picture:
       ENABLE_FEDERATED_AVATAR: true
       DISABLE_GRAVATAR: false
