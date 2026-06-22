@@ -31,7 +31,7 @@ gitea:
       DEFAULT_ACTIONS_URL: https://github.com
     server:
       ROOT_URL: https://git.etsmtl.club/
-      PROTOCOL: https
+      PROTOCOL: http
       OFFLINE_MODE: false
       DOMAIN: git.etsmtl.club
       LFS_START_SERVER: true
