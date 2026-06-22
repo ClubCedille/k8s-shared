@@ -35,6 +35,11 @@ gitea:
       DOMAIN: git.etsmtl.club
       LFS_START_SERVER: true
       SSH_DOMAIN: ssh.git.etsmtl.club
+    picture:
+      ENABLE_FEDERATED_AVATAR: true
+      DISABLE_GRAVATAR: false
+    server:
+      OFFLINE_MODE: false
     service:
       DISABLE_REGISTRATION: true
       DEFAULT_ALLOW_CREATE_ORGANIZATION: false
