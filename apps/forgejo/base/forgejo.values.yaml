@@ -91,3 +91,6 @@ persistence:
   storageClass: cephfs
   accessModes:
     - ReadWriteMany
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
