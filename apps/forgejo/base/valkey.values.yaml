@@ -36,7 +36,6 @@ service:
 # More info: https://kubernetes.io/docs/concepts/services-networking/network-policies/
 networkPolicy: {}
 
-# TODO USE CEPHFS
 # Persistent storage configuration
 dataStorage:
   # Enable persistent volume claim creation
@@ -48,7 +47,7 @@ dataStorage:
   # Request size (e.g. 5Gi) for dynamically provisioned volume
   requestedSize: "5Gi"
   # Name of the storage class to use
-  className: ""
+  className: "ceph-rbd"
   # Access modes for the PVC (e.g., ReadWriteOnce, ReadWriteMany)
   accessModes:
     - ReadWriteOnce
