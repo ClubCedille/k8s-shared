@@ -270,9 +270,13 @@ redis:
 cronjob:
   enabled: true
   type: cronjob
-  command: [/cron.sh]
   cronjob:
     activeDeadlineSeconds: 3600
+    securityContext:
+      runAsUser: 33
+      runAsGroup: 33
+      runAsNonRoot: true
+      readOnlyRootFilesystem: true
   resources:
     requests:
       cpu: 50m
@@ -281,11 +285,6 @@ cronjob:
       cpu: 350m
       memory: 1Gi
       ephemeral-storage: 2Gi
-  securityContext:
-    runAsUser: 33
-    runAsGroup: 33
-    runAsNonRoot: true
-    readOnlyRootFilesystem: true
 service:
   type: ClusterIP
   port: 8080
