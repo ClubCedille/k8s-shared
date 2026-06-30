@@ -14,7 +14,7 @@ spec:
         name: nextcloud-postgresql
   storage:
     size: 105Gi
-    storageClass: cephfs
+    storageClass: ceph-rbd
   walStorage:
     size: 20Gi
     storageClass: ceph-rbd
