@@ -13,7 +13,7 @@ spec:
         name: postgresql-forgejo-app
   storage:
     size: 80Gi
-    storageClass: cephfs
+    storageClass: ceph-rbd
   walStorage:
     size: 20Gi
     storageClass: ceph-rbd
