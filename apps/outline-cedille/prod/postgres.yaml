@@ -4,7 +4,7 @@ metadata:
   name: postgresql-outline-cedille
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:17.2
-  instances: 3
+  instances: 6
   bootstrap:
     initdb:
       database: outline
@@ -13,11 +13,11 @@ spec:
         name: postgresql-outline-app
   storage:
     size: 26Gi
-    storageClass: cephfs
-  # backup:
-  #   retentionPolicy: 7d
-  # volumeSnapshot:
-  #   className: csi-cephfsplugin-snapclass
+    storageClass: ceph-rbd
+  backup:
+    retentionPolicy: 7d
+  volumeSnapshot:
+    className: csi-ceph-rbd-snapclass
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
