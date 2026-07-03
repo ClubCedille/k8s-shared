@@ -16,8 +16,8 @@ spec:
     storageClass: ceph-rbd
   backup:
     retentionPolicy: 7d
-  volumeSnapshot:
-    className: csi-ceph-rbd-snapclass
+    volumeSnapshot:
+      className: csi-ceph-rbd-snapclass
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
