@@ -82,6 +82,25 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
+  name: algoets
+spec:
+  sourceRepos:
+    - 'https://github.com/ClubCedille/k8s-cedille-production-v2'
+    - 'https://github.com/ClubCedille/k8s-cedille-production-v2.git'
+  destinations:
+    - namespace: markets
+      server: 'https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-production-v2'
+    - namespace: markets-dev
+      server: 'https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-production-v2'
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  orphanedResources:
+    warn: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
   name: lanets
 spec:
   sourceRepos:
