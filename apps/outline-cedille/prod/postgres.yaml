@@ -4,7 +4,7 @@ metadata:
   name: postgresql-outline-cedille
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:17.2
-  instances: 6
+  instances: 3
   bootstrap:
     initdb:
       database: outline
