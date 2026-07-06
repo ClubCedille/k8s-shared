@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/valkey-io/valkey-helm/refs/heads/main/valkey/values.schema.json
 # Number of Valkey pods to run
 replicaCount: 3
 
@@ -67,7 +68,7 @@ valkeyLogLevel: "notice"
 
 metrics:
   # Enable Prometheus exporter sidecar
-  enabled: false
+  enabled: true
 
   exporter:
     # Additional secrets to mount for metrics exporter

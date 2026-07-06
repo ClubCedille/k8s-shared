@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://code.forgejo.org/forgejo-helm/forgejo-helm/raw/branch/main/values.schema.json
 service:
   ssh:
     port: 22
@@ -91,6 +92,3 @@ persistence:
   storageClass: cephfs
   accessModes:
     - ReadWriteMany
-podDisruptionBudget:
-  enabled: true
-  minAvailable: 1
