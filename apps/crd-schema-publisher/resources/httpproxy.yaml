@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: crd-schema-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-etsmtl
+    kubernetes.io/tls-acme: "true"
+spec:
+  ingressClassName: contour
+  tls:
+    - hosts:
+        - schema.k8s.etsmtl.club
+      secretName: crd-tls-secret
+  rules:
+    - host: schema.k8s.etsmtl.club
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: crd-schema-publisher
+                port:
+                  number: 8081
