@@ -2,7 +2,7 @@
 imagePullSecrets:
   - name: dockerhub-pull
 collabora:
-  replicaCount: 8
+  replicaCount: 1
   autoscaling:
     enabled: false
   aliasgroups:
@@ -22,9 +22,9 @@ collabora:
     fsGroup: 2000
   resources:
     requests:
-      cpu: 4000m
-      memory: 8Gi
-      ephemeral-storage: "1Gi"
+      cpu: 6000m
+      memory: 12Gi
+      ephemeral-storage: "4Gi"
     limits:
       cpu: 8000m
       memory: 16Gi

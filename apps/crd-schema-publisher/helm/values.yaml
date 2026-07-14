@@ -1,0 +1,249 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/sholdee/crd-schema-publisher/refs/heads/main/charts/crd-schema-publisher/values.schema.json
+
+# -- Deployment mode: "controller" (Deployment with leader election) or "cronjob" (CronJob)
+mode: controller
+
+# -- Number of replicas (controller mode only; leader election handles safety)
+replicaCount: 1
+
+image:
+  # -- Container image repository
+  # repository: ghcr.io/notpeelz/crd-schema-publisher
+  # -- Image tag (defaults to appVersion from Chart.yaml)
+  tag: "combined-schema"
+  # -- Image digest (takes precedence over tag when set)
+  digest: ""
+  # -- Image pull policy
+  pullPolicy: IfNotPresent
+
+# -- Image pull secrets for private registries
+imagePullSecrets: []
+
+# -- Override the chart name
+nameOverride: ""
+# -- Override the full release name
+fullnameOverride: ""
+
+# ---------------------------------------------------------------------------
+# Application configuration
+# ---------------------------------------------------------------------------
+config:
+  # -- Cloudflare Pages project name
+  cfPagesProject: kubernetes-schemas
+  # -- Schema output directory inside the container
+  outputDir: /output
+  # -- Seconds to wait after the last CRD event before publishing (controller only)
+  debounceSeconds: "15"
+  # -- Health/metrics server port (controller only)
+  healthPort: 8080
+  # -- Leader election lease name (controller only)
+  leaseName: crd-schema-publisher
+  # -- Set to "true" to skip HTML schema page rendering
+  skipRender: ""
+  # -- Directory for opt-in heap profiles and phase memory logs
+  profileDir: ""
+  # -- Override Cloudflare upload bucket size in bytes. Empty uses the app default (40 MiB).
+  uploadBucketSizeBytes: ""
+  # -- Override concurrent Cloudflare upload buckets. Empty uses the app default (3).
+  uploadConcurrency: ""
+  # -- URL path prefix for subpath deployments (e.g., /iac for GitHub Pages at user.github.io/iac/)
+  basePath: ""
+  # -- Include Kubernetes built-in schemas from the API server OpenAPI v2 document
+  includeBuiltins: true
+  # -- Include kustomize's client-side config schemas
+  includeKustomize: true
+  # -- Optional schema filters. Values are comma-separated and case-insensitive.
+  filter:
+    # -- Filter by CRD kind, e.g. Certificate,Issuer
+    kind: ""
+    # -- Filter by API group, e.g. cert-manager.io
+    group: ""
+    # -- Filter by API version, e.g. v1,v1beta1
+    version: ""
+
+
+# ---------------------------------------------------------------------------
+# Service account
+# ---------------------------------------------------------------------------
+serviceAccount:
+  # -- Create a ServiceAccount
+  create: true
+  # -- Automount the service account token
+  automount: true
+  # -- Additional annotations for the ServiceAccount
+  annotations: {}
+  # -- Override the ServiceAccount name
+  name: ""
+
+# ---------------------------------------------------------------------------
+# RBAC
+# ---------------------------------------------------------------------------
+rbac:
+  # -- Create ClusterRole/ClusterRoleBinding for CRD read access
+  create: true
+
+# ---------------------------------------------------------------------------
+# CronJob settings (only used when mode=cronjob)
+# ---------------------------------------------------------------------------
+cronjob:
+  # -- Cron schedule expression
+  schedule: "0 3 * * *"
+  # -- Concurrency policy for the CronJob
+  concurrencyPolicy: Forbid
+  # -- Number of successful job completions to retain
+  successfulJobsHistoryLimit: 1
+  # -- Number of failed job completions to retain
+  failedJobsHistoryLimit: 3
+  # -- Maximum runtime for each job in seconds
+  activeDeadlineSeconds: 1800
+  # -- Restart policy for job pods
+  restartPolicy: OnFailure
+
+# ---------------------------------------------------------------------------
+# Deployment settings (only used when mode=controller)
+# ---------------------------------------------------------------------------
+
+# -- Deployment update strategy
+strategy:
+  type: RollingUpdate
+
+# ---------------------------------------------------------------------------
+# Pod and container configuration
+# ---------------------------------------------------------------------------
+
+# -- Container resource requests and limits
+resources:
+  requests:
+    cpu: 50m
+    memory: 500Mi
+  limits:
+    cpu: 500m
+    memory: 500Mi
+
+# -- Pod security context (applied to the pod spec)
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65534
+  runAsGroup: 65534
+  fsGroup: 65534
+  seccompProfile:
+    type: RuntimeDefault
+
+# -- Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+# -- Liveness probe configuration (controller mode only)
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+# -- Readiness probe configuration (controller mode only)
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: health
+  initialDelaySeconds: 3
+  periodSeconds: 5
+
+# ---------------------------------------------------------------------------
+# Built-in static site server
+# ---------------------------------------------------------------------------
+serve:
+  # -- Serve OUTPUT_DIR/current from the main controller container
+  enabled: true
+  # -- Non-privileged static site server port
+  port: 8081
+  accessLog:
+    # -- Log each request served by the built-in static site server
+    enabled: false
+  # -- Gateway API HTTPRoute for the built-in static site server
+  httpRoute:
+    # -- Create an HTTPRoute for the built-in static site server
+    enabled: false
+    # -- Additional labels for the HTTPRoute
+    labels: {}
+    # -- Additional annotations for the HTTPRoute
+    annotations: {}
+    # -- Gateway parentRefs. Required when serve.httpRoute.enabled=true.
+    parentRefs: []
+    #  - name: envoy-gateway
+    #    namespace: gateway
+    #    sectionName: https
+    # -- Hostnames for the HTTPRoute
+    hostnames: []
+    #  - kube-schemas.example.com
+    # -- HTTPRoute matches for the site rule
+    matches:
+      - path:
+          type: PathPrefix
+          value: /
+    # -- HTTPRoute filters for the site rule
+    filters: []
+
+# -- Annotations added to the Deployment or CronJob metadata (e.g. reloader.stakater.com/auto)
+annotations: {}
+
+# -- Annotations added to the pod template metadata
+podAnnotations: {}
+
+# -- Additional pod labels
+podLabels: {}
+
+# -- Node selector constraints
+nodeSelector: {}
+
+# -- Tolerations for pod scheduling
+tolerations: []
+
+# -- Affinity rules (controller mode only; overrides podAntiAffinityPreset when set)
+affinity: {}
+
+# -- Topology spread constraints (controller mode only)
+topologySpreadConstraints: []
+
+# -- Pod anti-affinity preset: "soft", "hard", or "" (disabled; controller mode only)
+# Only applied when affinity is empty
+podAntiAffinityPreset: ""
+
+# ---------------------------------------------------------------------------
+# Pod disruption budget (controller mode only)
+# ---------------------------------------------------------------------------
+podDisruptionBudget:
+  # -- Create a PodDisruptionBudget
+  enabled: false
+  # -- Minimum number of available pods
+  # minAvailable: 1
+  # -- Maximum number of unavailable pods
+  # maxUnavailable: 1
+
+# -- Priority class name for pods
+priorityClassName: ""
+
+# ---------------------------------------------------------------------------
+# Persistence (output directory volume)
+# ---------------------------------------------------------------------------
+persistence:
+  # -- Use a PersistentVolumeClaim for the output directory instead of emptyDir.
+  # Recommended for CronJob extract-only mode when no upload backend is configured.
+  enabled: true
+  # -- Use an existing PVC (skips PVC creation when set)
+  existingClaim: ""
+  # -- Storage class ("" = cluster default, "-" = no dynamic provisioning)
+  storageClass: "ceph-rbd"
+  # -- Access modes for the PVC
+  accessModes:
+    - ReadWriteOnce
+  # -- Storage size
+  size: 5Gi
+  # -- Additional annotations on the PVC
+  annotations: {}
+  # -- Additional labels on the PVC
+  labels: {}
