@@ -34,7 +34,7 @@ helmCharts:
     valuesFile: ./helm/nextcloud-values.yaml
   - name: collabora-online
     repo: https://collaboraonline.github.io/online
-    version: 1.1.60
+    version: 1.3.0
     releaseName: collabora
     namespace: nextcloud
     valuesFile: ./helm/collabora-values.yaml
