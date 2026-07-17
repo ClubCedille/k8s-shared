@@ -1,0 +1,137 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dci-nodered
+  annotations:
+    kube-score/ignore: pod-networkpolicy,container-security-context-readonlyrootfilesystem
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: dci-nodered
+  template:
+    metadata:
+      labels:
+        app: dci-nodered
+      annotations:
+        backup.velero.io/backup-volumes: nodered-data
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: install-oidc-auth
+          image: nodered/node-red:4.1.11-22
+          imagePullPolicy: Always
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              if [ ! -f /data/package.json ]; then
+                printf '{"private":true,"dependencies":{}}\n' > /data/package.json
+              fi
+              cd /data
+              if ! node -e 'require.resolve("passport-openidconnect")' >/dev/null 2>&1; then
+                npm install --prefix /data --no-audit --no-fund passport-openidconnect@0.1.2
+              fi
+          env:
+            - name: HOME
+              value: /data
+            - name: NPM_CONFIG_CACHE
+              value: /tmp/npm-cache
+          volumeMounts:
+            - name: nodered-data
+              mountPath: /data
+            - name: npm-cache
+              mountPath: /tmp/npm-cache
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+              ephemeral-storage: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      containers:
+        - name: nodered
+          image: nodered/node-red:4.1.11-22
+          imagePullPolicy: Always
+          env:
+            - name: PORT
+              value: "1880"
+            - name: NODE_RED_EXTERNAL_URL
+              value: https://nodered-summercamp2026.etsmtl.club
+            - name: OIDC_ISSUER_BASE
+              value: https://auth.etsmtl.club/application/o/dci-summercamp-nodered
+            - name: NODE_OPTIONS
+              value: --max-old-space-size=512
+          envFrom:
+            - secretRef:
+                name: nodered-secrets
+          ports:
+            - containerPort: 1880
+              name: http
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: nodered-data
+              mountPath: /data
+            - name: nodered-settings
+              mountPath: /data/settings.js
+              subPath: settings.js
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+              ephemeral-storage: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: nodered-data
+          persistentVolumeClaim:
+            claimName: dci-nodered-data-pvc
+        - name: nodered-settings
+          configMap:
+            name: nodered-settings
+        - name: npm-cache
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}

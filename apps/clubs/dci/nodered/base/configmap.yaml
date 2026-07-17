@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nodered-settings
+data:
+  settings.js: |
+    const OpenIDConnectStrategy = require("passport-openidconnect").Strategy;
+
+    function requiredEnv(name) {
+      if (!process.env[name]) {
+        throw new Error(`${name} is required`);
+      }
+      return process.env[name];
+    }
+
+    function usernameFromProfile(profile) {
+      if (!profile) {
+        return null;
+      }
+      if (typeof profile === "string") {
+        return profile;
+      }
+      if (profile.username) {
+        return profile.username;
+      }
+      if (profile.displayName) {
+        return profile.displayName;
+      }
+      if (profile.emails && profile.emails[0] && profile.emails[0].value) {
+        return profile.emails[0].value;
+      }
+      return profile.id || profile.sub || null;
+    }
+
+    const issuerBase = process.env.OIDC_ISSUER_BASE || "https://auth.etsmtl.club/application/o/dci-summercamp-nodered";
+    const externalUrl = process.env.NODE_RED_EXTERNAL_URL || "https://nodered-summercamp2026.etsmtl.club";
+
+    module.exports = {
+      uiHost: "0.0.0.0",
+      uiPort: process.env.PORT || 1880,
+      flowFile: "flows.json",
+      credentialSecret: requiredEnv("NODE_RED_CREDENTIAL_SECRET"),
+      httpNodeRoot: "/api",
+
+      adminAuth: {
+        type: "strategy",
+        strategy: {
+          name: "openidconnect",
+          label: "Sign in with authentik",
+          icon: "fa-cloud",
+          strategy: OpenIDConnectStrategy,
+          options: {
+            issuer: `${issuerBase}/`,
+            authorizationURL: "https://auth.etsmtl.club/application/o/authorize/",
+            tokenURL: "https://auth.etsmtl.club/application/o/token/",
+            userInfoURL: "https://auth.etsmtl.club/application/o/userinfo/",
+            clientID: requiredEnv("OIDC_CLIENT_ID"),
+            clientSecret: requiredEnv("OIDC_CLIENT_SECRET"),
+            callbackURL: `${externalUrl}/auth/strategy/callback/`,
+            scope: ["openid", "profile", "email"],
+            proxy: true,
+          },
+          verify: function (issuer, profile, done) {
+            profile.username = usernameFromProfile(profile);
+            done(null, profile);
+          },
+        },
+        users: function (user) {
+          const username = usernameFromProfile(user);
+          if (!username) {
+            return Promise.resolve(null);
+          }
+          return Promise.resolve({ username, permissions: "*" });
+        },
+        sessionExpiryTime: 86400,
+      },
+
+      editorTheme: {
+        page: {
+          title: "Node-RED DCI Summercamp",
+        },
+        projects: {
+          enabled: true,
+        },
+      },
+
+      externalModules: {
+        autoInstall: false,
+        palette: {
+          allowInstall: true,
+          allowUpload: true,
+        },
+        modules: {
+          allowInstall: true,
+        },
+      },
+
+      logging: {
+        console: {
+          level: "info",
+          metrics: false,
+          audit: true,
+        },
+      },
+    };
