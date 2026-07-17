@@ -37,7 +37,7 @@ locals {
   access_group = "summercamp"
   namespace    = "dci-nodered"
   hostname     = "nodered-summercamp2026.etsmtl.club"
-  vault_secret = "kv/data/dci-nodered/default/nodered-secrets"
+  vault_secret = "kv/data/${local.namespace}/default/nodered-secrets"
 }
 
 resource "random_password" "nodered_client_secret" {

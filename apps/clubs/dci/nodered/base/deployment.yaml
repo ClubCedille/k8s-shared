@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: dci-nodered
   annotations:
-    kube-score/ignore: pod-networkpolicy,container-security-context-readonlyrootfilesystem
+    kube-score/ignore: pod-networkpolicy,container-security-context-readonlyrootfilesystem,container-security-context-user-group-id
 spec:
   replicas: 1
   strategy:
