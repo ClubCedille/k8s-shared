@@ -1,0 +1,25 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: dci-nodered-auth
+spec:
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    audiences:
+      - vault
+    role: secret-reader
+    serviceAccount: default
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: nodered-secrets
+spec:
+  vaultAuthRef: dci-nodered-auth
+  type: kv-v1
+  mount: kv
+  path: data/dci-nodered/default/nodered-secrets
+  destination:
+    name: nodered-secrets
+    create: true

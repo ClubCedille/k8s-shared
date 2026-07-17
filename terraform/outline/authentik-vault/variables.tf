@@ -1,14 +1,14 @@
 variable "AUTHENTIK_API_TOKEN" {
-  type = string
+  type      = string
   sensitive = true
 }
 
 variable "db_user" {
-  type = string
+  type      = string
   sensitive = true
 }
 
 variable "db_password" {
-  type = string
+  type      = string
   sensitive = true
 }

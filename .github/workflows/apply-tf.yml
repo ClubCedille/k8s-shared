@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'terraform/outline/authentik-vault/**'
+      - 'terraform/nodered/authentik-vault/**'
 
 jobs:
   terraform_apply:
@@ -13,6 +14,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v2
@@ -25,7 +28,30 @@ jobs:
           echo "$KUBECONFIG_SECRET" > ~/.kube/config
           chmod 600 ~/.kube/config
 
-      - name: Tofu Init & Apply
+      - name: Detect Terraform modules to apply
+        id: changes
+        run: |
+          base_sha="${{ github.event.before }}"
+          if [ "$base_sha" = "0000000000000000000000000000000000000000" ]; then
+            base_sha="$(git rev-list --max-parents=0 HEAD)"
+          fi
+
+          git diff --name-only "$base_sha" "${{ github.sha }}" > /tmp/changed-files
+
+          if grep -q '^terraform/outline/authentik-vault/' /tmp/changed-files; then
+            echo "outline=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "outline=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if grep -q '^terraform/nodered/authentik-vault/' /tmp/changed-files; then
+            echo "nodered=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "nodered=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Tofu Init & Apply Outline
+        if: steps.changes.outputs.outline == 'true'
         env:
           TF_IN_AUTOMATION: true
           TF_VAR_AUTHENTIK_API_TOKEN: ${{ secrets.AUTHENTIK_TOKEN }}
@@ -34,6 +60,18 @@ jobs:
           TF_VAR_db_password: ${{ secrets.OUTLINE_DB_PASSWORD }}
         run: |
           cd terraform/outline/authentik-vault
+
+          tofu init
+          tofu apply -auto-approve
+
+      - name: Tofu Init & Apply Node-RED
+        if: steps.changes.outputs.nodered == 'true'
+        env:
+          TF_IN_AUTOMATION: true
+          TF_VAR_AUTHENTIK_API_TOKEN: ${{ secrets.AUTHENTIK_TOKEN }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+        run: |
+          cd terraform/nodered/authentik-vault
 
           tofu init
           tofu apply -auto-approve
