@@ -1,0 +1,184 @@
+#
+# Copyright (c) 2020 - present Cloudogu GmbH
+#
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Affero General Public License as published by the Free
+# Software Foundation, version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see https://www.gnu.org/licenses/.
+#
+
+# Default values for SCM-Manager.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image:
+  # image.repository --  Name of SCM-Manager image
+  repository: docker.io/scmmanager/scm-manager
+  # image.tag -- Tag of SCM-Manager image
+  tag: 3.11.10
+  # image.pullPolicy -- SCM-Manager image pull policy
+  pullPolicy: IfNotPresent
+  # image.pullSecret -- Secret with credentials for the image registry
+  pullSecret: ""
+
+# nameOverride -- Override the resource name prefix
+nameOverride: ""
+# fullnameOverride -- Override the full resource names
+fullnameOverride: ""
+
+# securityContext -- Toggle and define securityContext
+securityContext:
+#  runAsUser: 999
+#  runAsGroup: 999
+  # unset fsGroup if working on openshift
+  fsGroup: 0
+
+service:
+  # service.type -- k8s service type
+  type: LoadBalancer
+  # service.port -- k8s service port
+  port: 80
+  # service.nodePort -- k8s service node port
+  #nodePort:
+
+ingress:
+  # ingress.enabled -- Enables ingress
+  enabled: false
+  # ingress.ingressClassName -- Ingress class name
+  # ingressClassName: "nginx"
+  # ingress.annotations -- Ingress annotations
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # ingress.path -- Ingress path
+  path: /
+  # ingress.hosts -- Ingress hosts
+  hosts:
+    - scm-manager.local
+  # ingress.tls -- Ingress TLS configuration
+  tls: []
+  #  - secretName: scm-manager-tls
+  #    hosts:
+  #      - scm-manager.local
+
+ssh:
+  # ssh.enabled -- Enables ssh access (requires installed ssh plugin)
+  enabled: false
+  # ssh.port -- Intenernal ssh port (must match plugin configuration)
+  port: 2222
+  service:
+    # ssh.service.type -- k8s service type for ssh
+    type: LoadBalancer
+    # ssh.service.port -- k8s service port for ssh
+    port: 2222
+  # ssh.dns -- dns names for the ssh service (requires installed external dns)
+  dns:
+    - ssh.scm-manager.local
+
+## Enable persistence using Persistent Volume Claims
+## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+##
+persistence:
+  # persistence.enabled -- Enable the use of a PVC for SCM-Manager home
+  enabled: true
+  ## ghost data Persistent Volume Storage Class
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  # storageClass: "-"
+  # persistence.accessMode -- The PVC access mode
+  accessMode: ReadWriteOnce
+  # persistence.size -- The size of the PVC
+  size: 40Gi
+  # persistence.annotations -- PVC annotations
+  annotations: {}
+
+livenessProbe:
+  initialDelaySeconds: 60
+
+readinessProbe:
+  initialDelaySeconds: 20
+
+# resources -- Resources allocation (Requests and Limits)
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  #limits:
+  #  cpu: 2000m
+  #  memory: 2048Mi
+  #requests:
+  #  cpu: 50m
+  #  memory: 256Mi
+
+# nodeSelector -- Node labels for pod assignment
+nodeSelector: {}
+
+# tolerations -- Toleration labels for pod assignment
+tolerations: []
+
+# affinity -- Affinity settings
+affinity: {}
+
+# lifecycleHooks for the container to automate configuration before or after startup,
+# i.e. to create users or repos through REST API calls
+lifecycleHooks: |
+#    postStart:
+#      exec:
+#        command: ["/bin/bash", "-c", "echo lifecycleHook"]
+# Other option: Insert scrip file via "helm install --set-file=postStartHookScript=${pwd()}/postStartHook.sh"
+#  lifecycleHooks: |-
+#    postStart:
+#      exec:
+#        command:
+#          - "/bin/bash"
+#          - "-c"
+#          - >
+#    {{  tpl (required ".Values.postStartHookScript required!" .Values.postStartHookScript) . | indent 8  }}
+
+# extraEnv -- Additional environment variables, parsed through tpl function
+extraEnv: |
+#  - name: SCM_WEBAPP_INITIALUSER
+#    value: "admin"
+#  - name: SCM_WEBAPP_INITIALPASSWORD
+#    value: "supersecretadminpassword"
+
+# extraEnvFrom -- Additional environment variables mapped from Secret or ConfigMap, parsed through tpl function
+extraEnvFrom: |
+#  - secretRef:
+#      name: "{{.Values.mail.credentials}}"
+
+# for a list of available environment variables have a look at:
+# https://scm-manager.org/docs/3.11.x/en/administration/scm-server/
+
+# extraVolumes -- Add additional volumes, parsed through tpl function
+extraVolumes: |
+#  - name: bucket-service-account
+#    secret:
+#      secretName: "{{.Values.bucket.secretName}}"
+#      items:
+#        - key: service_account.json
+#          path: service_account.json
+
+# extraVolumeMounts -- Add additional volumes mounts, parsed through tpl function
+extraVolumeMounts: |
+#  - name: bucket-service-account
+#    mountPath: "{{.Values.bucket.mountPath}}"
+#    readOnly: true
+
+# extraArgs -- Add additional arguments on startup
+extraArgs: []
+
+# forceRedeploy - Forces a redeployment in the cluster on every change even if the chart has not changed significantly
+forceRedeploy: false
