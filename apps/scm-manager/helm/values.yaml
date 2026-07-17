@@ -61,7 +61,7 @@ ingress:
   path: /
   # ingress.hosts -- Ingress hosts
   hosts:
-    - scm-manager.local
+    - scm.etsmtl.club
   # ingress.tls -- Ingress TLS configuration
   tls: []
   #  - secretName: scm-manager-tls
@@ -70,7 +70,7 @@ ingress:
 
 ssh:
   # ssh.enabled -- Enables ssh access (requires installed ssh plugin)
-  enabled: false
+  enabled: true
   # ssh.port -- Intenernal ssh port (must match plugin configuration)
   port: 2222
   service:
@@ -80,7 +80,7 @@ ssh:
     port: 2222
   # ssh.dns -- dns names for the ssh service (requires installed external dns)
   dns:
-    - ssh.scm-manager.local
+    - ssh.scm.etsmtl.club
 
 ## Enable persistence using Persistent Volume Claims
 ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
@@ -95,7 +95,7 @@ persistence:
   ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
   ##   GKE, AWS & OpenStack)
   ##
-  # storageClass: "-"
+  storageClass: "ceph-rbd"
   # persistence.accessMode -- The PVC access mode
   accessMode: ReadWriteOnce
   # persistence.size -- The size of the PVC
@@ -110,17 +110,17 @@ readinessProbe:
   initialDelaySeconds: 20
 
 # resources -- Resources allocation (Requests and Limits)
-resources: {}
+resources:
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  #limits:
-  #  cpu: 2000m
-  #  memory: 2048Mi
-  #requests:
-  #  cpu: 50m
-  #  memory: 256Mi
+  limits:
+   cpu: 2000m
+   memory: 2048Mi
+  requests:
+   cpu: 50m
+   memory: 256Mi
 
 # nodeSelector -- Node labels for pod assignment
 nodeSelector: {}
