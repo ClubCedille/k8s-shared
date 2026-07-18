@@ -9,7 +9,7 @@ terraform {
   required_providers {
     authentik = {
       source  = "goauthentik/authentik"
-      version = "2025.12.1"
+      version = "2026.5.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -92,6 +92,7 @@ resource "authentik_provider_oauth2" "nodered" {
   name               = local.app_slug
   client_id          = local.app_slug
   client_secret      = random_password.nodered_client_secret.result
+  grant_types        = ["authorization_code"]
   authorization_flow = data.authentik_flow.default_authorization_flow.id
   invalidation_flow  = data.authentik_flow.default_invalidation_flow.id
   property_mappings = [
