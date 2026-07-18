@@ -48,6 +48,7 @@ data:
           name: "openidconnect",
           label: "Sign in with authentik",
           icon: "fa-cloud",
+          autoLogin: true,
           strategy: OpenIDConnectStrategy,
           options: {
             issuer: `${issuerBase}/`,
