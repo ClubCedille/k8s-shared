@@ -48,6 +48,7 @@ data:
           name: "openidconnect",
           label: "Sign in with authentik",
           icon: "fa-cloud",
+          autoLogin: true,
           strategy: OpenIDConnectStrategy,
           options: {
             issuer: `${issuerBase}/`,
@@ -57,7 +58,7 @@ data:
             clientID: requiredEnv("OIDC_CLIENT_ID"),
             clientSecret: requiredEnv("OIDC_CLIENT_SECRET"),
             callbackURL: `${externalUrl}/auth/strategy/callback/`,
-            scope: ["openid", "profile", "email"],
+            scope: ["profile", "email"],
             proxy: true,
           },
           verify: function (issuer, profile, done) {
