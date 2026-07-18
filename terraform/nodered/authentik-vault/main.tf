@@ -28,7 +28,8 @@ provider "authentik" {
 }
 
 provider "vault" {
-  address = "https://vault.etsmtl.club"
+  address          = "https://vault.etsmtl.club"
+  skip_child_token = true
 }
 
 locals {
