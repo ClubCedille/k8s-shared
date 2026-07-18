@@ -57,7 +57,7 @@ data:
             clientID: requiredEnv("OIDC_CLIENT_ID"),
             clientSecret: requiredEnv("OIDC_CLIENT_SECRET"),
             callbackURL: `${externalUrl}/auth/strategy/callback/`,
-            scope: ["openid", "profile", "email"],
+            scope: ["profile", "email"],
             proxy: true,
           },
           verify: function (issuer, profile, done) {
