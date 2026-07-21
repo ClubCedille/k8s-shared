@@ -1,0 +1,16 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: scm-manager
+spec:
+  virtualhost:
+    fqdn: scm.etsmtl.club
+    tls:
+      secretName: scmentik-tls
+      minimumProtocolVersion: "1.3"
+  routes:
+    - conditions:
+        - prefix: /
+      services:
+        - name: scm-server
+          port: 80

@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: scm-manager
+  namespace: scm-manager
+resources:
+  - resources/httproxy.yaml
+  - resources/certificate.yaml
+
+helmCharts:
+  - name: scm-manager
+    version: "3.11.10"
+    repo: "https://packages.scm-manager.org/repository/helm-v2-releases/"
+    releaseName: "scm-manager"
+    namespace: scm-manager
+    valuesFile: "helm/values.yaml"
