@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: lanets-shared
+  namespace: argocd
+spec:
+  destination:
+    namespace: lanets-shared
+    server: https://kubernetes.default.svc
+  project: lanets
+  source:
+    path: apps/clubs/lanets
+    repoURL: https://github.com/ClubCedille/k8s-shared.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
