@@ -106,6 +106,8 @@ spec:
   sourceRepos:
     - '*'
   destinations:
+    - namespace: 'argocd'
+      server: 'https://kubernetes.default.svc'
     - namespace: 'lanets-*'
       server: 'https://kubernetes.default.svc'
   clusterResourceWhitelist:
