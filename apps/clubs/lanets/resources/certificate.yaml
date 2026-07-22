@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: lanets-wildcard
+spec:
+  secretName: lanets-wildcard-tls
+  issuerRef:
+    name: letsencrypt-lanets
+    kind: ClusterIssuer
+  commonName: lanets.ca
+  dnsNames:
+    - lanets.ca
+    - "*.lanets.ca"
