@@ -72,7 +72,7 @@ ingress:
 
 ssh:
   # ssh.enabled -- Enables ssh access (requires installed ssh plugin)
-  enabled: true
+  enabled: false
   # ssh.port -- Intenernal ssh port (must match plugin configuration)
   port: 2222
   service:

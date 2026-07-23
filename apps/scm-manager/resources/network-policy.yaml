@@ -13,5 +13,3 @@ spec:
     - ports:
         - port: 8080
           protocol: TCP
-        - port: 2222
-          protocol: TCP
