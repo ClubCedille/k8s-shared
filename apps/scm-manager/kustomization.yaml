@@ -6,6 +6,7 @@ metadata:
 resources:
   - resources/httpproxy.yaml
   - resources/certificate.yaml
+  - resources/network-policy.yaml
 
 helmCharts:
   - name: scm-manager
@@ -14,3 +15,6 @@ helmCharts:
     releaseName: "scm-manager"
     namespace: scm-manager
     valuesFile: "helm/values.yaml"
+
+patches:
+  - path: resources/probes-patch.yaml
