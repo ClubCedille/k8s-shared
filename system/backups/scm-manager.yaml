@@ -1,0 +1,13 @@
+# Back up the SCM-Manager repositories and configuration volume.
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: scm-manager-velero-schedule
+  namespace: velero
+spec:
+  schedule: "35 6 * * *"
+  template:
+    ttl: 168h
+    includedNamespaces:
+      - scm-manager
+    snapshotVolumes: true

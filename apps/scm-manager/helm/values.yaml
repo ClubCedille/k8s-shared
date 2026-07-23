@@ -42,7 +42,7 @@ securityContext:
 
 service:
   # service.type -- k8s service type
-  type: LoadBalancer
+  type: ClusterIP
   # service.port -- k8s service port
   port: 80
   # service.nodePort -- k8s service node port
@@ -149,10 +149,10 @@ lifecycleHooks: |
 
 # extraEnv -- Additional environment variables, parsed through tpl function
 extraEnv: |
-#  - name: SCM_WEBAPP_INITIALUSER
-#    value: "admin"
-#  - name: SCM_WEBAPP_INITIALPASSWORD
-#    value: "supersecretadminpassword"
+  - name: SCM_FORWARD_HEADERS_ENABLED
+    value: "true"
+  - name: SCM_IDLE_TIMEOUT
+    value: "300000"
 
 # extraEnvFrom -- Additional environment variables mapped from Secret or ConfigMap, parsed through tpl function
 extraEnvFrom: |
