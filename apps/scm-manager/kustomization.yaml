@@ -4,7 +4,7 @@ metadata:
   name: scm-manager
   namespace: scm-manager
 resources:
-  - resources/httproxy.yaml
+  - resources/httpproxy.yaml
   - resources/certificate.yaml
 
 helmCharts:
