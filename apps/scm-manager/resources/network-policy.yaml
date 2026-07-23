@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: scm-manager
+spec:
+  podSelector:
+    matchLabels:
+      app: scm-manager
+      release: scm-manager
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - port: 8080
+          protocol: TCP
+        - port: 2222
+          protocol: TCP

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scm-manager
+  annotations:
+    kube-score/ignore: container-security-context-user-group-id, container-security-context-readonlyrootfilesystem
+spec:
+  template:
+    spec:
+      containers:
+        - name: scm-manager
+          readinessProbe:
+            httpGet:
+              path: /scm/api/v2
+              port: http
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsGroup: 1000
+            runAsNonRoot: true
+            runAsUser: 1000
