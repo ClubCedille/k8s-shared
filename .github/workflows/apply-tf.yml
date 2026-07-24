@@ -1,16 +1,32 @@
 name: Apply Terraform for Authentik and Vault
 
 on:
+  workflow_dispatch:
+    inputs:
+      module:
+        description: Terraform module to apply
+        required: true
+        default: auth-only
+        type: choice
+        options:
+          - auth-only
+          - nodered
+          - outline
+          - all
   push:
     branches:
       - main
     paths:
+      - '.github/workflows/apply-tf.yml'
       - 'terraform/outline/authentik-vault/**'
       - 'terraform/nodered/authentik-vault/**'
 
 jobs:
   terraform_apply:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,7 +46,36 @@ jobs:
 
       - name: Detect Terraform modules to apply
         id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REQUESTED_MODULE: ${{ inputs.module }}
         run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            case "$REQUESTED_MODULE" in
+              nodered)
+                echo "outline=false" >> "$GITHUB_OUTPUT"
+                echo "nodered=true" >> "$GITHUB_OUTPUT"
+                ;;
+              outline)
+                echo "outline=true" >> "$GITHUB_OUTPUT"
+                echo "nodered=false" >> "$GITHUB_OUTPUT"
+                ;;
+              all)
+                echo "outline=true" >> "$GITHUB_OUTPUT"
+                echo "nodered=true" >> "$GITHUB_OUTPUT"
+                ;;
+              auth-only)
+                echo "outline=false" >> "$GITHUB_OUTPUT"
+                echo "nodered=false" >> "$GITHUB_OUTPUT"
+                ;;
+              *)
+                echo "Unsupported module: $REQUESTED_MODULE" >&2
+                exit 1
+                ;;
+            esac
+            exit 0
+          fi
+
           base_sha="${{ github.event.before }}"
           if [ "$base_sha" = "0000000000000000000000000000000000000000" ]; then
             base_sha="$(git rev-list --max-parents=0 HEAD)"
@@ -50,12 +95,21 @@ jobs:
             echo "nodered=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Authenticate to Vault with GitHub OIDC
+        uses: hashicorp/vault-action@892a26828f195e65540a40b4768ae4571f51ebfc # v4.0.0
+        with:
+          url: https://vault.etsmtl.club
+          method: jwt
+          path: jwt/github-actions
+          role: k8s-shared-terraform
+          jwtGithubAudience: https://vault.etsmtl.club
+          exportToken: true
+
       - name: Tofu Init & Apply Outline
         if: steps.changes.outputs.outline == 'true'
         env:
           TF_IN_AUTOMATION: true
           TF_VAR_AUTHENTIK_API_TOKEN: ${{ secrets.AUTHENTIK_TOKEN }}
-          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           TF_VAR_db_user: ${{ secrets.OUTLINE_DB_USER }}
           TF_VAR_db_password: ${{ secrets.OUTLINE_DB_PASSWORD }}
         run: |
@@ -69,7 +123,6 @@ jobs:
         env:
           TF_IN_AUTOMATION: true
           TF_VAR_AUTHENTIK_API_TOKEN: ${{ secrets.AUTHENTIK_TOKEN }}
-          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
         run: |
           cd terraform/nodered/authentik-vault
 
