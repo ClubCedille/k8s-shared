@@ -114,8 +114,9 @@ resource "authentik_provider_oauth2" "outline_provider" {
   ]
   allowed_redirect_uris = [
     {
-      "matching_mode" = "strict"
-      "url"           = "https://wiki.${each.key}.etsmtl.club/auth/oidc.callback"
+      "matching_mode"     = "strict"
+      "redirect_uri_type" = "authorization"
+      "url"               = "https://wiki.${each.key}.etsmtl.club/auth/oidc.callback"
     },
   ]
 }

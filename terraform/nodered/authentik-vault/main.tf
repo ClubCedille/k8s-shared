@@ -103,8 +103,9 @@ resource "authentik_provider_oauth2" "nodered" {
 
   allowed_redirect_uris = [
     {
-      matching_mode = "strict"
-      url           = "https://${local.hostname}/auth/strategy/callback/"
+      matching_mode     = "strict"
+      redirect_uri_type = "authorization"
+      url               = "https://${local.hostname}/auth/strategy/callback/"
     },
   ]
 }
