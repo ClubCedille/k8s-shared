@@ -1,0 +1,29 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: lanets-catchall-apex
+spec:
+  virtualhost:
+    fqdn: lanets.ca
+    tls:
+      secretName: lanets-wildcard-tls
+  routes:
+    - conditions:
+        - prefix: /
+      directResponsePolicy:
+        statusCode: 404
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: lanets-catchall-wildcard
+spec:
+  virtualhost:
+    fqdn: "*.lanets.ca"
+    tls:
+      secretName: lanets-wildcard-tls
+  routes:
+    - conditions:
+        - prefix: /
+      directResponsePolicy:
+        statusCode: 404
