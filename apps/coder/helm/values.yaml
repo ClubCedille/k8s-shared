@@ -1,6 +1,8 @@
 coder:
-  image:
-    tag: "2.35.3"
+  # Pas de coder.image.tag ici : le chart calcule le défaut en préfixant
+  # .Chart.AppVersion par "v" (ex: v2.35.3, le tag réel publié sur ghcr.io).
+  # Un tag explicite ici écraserait ce préfixe -- "2.35.3" (sans le "v")
+  # n'existe pas comme image, seul "v2.35.3" existe.
 
   replicaCount: 1
 
