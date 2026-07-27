@@ -54,6 +54,12 @@ coder:
       value: "Se connecter avec Authentik"
     - name: CODER_OIDC_ALLOW_SIGNUPS
       value: "true"
+    # Authentik ne marque `email_verified: true` que si la vérification par
+    # courriel est explicitement configurée dans le flow -- ce qui n'est pas
+    # le cas ici. SSO interne de confiance : on ignore ce claim plutôt que
+    # d'exiger une vérification qu'Authentik ne fait pas.
+    - name: CODER_OIDC_IGNORE_EMAIL_VERIFIED
+      value: "true"
 
     # Group sync (OSS) : les groupes Authentik (claim `groups`, voir le scope
     # mapping custom dans terraform/coder/authentik-vault) sont répliqués en
