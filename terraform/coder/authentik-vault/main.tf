@@ -83,6 +83,13 @@ resource "authentik_property_mapping_provider_scope" "groups" {
   expression = "return {\"groups\": [group.name for group in user.ak_groups.all()]}"
 }
 
+# Authentik signe l'id_token en HS256 (symétrique) si `signing_key` n'est pas
+# défini. Coder n'accepte que RS256 -- sans ça : "Failed to verify OIDC
+# token: unexpected signature algorithm HS256".
+data "authentik_certificate_key_pair" "default" {
+  name = "authentik Self-signed Certificate"
+}
+
 resource "authentik_provider_oauth2" "coder" {
   name               = local.app_slug
   client_id          = local.app_slug
@@ -90,6 +97,7 @@ resource "authentik_provider_oauth2" "coder" {
   grant_types        = ["authorization_code", "refresh_token"]
   authorization_flow = data.authentik_flow.default_authorization_flow.id
   invalidation_flow  = data.authentik_flow.default_invalidation_flow.id
+  signing_key        = data.authentik_certificate_key_pair.default.id
   property_mappings = [
     data.authentik_property_mapping_provider_scope.openid.id,
     data.authentik_property_mapping_provider_scope.email.id,
