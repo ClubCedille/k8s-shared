@@ -40,9 +40,30 @@ régénère le secret côté Authentik et le réécrit dans Vault. Le
 ## Base de données
 
 CNPG (`apps/coder/resources/postgres.yaml`), storageClass `ceph-rbd` (pas
-`cephfs`), secret applicatif auto-généré `coder-pg-app` (clé `uri` utilisée
-directement comme `CODER_PG_CONNECTION_URL`). Backup quotidien vers B2 via
-barman-cloud.
+`cephfs`). Backup quotidien vers B2 via barman-cloud.
+
+**Le secret `coder-pg-app` doit être créé manuellement avant le premier
+bootstrap du Cluster** -- vérifié empiriquement : `bootstrap.initdb.secret.name`
+ne génère *pas* automatiquement le secret s'il n'existe pas déjà (le rôle
+`coder` reste alors sans mot de passe, `rolpassword` null). Volontairement
+**pas** commité dans git (contrairement à `postgresql-forgejo-app`/
+`nextcloud-postgresql` ailleurs dans ce repo) :
+
+```sh
+kubectl create secret generic coder-pg-app \
+  --type=kubernetes.io/basic-auth \
+  --from-literal=username=coder \
+  --from-literal=password="$(openssl rand -base64 32)" \
+  -n coder
+```
+
+`CODER_PG_CONNECTION_URL` est composé dans `apps/coder/helm/values.yaml` via
+l'expansion `$(VAR)` de Kubernetes à partir de `username`/`password` (ce
+secret ne contient jamais de clé `uri`).
+
+Si le Cluster doit être recréé (perte du mot de passe, migration...), ce
+secret doit exister *avant* de réappliquer `postgres.yaml`, sinon répéter
+l'étape ci-dessus avec un nouveau mot de passe.
 
 ## Workspaces
 
