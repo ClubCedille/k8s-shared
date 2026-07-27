@@ -67,8 +67,12 @@ data "authentik_property_mapping_provider_scope" "openid" {
   managed = "goauthentik.io/providers/oauth2/scope-openid"
 }
 
+# Le mapping "email" managé par défaut d'Authentik ne pose pas
+# email_verified: true (aucune vérification par courriel configurée dans nos
+# flows) -- on utilise le mapping partagé de terraform/authentik/main.tf à la
+# place, applicable à toute future app avec le même besoin.
 data "authentik_property_mapping_provider_scope" "email" {
-  managed = "goauthentik.io/providers/oauth2/scope-email"
+  name = "cedille-scope-email-verified"
 }
 
 data "authentik_property_mapping_provider_scope" "profile" {
