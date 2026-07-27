@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: coder
+  namespace: argocd
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: coder
+  project: k8s-shared
+  sources:
+    - chart: coder
+      helm:
+        releaseName: coder
+        valueFiles:
+          - $values/apps/coder/helm/values.yaml
+      repoURL: https://helm.coder.com/v2
+      targetRevision: 2.35.3
+    - repoURL: "https://github.com/ClubCedille/k8s-shared.git"
+      targetRevision: HEAD
+      ref: values
+    - repoURL: "https://github.com/ClubCedille/k8s-shared.git"
+      path: apps/coder/resources
+      targetRevision: HEAD
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true

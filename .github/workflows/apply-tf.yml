@@ -12,6 +12,7 @@ on:
           - auth-only
           - nodered
           - outline
+          - coder
           - all
   push:
     branches:
@@ -20,6 +21,7 @@ on:
       - '.github/workflows/apply-tf.yml'
       - 'terraform/outline/authentik-vault/**'
       - 'terraform/nodered/authentik-vault/**'
+      - 'terraform/coder/authentik-vault/**'
 
 jobs:
   terraform_apply:
@@ -55,18 +57,27 @@ jobs:
               nodered)
                 echo "outline=false" >> "$GITHUB_OUTPUT"
                 echo "nodered=true" >> "$GITHUB_OUTPUT"
+                echo "coder=false" >> "$GITHUB_OUTPUT"
                 ;;
               outline)
                 echo "outline=true" >> "$GITHUB_OUTPUT"
                 echo "nodered=false" >> "$GITHUB_OUTPUT"
+                echo "coder=false" >> "$GITHUB_OUTPUT"
+                ;;
+              coder)
+                echo "outline=false" >> "$GITHUB_OUTPUT"
+                echo "nodered=false" >> "$GITHUB_OUTPUT"
+                echo "coder=true" >> "$GITHUB_OUTPUT"
                 ;;
               all)
                 echo "outline=true" >> "$GITHUB_OUTPUT"
                 echo "nodered=true" >> "$GITHUB_OUTPUT"
+                echo "coder=true" >> "$GITHUB_OUTPUT"
                 ;;
               auth-only)
                 echo "outline=false" >> "$GITHUB_OUTPUT"
                 echo "nodered=false" >> "$GITHUB_OUTPUT"
+                echo "coder=false" >> "$GITHUB_OUTPUT"
                 ;;
               *)
                 echo "Unsupported module: $REQUESTED_MODULE" >&2
@@ -93,6 +104,12 @@ jobs:
             echo "nodered=true" >> "$GITHUB_OUTPUT"
           else
             echo "nodered=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if grep -q '^terraform/coder/authentik-vault/' /tmp/changed-files; then
+            echo "coder=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "coder=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Authenticate to Vault with GitHub OIDC
@@ -125,6 +142,17 @@ jobs:
           TF_VAR_AUTHENTIK_API_TOKEN: ${{ secrets.AUTHENTIK_TOKEN }}
         run: |
           cd terraform/nodered/authentik-vault
+
+          tofu init
+          tofu apply -auto-approve
+
+      - name: Tofu Init & Apply Coder
+        if: steps.changes.outputs.coder == 'true'
+        env:
+          TF_IN_AUTOMATION: true
+          TF_VAR_AUTHENTIK_API_TOKEN: ${{ secrets.AUTHENTIK_TOKEN }}
+        run: |
+          cd terraform/coder/authentik-vault
 
           tofu init
           tofu apply -auto-approve

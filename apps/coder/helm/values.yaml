@@ -1,0 +1,71 @@
+coder:
+  image:
+    tag: "2.35.3"
+
+  replicaCount: 1
+
+  # Terminaison TLS faite par Contour (HTTPProxy) devant Coder.
+  tls:
+    secretNames: []
+
+  service:
+    enable: true
+    type: ClusterIP
+
+  # Pas d'Ingress natif : le routage est fait par apps/coder/resources/httpproxy.yaml
+  # (virtualhost principal + wildcard pour l'accès direct aux apps de workspace).
+  ingress:
+    enable: false
+
+  # Les workspaces tournent dans le namespace dédié `coder-workspaces` (voir
+  # apps/coder/resources/workspaces-namespace.yaml), pas dans le namespace du
+  # control plane -- on retire donc les permissions par défaut ici.
+  serviceAccount:
+    workspacePerms: false
+    workspaceNamespaces:
+      - name: coder-workspaces
+        workspacePerms: true
+        enableDeployments: false
+
+  env:
+    - name: CODER_ACCESS_URL
+      value: "https://coder.etsmtl.club"
+    - name: CODER_WILDCARD_ACCESS_URL
+      value: "*.coder.etsmtl.club"
+
+    # OIDC (Authentik) -- voir terraform/coder/authentik-vault
+    - name: CODER_OIDC_ISSUER_URL
+      value: "https://auth.etsmtl.club/application/o/coder/"
+    - name: CODER_OIDC_CLIENT_ID
+      valueFrom:
+        secretKeyRef:
+          name: coder-oidc-secret
+          key: OIDC_CLIENT_ID
+    - name: CODER_OIDC_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: coder-oidc-secret
+          key: OIDC_CLIENT_SECRET
+    - name: CODER_OIDC_SCOPES
+      value: "openid,profile,email,groups"
+    - name: CODER_OIDC_SIGN_IN_TEXT
+      value: "Se connecter avec Authentik"
+    - name: CODER_OIDC_ALLOW_SIGNUPS
+      value: "true"
+
+    # Group sync (OSS) : les groupes Authentik (claim `groups`, voir le scope
+    # mapping custom dans terraform/coder/authentik-vault) sont répliqués en
+    # groupes Coder. Pas de role sync (Owner/Auditor/Template Admin) --
+    # fonctionnalité Premium/Enterprise, non disponible en Community.
+    # Les rôles site restent assignés manuellement (voir docs/coder-deployment.md).
+    - name: CODER_OIDC_GROUP_FIELD
+      value: "groups"
+    - name: CODER_OIDC_GROUP_AUTO_CREATE
+      value: "true"
+
+    # Base de données (CNPG, voir apps/coder/resources/postgres.yaml)
+    - name: CODER_PG_CONNECTION_URL
+      valueFrom:
+        secretKeyRef:
+          name: coder-pg-app
+          key: uri
