@@ -65,9 +65,21 @@ coder:
     - name: CODER_OIDC_GROUP_AUTO_CREATE
       value: "true"
 
-    # Base de données (CNPG, voir apps/coder/resources/postgres.yaml)
-    - name: CODER_PG_CONNECTION_URL
+    # Base de données (CNPG, voir apps/coder/resources/postgres.yaml).
+    # Le secret `coder-pg-app` généré par CNPG ne contient que `username`/
+    # `password` (type kubernetes.io/basic-auth, jamais de clé `uri` -- voir
+    # les secrets équivalents forgejo/nextcloud/outline). On compose l'URL
+    # via l'expansion $(VAR) de Kubernetes, qui référence les env vars
+    # précédentes du même conteneur.
+    - name: CODER_PG_USER
       valueFrom:
         secretKeyRef:
           name: coder-pg-app
-          key: uri
+          key: username
+    - name: CODER_PG_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: coder-pg-app
+          key: password
+    - name: CODER_PG_CONNECTION_URL
+      value: "postgresql://$(CODER_PG_USER):$(CODER_PG_PASSWORD)@postgresql-coder-rw.coder.svc.cluster.local:5432/coder"
