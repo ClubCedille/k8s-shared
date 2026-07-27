@@ -101,7 +101,6 @@ data "coder_parameter" "image" {
 resource "coder_agent" "main" {
   os             = "linux"
   arch           = "amd64"
-  dir            = "/home/coder"
   startup_script = <<-EOT
     set -e
     if [ ! -f "$${HOME}/.init_done" ]; then
