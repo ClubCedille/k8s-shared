@@ -9,6 +9,7 @@
 # coder.serviceAccount.workspaceNamespaces dans apps/coder/helm/values.yaml).
 
 terraform {
+  required_version = ">=1.14"
   required_providers {
     coder = {
       source  = "coder/coder"
@@ -175,11 +176,11 @@ resource "kubernetes_pod" "main" {
 
       resources {
         requests = {
-          cpu    = "${data.coder_parameter.cpu.value}"
+          cpu    = data.coder_parameter.cpu.value
           memory = "${data.coder_parameter.memory.value}Gi"
         }
         limits = {
-          cpu    = "${data.coder_parameter.cpu.value}"
+          cpu    = data.coder_parameter.cpu.value
           memory = "${data.coder_parameter.memory.value}Gi"
         }
       }
