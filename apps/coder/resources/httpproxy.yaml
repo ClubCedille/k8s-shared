@@ -1,0 +1,43 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: coder
+spec:
+  virtualhost:
+    fqdn: coder.etsmtl.club
+    tls:
+      secretName: coder-tls
+      minimumProtocolVersion: "1.3"
+  routes:
+    - conditions:
+        - prefix: /
+      enableWebsockets: true
+      services:
+        - name: coder
+          port: 80
+      timeoutPolicy:
+        idle: 600s
+        response: 600s
+---
+# Route wildcard pour l'accès direct aux apps/ports des workspaces
+# (CODER_WILDCARD_ACCESS_URL) sans passer par `coder port-forward`.
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: coder-wildcard
+spec:
+  virtualhost:
+    fqdn: "*.coder.etsmtl.club"
+    tls:
+      secretName: coder-tls
+      minimumProtocolVersion: "1.3"
+  routes:
+    - conditions:
+        - prefix: /
+      enableWebsockets: true
+      services:
+        - name: coder
+          port: 80
+      timeoutPolicy:
+        idle: 600s
+        response: 600s
