@@ -17,6 +17,16 @@ coder:
   ingress:
     enable: false
 
+  # Les workspaces tournent dans le namespace dédié `coder-workspaces` (voir
+  # apps/coder/resources/workspaces-namespace.yaml), pas dans le namespace du
+  # control plane -- on retire donc les permissions par défaut ici.
+  serviceAccount:
+    workspacePerms: false
+    workspaceNamespaces:
+      - name: coder-workspaces
+        workspacePerms: true
+        enableDeployments: false
+
   env:
     - name: CODER_ACCESS_URL
       value: "https://coder.etsmtl.club"

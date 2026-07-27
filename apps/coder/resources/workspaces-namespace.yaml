@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: coder-workspaces
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: coder-workspaces-quota
+  namespace: coder-workspaces
+spec:
+  hard:
+    pods: "20"
+    requests.cpu: "20"
+    requests.memory: 40Gi
+    limits.cpu: "40"
+    limits.memory: 80Gi
+    requests.storage: 200Gi
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: coder-workspaces-limits
+  namespace: coder-workspaces
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: "2"
+        memory: 4Gi
+      defaultRequest:
+        cpu: "500m"
+        memory: 1Gi
+      max:
+        cpu: "8"
+        memory: 16Gi
