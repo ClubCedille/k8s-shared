@@ -1,0 +1,34 @@
+# Miroir local des checks CI (clubcedille/cedille-workflows) :
+# terraform-lint, yaml-lint, kubeconform, pluto, kube-score.
+#
+# Installation :
+#   pip install pre-commit
+#   pre-commit install
+#
+# Requiert en plus, dans le PATH : kubectl, kubeconform, pluto, kube-score
+# (voir scripts/kube-validate.sh). tflint et terraform sont gérés par les
+# hooks ci-dessous.
+
+repos:
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.99.4
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_tflint
+        args:
+          - --args=--config=__GIT_WORKING_DIR__/.tflint.hcl
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.37.1
+    hooks:
+      - id: yamllint
+        args: ["-c", ".yamllint.yml"]
+
+  - repo: local
+    hooks:
+      - id: kube-validate
+        name: kubeconform / pluto / kube-score (kustomize build)
+        entry: scripts/kube-validate.sh
+        language: script
+        pass_filenames: true
+        files: ^(apps|bases|system|common)/.*\.ya?ml$
