@@ -28,10 +28,11 @@ coder:
       - name: coder-workspaces
         workspacePerms: true
         enableDeployments: false
-      # Namespace de test/PoC, séparé de coder-workspaces.
+      # Namespace de test/PoC, séparé de coder-workspaces. enableDeployments
+      # requis : le template testé ici crée un Deployment, pas juste un Pod.
       - name: coder-poc
         workspacePerms: true
-        enableDeployments: false
+        enableDeployments: true
 
   env:
     - name: CODER_ACCESS_URL
