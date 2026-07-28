@@ -28,6 +28,10 @@ coder:
       - name: coder-workspaces
         workspacePerms: true
         enableDeployments: false
+      # Namespace de test/PoC, séparé de coder-workspaces.
+      - name: coder-poc
+        workspacePerms: true
+        enableDeployments: false
 
   env:
     - name: CODER_ACCESS_URL
