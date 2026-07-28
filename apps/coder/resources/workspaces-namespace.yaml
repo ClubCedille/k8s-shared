@@ -2,6 +2,20 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: coder-workspaces
+  # Sans ces labels, le namespace hérite du niveau PSA "privileged" par
+  # défaut de Kubernetes -- rien n'empêche alors un futur template Coder de
+  # tourner en privileged:true, hostPath ou hostNetwork. Coder exécute du
+  # code utilisateur non fiable dans ce namespace, donc on enforce
+  # "baseline" (le template actuel -- apps/coder/templates/kubernetes/main.tf --
+  # tourne déjà en run_as_user non-root sans capacités additionnelles, donc
+  # compatible).
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
 ---
 apiVersion: v1
 kind: ResourceQuota
