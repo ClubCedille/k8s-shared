@@ -102,6 +102,11 @@ resource "authentik_provider_oauth2" "coder" {
   authorization_flow = data.authentik_flow.default_authorization_flow.id
   invalidation_flow  = data.authentik_flow.default_invalidation_flow.id
   signing_key        = data.authentik_certificate_key_pair.default.id
+
+  # Défaut Authentik = access_token_validity "minutes=5" -- trop court pour
+  # une session de dev Coder (déconnexions en pleine journée de travail).
+  access_token_validity  = "hours=12"
+  refresh_token_validity = "days=30"
   property_mappings = [
     data.authentik_property_mapping_provider_scope.openid.id,
     data.authentik_property_mapping_provider_scope.email.id,
