@@ -99,6 +99,10 @@ data "authentik_property_mapping_provider_scope" "profile" {
   managed = "goauthentik.io/providers/oauth2/scope-profile"
 }
 
+data "authentik_property_mapping_provider_scope" "offline_access" {
+  managed = "goauthentik.io/providers/oauth2/scope-offline_access"
+}
+
 resource "authentik_provider_oauth2" "outline_provider" {
   for_each = toset(local.clubs)
 
@@ -111,6 +115,7 @@ resource "authentik_provider_oauth2" "outline_provider" {
     data.authentik_property_mapping_provider_scope.openid.id,
     data.authentik_property_mapping_provider_scope.email.id,
     data.authentik_property_mapping_provider_scope.profile.id,
+    data.authentik_property_mapping_provider_scope.offline_access.id,
   ]
   allowed_redirect_uris = [
     {

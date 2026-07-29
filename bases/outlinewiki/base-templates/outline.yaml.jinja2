@@ -83,8 +83,7 @@ spec:
             timeoutSeconds: 5
             failureThreshold: 3
           livenessProbe:
-            httpGet:
-              path: /_health
+            tcpSocket:
               port: 3000
             initialDelaySeconds: 60
             periodSeconds: 20

@@ -6,7 +6,7 @@ on:
       nom_club:
         type: string
         required: true
-        description: "Nom du club, sans caractères spéciaux et majuscules sauf pour '-' et '_'. Le domaine sera configuré selon le nom (e.g wiki.votre-club.etsmtl.club)"
+        description: "Nom du club (lettres minuscules, chiffres et tirets '-' seulement, e.g: mon-super-club) Le domaine sera configuré selon ce nom (e.g wiki.mon-super-club.etsmtl.club)"
 
 jobs:
   create_pr:
@@ -28,16 +28,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verify nom_club input
+        run: |
+          if [[ ! "${{ inputs.nom_club }}" =~ ^[a-z0-9-]+$ ]]; then
+            echo "::error::ERREUR: Le nom du club '${{ inputs.nom_club }}' est invalide."
+            echo "::error::Il ne doit contenir que des lettres minuscules, des chiffres et des tirets (-)."
+            exit 1
+          fi
+
       - name: Update clubs.json
         run: |
           cd terraform/outline/authentik-vault
-          jq '. += ["${{ env.CLUB }}"] | unique' clubs.json > clubs_temp.json
+          jq --arg club "$CLUB" '. += [$club] | unique' clubs.json > clubs_temp.json
           mv clubs_temp.json clubs.json
 
       - name: Create k8s folder
         run: |
-          mkdir -p ${{ env.BASE_DIR }}
-          mkdir -p ${{ env.PROD_DIR }}
+          mkdir -p "${{ env.BASE_DIR }}"
+          mkdir -p "${{ env.PROD_DIR }}"
 
       # -- BASE --
       - name: Create ConfigMap Manifest
@@ -125,7 +133,7 @@ jobs:
             ${{ env.CLUB }}
           title: "Créer un wiki Outline pour ${{ env.CLUB }}"
           body: |
-            PR automatisé pour création de Wiki Outline
+            PR automatisée pour la création d'un Wiki Outline.
             Nom du club: `${{ env.CLUB }}`
 
             **Changements inclus:**
