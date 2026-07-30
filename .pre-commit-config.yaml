@@ -1,0 +1,47 @@
+# Miroir local des checks CI (clubcedille/cedille-workflows) :
+# terraform-lint, yaml-lint, kubeconform, pluto, kube-score.
+#
+# 1) pre-commit lui-même :
+#      Arch/Manjaro : sudo pacman -S pre-commit
+#      Ubuntu/Debian: sudo apt install pipx && pipx install pre-commit
+#      n'importe où : pipx install pre-commit   (ou: pip install --user pre-commit)
+#
+# 2) kubectl + terraform/opentofu (paquets standards de ta distro) :
+#      Arch/Manjaro : sudo pacman -S kubectl opentofu
+#      Ubuntu/Debian: sudo apt install kubectl   # opentofu: voir
+#                     https://opentofu.org/docs/intro/install/#linux-package-manager
+#      Fedora/RHEL  : sudo dnf install kubectl terraform
+#    Les hooks Terraform ci-dessous détectent automatiquement `tofu` si
+#    `terraform` est absent du PATH -- avoir uniquement OpenTofu installé
+#    fonctionne sans configuration supplémentaire.
+#
+# 3) tflint, kubeconform, pluto, kube-score (pas de paquet standard partout) :
+#      ./scripts/install-hook-deps.sh
+#    Installe les mêmes versions que la CI dans ~/.local/bin (pas de sudo).
+#
+# 4) Activer les hooks :
+#      pre-commit install
+
+repos:
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.99.4
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_tflint
+        args:
+          - --args=--config=__GIT_WORKING_DIR__/.tflint.hcl
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.37.1
+    hooks:
+      - id: yamllint
+        args: ["-c", ".yamllint.yml"]
+
+  - repo: local
+    hooks:
+      - id: kube-validate
+        name: kubeconform / pluto / kube-score (kustomize build)
+        entry: scripts/kube-validate.sh
+        language: script
+        pass_filenames: true
+        files: ^(apps|bases|system|common)/.*\.ya?ml$
