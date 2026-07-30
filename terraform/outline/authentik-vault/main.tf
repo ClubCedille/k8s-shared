@@ -109,6 +109,7 @@ resource "authentik_provider_oauth2" "outline_provider" {
   name               = "outlinewiki-${each.key}"
   client_id          = "outlinewiki-${each.key}"
   client_secret      = random_password.outline_client_secret[each.key].result
+  grant_types        = ["authorization_code", "refresh_token"]
   authorization_flow = data.authentik_flow.default-authorization-flow.id
   invalidation_flow  = data.authentik_flow.default-invalidation-flow.id
   property_mappings = [
