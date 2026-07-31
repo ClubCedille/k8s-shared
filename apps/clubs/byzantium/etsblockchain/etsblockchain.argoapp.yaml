@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: byzantium-etsblockchain
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: etsblockchain=ghcr.io/clubcedille/etsblockchain:latest
+    argocd-image-updater.argoproj.io/etsblockchain.update-strategy: digest
+    argocd-image-updater.argoproj.io/etsblockchain.pull-secret: pullsecret:argocd/ghcr-clubcedille-secret
+spec:
+  project: k8s-shared
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: byzantium-etsblockchain
+  source:
+    repoURL: https://github.com/ClubCedille/k8s-shared
+    path: apps/clubs/byzantium/etsblockchain/prod
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
