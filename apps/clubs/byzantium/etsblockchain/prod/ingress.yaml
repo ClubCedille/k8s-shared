@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: byzantium-etsblockchain
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-http
+    cert-manager.io/cluster-issuer: letsencrypt-etsmtl
     ingress.kubernetes.io/force-ssl-redirect: "true"
     kubernetes.io/tls-acme: "true"
 spec:
@@ -11,9 +11,9 @@ spec:
   tls:
     - secretName: byzantium-etsblockchain-tls
       hosts:
-        - blockchain.prodv2.cedille.club
+        - blockchain.etsmtl.club
   rules:
-    - host: blockchain.prodv2.cedille.club
+    - host: blockchain.etsmtl.club
       http:
         paths:
           - pathType: Prefix
