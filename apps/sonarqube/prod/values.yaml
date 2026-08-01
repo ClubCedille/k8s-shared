@@ -63,7 +63,7 @@ extraInitContainers:
     command:
       - sh
       - -c
-      - wget -O /tmp/sonarqube-webapp.zip https://github.com/mc1arke/sonarqube-community-branch-plugin/releases/download/26.3.0/sonarqube-webapp.zip &&
+      - wget -O /tmp/sonarqube-webapp.zip https://github.com/mc1arke/sonarqube-community-branch-plugin/releases/download/26.5.0/sonarqube-webapp.zip &&
         unzip -o /tmp/sonarqube-webapp.zip -d /web &&
         chmod -R 755 /web &&
         chown -R 1000:0 /web &&
@@ -81,7 +81,7 @@ tests:
   #
 plugins:
   install:
-    - https://github.com/mc1arke/sonarqube-community-branch-plugin/releases/download/26.3.0/sonarqube-community-branch-plugin-26.3.0.jar
+    - https://github.com/mc1arke/sonarqube-community-branch-plugin/releases/download/26.5.0/sonarqube-community-branch-plugin-26.5.0.jar
 
   # For use behind a corporate proxy when downloading plugins
   # httpProxy: ""
@@ -105,8 +105,8 @@ sonarProperties:
   sonar.core.serverBaseURL: https://sonarqube.etsmtl.club
   sonar.lf.enableGravatar: true
   sonar.log.level: INFO
-  sonar.web.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-26.3.0.jar=web"
-  sonar.ce.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-26.3.0.jar=ce"
+  sonar.web.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-26.5.0.jar=web"
+  sonar.ce.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-26.5.0.jar=ce"
   sonar.auth.saml.enabled: true
   # applicationId == authentik Audience
   sonar.auth.saml.applicationId: sonarqube
