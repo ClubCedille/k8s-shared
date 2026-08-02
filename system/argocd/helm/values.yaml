@@ -357,6 +357,8 @@ configs:
       g, exec-applets, role:applets
       g, club-algoets, role:algoets-readonly
       g, exec-algoets, role:algoets
+      g, club-lanets, role:lanets-readonly
+      g, exec-lanets, role:lanets
 
       #  p, subject, resource, action, object, effect
       p, role:applets, applications, *, applets/*, allow
@@ -369,6 +371,14 @@ configs:
       p, role:algoets, applications, *, algoets/*, allow
       p, role:algoets, logs, *, algoets/*, allow
       p, role:algoets, certificates, *, algoets/*, allow
+      
+      p, role:lanets-readonly, projects, get, lanets, allow
+      p, role:lanets-readonly, applications, get, lanets/*, allow
+      p, role:lanets-readonly, logs, get, lanets/*, allow
+      p, role:lanets, projects, get, lanets, allow
+      p, role:lanets, applications, *, lanets/*, allow
+      p, role:lanets, logs, *, lanets/*, allow
+      p, role:lanets, certificates, *, lanets/*, allow
 
     # -- OIDC scopes to examine during rbac enforcement (in addition to `sub` scope).
     # The scope value can be a string, or a list of strings.
