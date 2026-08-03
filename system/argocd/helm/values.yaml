@@ -371,7 +371,7 @@ configs:
       p, role:algoets, applications, *, algoets/*, allow
       p, role:algoets, logs, *, algoets/*, allow
       p, role:algoets, certificates, *, algoets/*, allow
-      
+
       p, role:lanets-readonly, projects, get, lanets, allow
       p, role:lanets-readonly, applications, get, lanets/*, allow
       p, role:lanets-readonly, logs, get, lanets/*, allow
