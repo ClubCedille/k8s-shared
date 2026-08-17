@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  custom-nginx.conf: |
+    server {
+        listen 0.0.0.0:8080;
+        server_name _;
+
+        absolute_redirect off;
+
+        location / {
+            alias /app/fr/;
+            try_files $uri $uri/ /fr/index.html;
+        }
+
+        location /en/ {
+            alias /app/en/;
+            try_files $uri $uri/ /en/index.html;
+        }
+    }
