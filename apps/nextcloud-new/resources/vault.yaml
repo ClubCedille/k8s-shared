@@ -1,0 +1,90 @@
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: nextcloud-new-auth
+spec:
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    audiences:
+      - vault
+    role: secret-reader
+    serviceAccount: default
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: b2-creds
+spec:
+  vaultAuthRef: nextcloud-new-auth
+  type: kv-v1
+  mount: kv-system
+  path: default_passwords/b2-creds
+  destination:
+    name: b2-creds
+    create: true
+---
+# Garage S3 credentials for the Nextcloud OBJECTSTORE_S3_* primary storage backend.
+# Path/keys match what was pushed manually to Vault:
+#   vault write kv-system/default_passwords/nextcloud_s3 \
+#     nextcloud_s3_key=<access key> nextcloud_s3_secret=<secret key>
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: nextcloud-garage-credentials
+spec:
+  vaultAuthRef: nextcloud-new-auth
+  type: kv-v1
+  mount: kv-system
+  path: default_passwords/nextcloud_s3
+  destination:
+    name: nextcloud-garage-credentials
+    create: true
+---
+# Nextcloud admin break-glass account (in addition to OIDC login).
+# vault write kv-system/default_passwords/nextcloud-new-admin \
+#   nextcloud-username=admin nextcloud-password=<...> metrics-token=<...>
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: nextcloud-admin
+spec:
+  vaultAuthRef: nextcloud-new-auth
+  type: kv-v1
+  mount: kv-system
+  path: default_passwords/nextcloud-new-admin
+  destination:
+    name: nextcloud-admin
+    create: true
+---
+# Redis auth password.
+# vault write kv-system/default_passwords/nextcloud-new-redis secret=<...>
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: redis-secret
+spec:
+  vaultAuthRef: nextcloud-new-auth
+  type: kv-v1
+  mount: kv-system
+  path: default_passwords/nextcloud-new-redis
+  destination:
+    name: redis-secret
+    create: true
+---
+# Collabora admin account.
+# vault write kv-system/default_passwords/nextcloud-new-collabora \
+#   username=admin password=<...>
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: collabora-admin
+spec:
+  vaultAuthRef: nextcloud-new-auth
+  type: kv-v1
+  mount: kv-system
+  path: default_passwords/nextcloud-new-collabora
+  destination:
+    name: collabora-admin
+    create: true

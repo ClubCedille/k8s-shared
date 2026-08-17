@@ -1,0 +1,25 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k8s-shared-nextcloud-new
+  namespace: argocd
+spec:
+  destination:
+    namespace: nextcloud-new
+    server: https://kubernetes.default.svc
+  project: k8s-shared
+  sources:
+    - path: apps/nextcloud-new
+      repoURL: https://github.com/ClubCedille/k8s-shared.git
+      targetRevision: HEAD
+    - path: apps/nextcloud-new
+      repoURL: https://github.com/ClubCedille/k8s-shared.git
+      targetRevision: HEAD
+      directory:
+        include: nextcloud-setup-job.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions: [CreateNamespace=true]

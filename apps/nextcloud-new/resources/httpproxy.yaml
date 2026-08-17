@@ -1,0 +1,130 @@
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: nextcloud
+  namespace: nextcloud-new
+spec:
+  routes:
+    - conditions:
+        - prefix: /
+      timeoutPolicy:
+        response: 1m
+      enableWebsockets: true
+      requestHeadersPolicy:
+        set:
+          - name: X-Forwarded-For
+            value: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
+          - name: X-Forwarded-Proto
+            value: '%PROTOCOL%'
+          - name: Upgrade
+            value: websocket
+      services:
+        - name: nextcloud
+          port: 8080
+  virtualhost:
+    fqdn: new-nextcloud.etsmtl.club
+    tls:
+      minimumProtocolVersion: '1.3'
+      secretName: nextcloud-new-ingress-tls
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: nextcloud-internal
+  namespace: nextcloud-new
+  annotations:
+    external-dns.alpha.kubernetes.io/exclude: "true"
+spec:
+  ingressClassName: contour-internal
+  routes:
+    - conditions:
+        - prefix: /
+      timeoutPolicy:
+        response: 1m
+      enableWebsockets: true
+      requestHeadersPolicy:
+        set:
+          - name: X-Forwarded-For
+            value: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
+          - name: X-Forwarded-Proto
+            value: '%PROTOCOL%'
+          - name: Upgrade
+            value: websocket
+      services:
+        - name: nextcloud
+          port: 8080
+  virtualhost:
+    fqdn: new-nextcloud.etsmtl.club
+    tls:
+      minimumProtocolVersion: '1.3'
+      secretName: nextcloud-new-ingress-tls
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: collabora
+  namespace: nextcloud-new
+spec:
+  routes:
+    - conditions:
+        - prefix: /
+      enableWebsockets: true
+      requestHeadersPolicy:
+        set:
+          - name: X-Forwarded-For
+            value: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
+          - name: X-Forwarded-Proto
+            value: '%PROTOCOL%'
+          - name: Upgrade
+            value: websocket
+      services:
+        - name: collabora-collabora-online
+          port: 9980
+      loadBalancerPolicy:
+        strategy: Cookie
+      cookieRewritePolicies:
+        - name: X-Contour-Session-Affinity
+          sameSite: None
+          secure: true
+  virtualhost:
+    fqdn: new-collabora-nextcloud.etsmtl.club
+    tls:
+      minimumProtocolVersion: '1.3'
+      secretName: collabora-new-ingress-tls
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: collabora-internal
+  namespace: nextcloud-new
+  annotations:
+    external-dns.alpha.kubernetes.io/exclude: "true"
+spec:
+  ingressClassName: contour-internal
+  routes:
+    - conditions:
+        - prefix: /
+      enableWebsockets: true
+      requestHeadersPolicy:
+        set:
+          - name: X-Forwarded-For
+            value: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
+          - name: X-Forwarded-Proto
+            value: '%PROTOCOL%'
+          - name: Upgrade
+            value: websocket
+      services:
+        - name: collabora-collabora-online
+          port: 9980
+      loadBalancerPolicy:
+        strategy: Cookie
+      cookieRewritePolicies:
+        - name: X-Contour-Session-Affinity
+          sameSite: None
+          secure: true
+  virtualhost:
+    fqdn: new-collabora-nextcloud.etsmtl.club
+    tls:
+      minimumProtocolVersion: '1.3'
+      secretName: collabora-new-ingress-tls

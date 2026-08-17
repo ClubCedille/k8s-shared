@@ -1,0 +1,138 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: enable-maintenance
+  namespace: nextcloud-new
+  annotations:
+    kube-score/ignore: pod-networkpolicy
+spec:
+  schedule: 30 6 * * *  # UTC time. 2h30 am EST
+  startingDeadlineSeconds: 300
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          serviceAccountName: backup-runner
+          restartPolicy: Never
+          securityContext:
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: maint-on
+              image: registry.k8s.io/kubectl:v1.33.3
+              imagePullPolicy: Always
+              command:
+                - kubectl
+                - exec
+                - -n
+                - nextcloud-new
+                - deploy/nextcloud
+                - --
+                - php
+                - occ
+                - maintenance:mode
+                - --on
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 10000
+                readOnlyRootFilesystem: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 50m
+                  memory: 64Mi
+                  ephemeral-storage: 50Mi
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: disable-maintenance
+  namespace: nextcloud-new
+  annotations:
+    kube-score/ignore: pod-networkpolicy
+spec:
+  schedule: 20 7 * * *  # UTC time. 3h20 am EST
+  startingDeadlineSeconds: 300
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          serviceAccountName: backup-runner
+          restartPolicy: OnFailure
+          securityContext:
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: maint-on
+              image: registry.k8s.io/kubectl:v1.33.3
+              imagePullPolicy: Always
+              command:
+                - kubectl
+                - exec
+                - -n
+                - nextcloud-new
+                - deploy/nextcloud
+                - --
+                - php
+                - occ
+                - maintenance:mode
+                - --off
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 10000
+                readOnlyRootFilesystem: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 50m
+                  memory: 64Mi
+                  ephemeral-storage: 50Mi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backup-runner
+  namespace: nextcloud-new
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: backup-access
+  namespace: nextcloud-new
+rules:
+  - apiGroups: ['']
+    resources: [pods, pods/exec]
+    verbs: [get, list, create, delete]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: backup-access-binding
+  namespace: nextcloud-new
+roleRef:
+  kind: Role
+  name: backup-access
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: backup-runner
