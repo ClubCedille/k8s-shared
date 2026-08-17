@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shell-provider
+  annotations:
+    kube-score/ignore: pod-networkpolicy, pod-probes
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: shell-provider
+  template:
+    metadata:
+      labels:
+        app: shell-provider
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - shell-provider
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: shell-provider
+          image: ghcr.io/clubcedille/shell-provider:latest
+          imagePullPolicy: Always
+          command:
+            ['/bin/sh', '-c', '/shell_provider --port 6000']
+          ports:
+            - containerPort: 6000
+          livenessProbe:
+            tcpSocket:
+              port: 6000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 6000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+              ephemeral-storage: 1Gi
+          securityContext:
+            runAsUser: 10001
+            runAsGroup: 10001
+            readOnlyRootFilesystem: true
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: shell-provider-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: shell-provider
