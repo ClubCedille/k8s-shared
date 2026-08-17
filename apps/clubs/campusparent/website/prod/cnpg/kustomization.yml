@@ -4,3 +4,4 @@ resources:
   - config-secret.yaml
   - random-secret.yaml
   - postgres.yaml
+  - vault.yaml
