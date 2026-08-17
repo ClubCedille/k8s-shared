@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: grav
+  name: grav
+  annotations:
+    kube-score/ignore: container-image-tag,container-security-context-readonlyrootfilesystem, container-security-context-user-group-id, pod-networkpolicy
+spec:
+  replicas: 1
+  minReadySeconds: 30
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: grav
+  template:
+    metadata:
+      labels:
+        app: grav
+    spec:
+      containers:
+        - name: grav
+          image: ghcr.io/clubcedille/grav:latest
+          imagePullPolicy: Always
+          env:
+            - name: HEAD_BRANCH
+              value: main
+          envFrom:
+            - secretRef:
+                name: grav-config
+          ports:
+            - containerPort: 8080
+          startupProbe:
+            httpGet:
+              path: /
+              port: 8080
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            periodSeconds: 10
+          volumeMounts:
+            - name: grav-accounts
+              mountPath: /var/www/html/user/accounts
+            - name: grav-data
+              mountPath: /var/www/html/user/data
+          resources:
+            requests:
+              cpu: 300m
+              memory: 256Mi
+              ephemeral-storage: 256Mi
+      securityContext:
+        # group 33 is www-data
+        runAsUser: 33
+        runAsGroup: 33
+        fsGroup: 33
+      volumes:
+        - name: grav-accounts
+          persistentVolumeClaim:
+            claimName: grav-accounts-pvc
+        - name: grav-data
+          persistentVolumeClaim:
+            claimName: grav-data-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grav-accounts-pvc
+spec:
+  storageClassName: cephfs
+  accessModes:
+    - "ReadWriteMany"
+  resources:
+    requests:
+      storage: "10Mi"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grav-data-pvc
+spec:
+  storageClassName: cephfs
+  accessModes:
+    - "ReadWriteMany"
+  resources:
+    requests:
+      storage: "10Mi"

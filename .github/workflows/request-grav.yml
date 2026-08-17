@@ -1,0 +1,129 @@
+name: Demander un site web GRAV
+
+on:
+  workflow_dispatch:
+    inputs:
+      domaine:
+        type: string
+        required: true
+        description: "Domaine à utiliser (eg cedille.etsmtl.ca)"
+      nom_club:
+        type: string
+        required: true
+        description: "Nom du club (lettres minuscules, chiffres et tirets '-' seulement). Pas de caractères spéciaux ou d'espaces outre - et _"
+      contexte:
+        type: string
+        required: false
+        description: "Contexte sur la demande"
+      skeleton_url:
+        type: string
+        required: false
+        description: "URL du squelette Grav (laisser vide pour le package de base). Voir https://getgrav.org/downloads/skeletons"
+
+jobs:
+  create_pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      CLUB: ${{ inputs.nom_club }}
+      ROOT_DIR: apps/clubs/${{ inputs.nom_club }}/grav
+      PROD_DIR: apps/clubs/${{ inputs.nom_club }}/grav/prod
+      TEMPLATE_PROD_DIR: bases/grav/prod-templates
+      j2_vars: |
+        deployment_prefix=${{ inputs.nom_club }}
+        repo_name=${{ inputs.domaine }}
+        repo_url=https://github.com/ClubCedille/${{ inputs.domaine }}.git
+        namespace=${{ inputs.nom_club }}-grav
+        hostname=${{ inputs.domaine }}
+        requester=${{ github.event.sender.name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify nom_club input
+        run: |
+          if [[ ! "${{ inputs.nom_club }}" =~ ^[a-z0-9-]+$ ]]; then
+            echo "::error::ERREUR: Le nom du club '${{ inputs.nom_club }}' est invalide."
+            echo "::error::Il ne doit contenir que des lettres minuscules, des chiffres et des tirets (-)."
+            exit 1
+          fi
+
+      - name: Create k8s folder
+        run: mkdir -p "${{ env.PROD_DIR }}"
+
+      # -- PROD --
+      - name: Create Prod Kustomize
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: ${{ env.TEMPLATE_PROD_DIR }}/kustomization.yaml.jinja2
+          output_file: ${{ env.PROD_DIR }}/kustomization.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+
+      - name: Create vault-patch
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: ${{ env.TEMPLATE_PROD_DIR }}/vault-patch.yaml.jinja2
+          output_file: ${{ env.PROD_DIR }}/vault-patch.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+
+      # -- VAULT GITHUB ROLE --
+      - name: Create GitHub Secret Engine Role
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: ${{ env.TEMPLATE_PROD_DIR }}/gh-role.yaml.jinja2
+          output_file: apps/vault-gh-roles/${{ inputs.nom_club }}-grav.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+
+      - name: Update vault-gh-roles kustomization
+        run: |
+          cd apps/vault-gh-roles
+          if ! grep -q "${{ inputs.nom_club }}-grav.yaml" kustomization.yaml; then
+            yq eval '.resources += ["${{ inputs.nom_club }}-grav.yaml"]' -i kustomization.yaml
+          fi
+
+      # -- ARGO --
+      - name: Create Argo Manifest
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: bases/grav/argoapp.yaml.jinja2
+          output_file: ${{ env.ROOT_DIR }}/${{ env.CLUB }}-grav.argoapp.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+
+      # -- PR --
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          title: "Créer un site web GRAV pour ${{ inputs.nom_club }}"
+          branch: grav/${{ inputs.nom_club }}
+          team-reviewers: |
+            SRE
+          labels: |
+            automated
+            grav
+            ${{ inputs.nom_club }}
+          body: |
+            PR automatisée pour la création d'un site web GRAV.
+
+            Nom du club: `${{ inputs.nom_club }}`
+            Domaine: `${{ inputs.domaine }}`
+            Contexte: ${{ inputs.contexte }}
+            Squelette: ${{ inputs.skeleton_url || 'Base Grav Admin (défaut)' }}
+
+            **Changements inclus:**
+            - Manifestes K8s (kustomize + Argo Application) dans `${{ env.ROOT_DIR }}`.
+            - Rôle Vault GitHub (`GitHubSecretEngineRole`) dans `apps/vault-gh-roles/${{ inputs.nom_club }}-grav.yaml`.
+
+            **Non inclus — à faire manuellement :**
+            - Création du repo GitHub `${{ inputs.domaine }}` (pas de Terraform GitHub côté k8s-shared, voir ClubCedille/k8s-cedille-production-v2#227).
+            - Repointage DNS de `${{ inputs.domaine }}`.
+
+            Mot de passe par défaut:
+            > `kubectl port-forward -n vault svc/vault-ui 8200`
+            > https://localhost:8200/ui/vault/secrets/kv/show/${{ inputs.nom_club }}-grav/default/grav/${{ inputs.nom_club }}-grav-init-pwd
+          token: ${{ secrets.PULL_REQUEST_TOKEN }}
