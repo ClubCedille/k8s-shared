@@ -11,7 +11,11 @@ image:
   pullSecrets:
     - dockerhub-pull
 # Number of replicas to be deployed
-replicaCount: 3
+# TEMPORARY: pinned to 1 during initial install — the docker image's entrypoint uses a
+# flock-based lock on the shared RWX PVC to serialize concurrent first-boot installs across
+# replicas, but on a fresh CephFS-backed PVC this repeatedly crash-looped instead of
+# converging. Revert to 3 once `occ status` confirms installed:true.
+replicaCount: 1
 ## Allowing use of ingress controllers
 ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ##
