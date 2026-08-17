@@ -33,6 +33,8 @@ kind: HTTPProxy
 metadata:
   name: nextcloud-internal
   namespace: nextcloud
+  annotations:
+    external-dns.alpha.kubernetes.io/exclude: "true"
 spec:
   ingressClassName: contour-internal
   routes:
@@ -96,6 +98,8 @@ kind: HTTPProxy
 metadata:
   name: collabora-internal
   namespace: nextcloud
+  annotations:
+    external-dns.alpha.kubernetes.io/exclude: "true"
 spec:
   ingressClassName: contour-internal
   routes:
