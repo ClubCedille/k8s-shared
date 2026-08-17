@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cedille
+  annotations:
+    kube-score/ignore: container-image-pull-policy,container-image-tag, pod-networkpolicy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cedille
+  template:
+    metadata:
+      labels:
+        app: cedille
+    spec:
+      containers:
+        - name: cedille
+          image: ghcr.io/clubcedille/cedille.etsmtl.ca:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: nginx-temp
+              mountPath: /var/cache/nginx
+            - name: config-volume
+              mountPath: /etc/nginx/conf.d
+              readOnly: true
+            - name: run-volume
+              mountPath: /var/run
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+      volumes:
+        - name: nginx-temp
+          emptyDir: {}
+        - name: config-volume
+          configMap:
+            name: nginx-config
+        - name: run-volume
+          emptyDir: {}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: cedille-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: cedille
