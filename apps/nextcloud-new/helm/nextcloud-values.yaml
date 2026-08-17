@@ -312,7 +312,13 @@ startupProbe:
   initialDelaySeconds: 60
   periodSeconds: 10
   timeoutSeconds: 5
-  failureThreshold: 30
+  # Generous budget (~40min) for the one-time first-boot rsync of Nextcloud's app code onto
+  # the CephFS-backed config PVC, which has been observed taking 10-25+ minutes on this
+  # cluster. Without this, the container gets SIGKILLed by the probe before install finishes,
+  # then restarts and repeats the slow rsync from scratch — an unrecoverable crash-loop.
+  # Subsequent boots skip the rsync (version.php already matches) so this doesn't slow down
+  # normal restarts.
+  failureThreshold: 240
   successThreshold: 1
 hpa:
   enabled: false
