@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: calidum-rotae
+  annotations:
+    kube-score/ignore: pod-networkpolicy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: calidum-rotae
+  template:
+    metadata:
+      labels:
+        app: calidum-rotae
+    spec:
+      containers:
+        - name: calidum-rotae
+          image: ghcr.io/clubcedille/calidum-rotae-service:2.0.1
+          imagePullPolicy: Always
+          env:
+            - name: CALIDUM_ROTAE_SERVICE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: calidum-rotae-secrets
+                  key: CALIDUM_ROTAE_SERVICE_API_KEY
+            - name: OTEL_SERVICE_NAME
+              value: "calidum"
+            - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+              value: "http://coroot-coroot .coroot.svc.cluster.local:8080/v1/traces"
+            - name: OTEL_EXPORTER_OTLP_LOGS_ENDPOINT
+              value: "http://coroot-coroot .coroot.svc.cluster.local:8080/v1/logs"
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: "http/protobuf"
+            - name: OTEL_METRICS_EXPORTER
+              value: "none"
+            - name: OTEL_EXPORTER_OTLP_HEADERS
+              value: "x-api-key="
+          ports:
+            - containerPort: 3000
+          command:
+            ['/bin/sh', '-c', '/calidum_rotae_service --port 3000 --email_provider_hostname email-provider-service --email_provider_port 4000 --discord_provider_hostname discord-provider-service --discord_provider_port 5000 --shell_provider_hostname shell-provider-service --shell_provider_port 6000 --otel_otlp_exporter_host k8s-cedille-production-v2-coroot-ce-coroot.coroot.svc.cluster.local --otel_otlp_exporter_port 8080 --allowed_domains "http://localhost,http://localhost:3000,https://*.cedille.club,https://*.etsmtl.ca"']
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+              ephemeral-storage: 1Gi
+          securityContext:
+            runAsUser: 10001
+            runAsGroup: 10001
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
