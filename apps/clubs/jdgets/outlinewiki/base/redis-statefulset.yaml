@@ -84,4 +84,4 @@ spec:
         resources:
           requests:
             storage: 5Gi
-        storageClassName: cephfs
+        storageClassName: ceph-rbd
