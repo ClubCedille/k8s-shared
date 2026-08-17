@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: integrale-website-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-http
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/tls-acme: "true"
+spec:
+  ingressClassName: contour
+  tls:
+    - hosts:
+        - integrale.etsmtl.ca
+      secretName: integrale-website-tls
+  rules:
+    - host: integrale.etsmtl.ca
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: integrale-website-svc
+                port:
+                  number: 3000
