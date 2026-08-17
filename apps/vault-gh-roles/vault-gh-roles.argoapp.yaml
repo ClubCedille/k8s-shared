@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault-gh-roles
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: k8s-shared
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vault
+  source:
+    repoURL: https://github.com/ClubCedille/k8s-shared
+    path: apps/vault-gh-roles
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false
+    automated:
+      selfHeal: true
+      prune: true
