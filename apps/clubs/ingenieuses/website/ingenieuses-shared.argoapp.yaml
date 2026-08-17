@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ingenieuses
+  name: ingenieuses-shared
   namespace: argocd
   annotations:
     argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/les-ingenieuses-de-l-ets/web-ingenieuses:latest
