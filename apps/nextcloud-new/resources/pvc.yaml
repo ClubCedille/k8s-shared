@@ -1,0 +1,14 @@
+---
+# Config/apps volume only — user file data lives in Garage (S3 primary storage, see
+# nextcloud-values.yaml OBJECTSTORE_S3_* env vars). Still needs RWX: shared across
+# replicaCount: 3 pods for config.php/apps consistency.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nextcloud-pvc
+spec:
+  accessModes: [ReadWriteMany]
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: cephfs

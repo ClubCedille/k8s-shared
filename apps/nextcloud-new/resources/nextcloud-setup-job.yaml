@@ -1,0 +1,49 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: nextcloud-setup-
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  template:
+    spec:
+      serviceAccountName: backup-runner
+      containers:
+        - name: nextcloud-setup
+          image: alpine:3.20
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-lc"]
+          args:
+            - |
+              set -euo pipefail
+              apk add --no-cache curl ca-certificates
+              ARCH="$(uname -m)"; case "$ARCH" in x86_64) ARCH=amd64;; aarch64) ARCH=arm64;; *) echo "unsupported arch: $ARCH"; exit 1;; esac
+              VER="v1.30.0"
+              curl -fsSL -o /usr/local/bin/kubectl "https://dl.k8s.io/release/${VER}/bin/linux/${ARCH}/kubectl"
+              chmod +x /usr/local/bin/kubectl
+
+              pod=$(kubectl get pods -n nextcloud-new -l app.kubernetes.io/name=nextcloud -l app.kubernetes.io/component=app -o=custom-columns=NAME:.metadata.name --no-headers | tail -n 1)
+              ls -la /
+              kubectl cp nextcloud-external-sites.yaml nextcloud-new/$pod:/tmp/
+              kubectl cp clubs.yaml nextcloud-new/$pod:/tmp/
+              kubectl cp nextcloud-setup.bash nextcloud-new/$pod:/tmp/
+              kubectl exec -n nextcloud-new $pod -c nextcloud -- ls -la /tmp
+              kubectl exec -n nextcloud-new $pod -c nextcloud -- /bin/bash /tmp/nextcloud-setup.bash
+          volumeMounts:
+            - name: job-files
+              mountPath: /nextcloud-setup.bash
+              subPath: nextcloud-setup.bash
+            - name: job-files
+              mountPath: /nextcloud-external-sites.yaml
+              subPath: nextcloud-external-sites.yaml
+            - name: job-files
+              mountPath: /clubs.yaml
+              subPath: clubs.yaml
+      restartPolicy: Never
+      volumes:
+        - name: job-files
+          configMap:
+            name: nextcloud-setup-job
+  backoffLimit: 4
