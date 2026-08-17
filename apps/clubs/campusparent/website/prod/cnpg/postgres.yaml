@@ -4,7 +4,7 @@ metadata:
   name: postgresql-campusparent
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:17.2
-  instances: 2
+  instances: 1
   bootstrap:
     initdb:
       database: campusparent
