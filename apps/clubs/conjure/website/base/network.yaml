@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: conjure-service
+spec:
+  ports:
+    - name: http
+      targetPort: 80
+      protocol: TCP
+      port: 80
+  type: ClusterIP
+  selector:
+    app: conjure-service
