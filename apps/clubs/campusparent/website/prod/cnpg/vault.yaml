@@ -1,0 +1,25 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: campusparent-auth
+spec:
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    audiences:
+      - vault
+    role: secret-reader
+    serviceAccount: default
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: b2-creds
+spec:
+  vaultAuthRef: campusparent-auth
+  type: kv-v1
+  mount: kv-system
+  path: default_passwords/b2-creds
+  destination:
+    name: b2-creds
+    create: true
