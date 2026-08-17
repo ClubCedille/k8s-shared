@@ -31,7 +31,7 @@ spec:
 apiVersion: projectcontour.io/v1
 kind: HTTPProxy
 metadata:
-  name: authentik-internal
+  name: 0-authentik-internal
   annotations:
     external-dns.alpha.kubernetes.io/exclude: "true"
 spec:

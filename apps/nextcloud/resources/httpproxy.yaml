@@ -31,7 +31,7 @@ spec:
 apiVersion: projectcontour.io/v1
 kind: HTTPProxy
 metadata:
-  name: nextcloud-internal
+  name: 0-nextcloud-internal
   namespace: nextcloud
   annotations:
     external-dns.alpha.kubernetes.io/exclude: "true"
@@ -96,7 +96,7 @@ spec:
 apiVersion: projectcontour.io/v1
 kind: HTTPProxy
 metadata:
-  name: collabora-internal
+  name: 0-collabora-internal
   namespace: nextcloud
   annotations:
     external-dns.alpha.kubernetes.io/exclude: "true"
