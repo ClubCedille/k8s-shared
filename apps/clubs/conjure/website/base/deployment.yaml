@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conjure-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: conjure-service
+  template:
+    metadata:
+      labels:
+        app: conjure-service
+    spec:
+      containers:
+        - name: conjure-service
+          image: ghcr.io/conjureets/conjure-site:latest
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: run-dir
+              mountPath: /run
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+              ephemeral-storage: 1Gi
+          ports:
+            - containerPort: 80
+      volumes:
+        - name: nginx-cache
+          emptyDir: {}
+        - name: run-dir
+          emptyDir: {}
