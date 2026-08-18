@@ -5,6 +5,7 @@ namePrefix: {{ deployment_prefix }}-
 
 resources:
   - ../../../../../bases/grav
+  - vault-secret.yaml
 
 patches:
   - path: vault-patch.yaml

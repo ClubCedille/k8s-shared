@@ -5,6 +5,7 @@ namePrefix: crabeweb-
 
 resources:
   - ../../../../../bases/grav
+  - vault-secret.yaml
 
 patches:
   - path: vault-patch.yaml
@@ -43,3 +44,16 @@ patches:
       - op: replace
         path: /spec/path
         value: kv/data/crabeweb-grav/default/grav
+  - target:
+      kind: Deployment
+      name: grav
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources/limits
+        value:
+          cpu: 500m
+          memory: 512Mi
+          ephemeral-storage: 1Gi
+      - op: replace
+        path: /spec/template/spec/containers/0/readinessProbe/httpGet/path
+        value: /accueil
