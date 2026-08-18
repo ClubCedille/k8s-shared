@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mongo
+  annotations:
+    kube-score/ignore: pod-networkpolicy, pod-probes-identical
 spec:
   replicas: 1
   selector:

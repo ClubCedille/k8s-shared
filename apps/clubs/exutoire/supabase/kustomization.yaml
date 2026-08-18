@@ -13,6 +13,15 @@ helmCharts:
     valuesFile: "helm/values.yaml"
 
 patches:
+  ## The supabase helm chart v0.5.0 renders the db StatefulSet without
+  ## serviceName; the "supabase" Service already selects (app.kubernetes.io/name: supabase-db).
+  - target:
+      kind: StatefulSet
+      name: supabase-supabase-db
+    patch: |-
+      - op: add
+        path: /spec/serviceName
+        value: supabase
   ## Override STORAGE_BACKEND to s3 and inject AWS credentials for render path
   - target:
       kind: Deployment
