@@ -70,6 +70,14 @@ jobs:
           strict: true
           variables: ${{ env.j2_vars }}
 
+      - name: Create vault-secret
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: ${{ env.TEMPLATE_PROD_DIR }}/vault-secret.yaml.jinja2
+          output_file: ${{ env.PROD_DIR }}/vault-secret.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+
       # -- VAULT GITHUB ROLE --
       - name: Create GitHub Secret Engine Role
         uses: cuchi/jinja2-action@v1.3.0

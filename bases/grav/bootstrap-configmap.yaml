@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grav-bootstrap
+data:
+  bootstrap.sh: |
+    #!/bin/sh
+    set -eu
+
+    echo "initializing git setup..."
+
+    cd /var/www/html/user
+
+    skeleton_dir="/tmp/grav-user-skeleton"
+    mkdir -p "$skeleton_dir"
+    for path in config pages plugins themes .gitignore; do
+      if [ -e "$path" ]; then
+        cp -a "$path" "$skeleton_dir/"
+      fi
+    done
+
+    git_config="/vault/secrets/$GIT_VAULT_SECRET"
+    repo_url=$(grep "^repository:" "$git_config" | sed "s/repository: *['\"]*//" | sed "s/['\"].*//")
+    git_user=$(grep "^user:" "$git_config" | sed "s/user: *['\"]*//" | sed "s/['\"].*//")
+    git_pass=$(grep "^password:" "$git_config" | sed "s/password: *['\"]*//" | sed "s/['\"].*//")
+    branch="${HEAD_BRANCH:-main}"
+
+    auth_url=$(echo "$repo_url" | sed "s|https://|https://${git_user}:${git_pass}@|")
+
+    rm -rf .git
+    git init -b "$branch"
+    git config user.name "GitSync"
+    git config user.email "git-sync@trilby.media"
+    git remote add origin "$auth_url"
+    git fetch origin
+    git reset --hard "origin/$branch"
+    git clean -fd -e accounts -e data
+    git branch --set-upstream-to="origin/$branch"
+
+    git_exclude=".git/info/exclude"
+    for pattern in accounts/ data/ config/security.yaml config/plugins/git-sync.yaml; do
+      if ! grep -Fxq "$pattern" "$git_exclude"; then
+        echo "$pattern" >> "$git_exclude"
+      fi
+    done
+
+    if [ ! -d pages ] || [ ! -d plugins ] || [ ! -d themes ]; then
+      echo "remote repository is missing Grav site content; seeding initial skeleton..."
+      for path in config pages plugins themes .gitignore; do
+        rm -rf "$path"
+        if [ -e "$skeleton_dir/$path" ]; then
+          cp -a "$skeleton_dir/$path" .
+        fi
+      done
+      rm -f config/security.yaml
+
+      git add config pages plugins themes
+      if [ -e .gitignore ]; then
+        git add .gitignore
+      fi
+      if ! git diff --cached --quiet; then
+        git commit -m "Initial Grav site skeleton"
+        git push origin "HEAD:$branch"
+      else
+        echo "no Grav skeleton files found in image to seed."
+      fi
+    fi
+
+    echo "done"
+
+    if git ls-files --error-unmatch config/security.yaml >/dev/null 2>&1; then
+      git update-index --skip-worktree config/security.yaml
+    fi
+
+    mkdir -p /var/www/html/user/config/plugins
+    ln -sf "/vault/secrets/$GIT_VAULT_SECRET" /var/www/html/user/config/plugins/git-sync.yaml
+    mkdir -p /var/www/html/user/config
+    ln -sf /vault/secrets/salt /var/www/html/user/config/security.yaml
+
+    if [ ! -f "/var/www/html/user/accounts/admin.yaml" ]; then
+      echo "Creating admin user..."
+      cp "/vault/secrets/$ADMIN_VAULT_SECRET" /var/www/html/user/accounts/admin.yaml
+      echo "Admin user created."
+    fi
+
+    echo "Creating SRE user..."
+    cp "/vault/secrets/$SRE_VAULT_SECRET" /var/www/html/user/accounts/sre.yaml
+    echo "SRE user created."
+
+    exec apache2-foreground

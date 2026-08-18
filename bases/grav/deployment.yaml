@@ -26,6 +26,8 @@ spec:
         - name: grav
           image: ghcr.io/clubcedille/grav:latest
           imagePullPolicy: Always
+          command:
+            - /opt/grav-bootstrap/bootstrap.sh
           env:
             - name: HEAD_BRANCH
               value: main
@@ -45,7 +47,17 @@ spec:
               path: /
               port: 8080
             periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
           volumeMounts:
+            - name: grav-bootstrap
+              mountPath: /opt/grav-bootstrap
+              readOnly: true
             - name: grav-accounts
               mountPath: /var/www/html/user/accounts
             - name: grav-data
@@ -55,12 +67,28 @@ spec:
               cpu: 300m
               memory: 256Mi
               ephemeral-storage: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+              ephemeral-storage: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
       securityContext:
         # group 33 is www-data
         runAsUser: 33
         runAsGroup: 33
+        runAsNonRoot: true
         fsGroup: 33
+        seccompProfile:
+          type: RuntimeDefault
       volumes:
+        - name: grav-bootstrap
+          configMap:
+            name: grav-bootstrap
+            defaultMode: 0555
         - name: grav-accounts
           persistentVolumeClaim:
             claimName: grav-accounts-pvc

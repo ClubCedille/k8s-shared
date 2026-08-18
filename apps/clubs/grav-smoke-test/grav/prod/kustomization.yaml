@@ -5,6 +5,7 @@ namePrefix: grav-smoke-test-
 
 resources:
   - ../../../../../bases/grav
+  - vault-secret.yaml
 
 patches:
   - path: vault-patch.yaml
