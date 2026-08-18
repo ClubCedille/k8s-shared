@@ -1,0 +1,12 @@
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: GitHubSecretEngineRole
+metadata:
+  name: crabeweb-grav
+spec:
+  authentication:
+    path: kubernetes
+    role: config-admin
+  path: github
+  repositories:
+    - crabe.demo.prodv2.cedille.club
+  organizationName: ClubCedille

@@ -3,4 +3,7 @@ kind: Kustomization
 
 namespace: vault
 
-resources: []
+resources:
+  - crabeweb-grav.yaml
+  - raconteurs-grav.yaml
+  - grav-smoke-test-grav.yaml

@@ -1,0 +1,45 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namePrefix: grav-smoke-test-
+
+resources:
+  - ../../../../../bases/grav
+
+patches:
+  - path: vault-patch.yaml
+  - target:
+      kind: HTTPProxy
+      name: grav-ingress
+    patch: |-
+      - op: replace
+        path: /spec/virtualhost/fqdn
+        value: grav-smoke-test.prodv2.cedille.club
+      - op: replace
+        path: /spec/virtualhost/tls/secretName
+        value: grav-smoke-test-grav-tls
+      - op: replace
+        path: /spec/routes/0/services/0/name
+        value: grav-smoke-test-grav
+  - target:
+      kind: Certificate
+      name: grav-tls
+    patch: |-
+      - op: replace
+        path: /spec/secretName
+        value: grav-smoke-test-grav-tls
+      - op: replace
+        path: /spec/commonName
+        value: grav-smoke-test.prodv2.cedille.club
+      - op: replace
+        path: /spec/dnsNames/0
+        value: grav-smoke-test.prodv2.cedille.club
+      - op: replace
+        path: /spec/issuerRef/name
+        value: letsencrypt-http
+  - target:
+      kind: RandomSecret
+    patch: |-
+      - op: replace
+        path: /spec/path
+        value: kv/data/grav-smoke-test-grav/default/grav
