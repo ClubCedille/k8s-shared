@@ -87,11 +87,17 @@ spec:
   sourceRepos:
     - 'https://github.com/ClubCedille/k8s-cedille-production-v2'
     - 'https://github.com/ClubCedille/k8s-cedille-production-v2.git'
+    - 'https://github.com/ClubCedille/k8s-shared'
+    - 'https://github.com/ClubCedille/k8s-shared.git'
   destinations:
     - namespace: markets
       server: 'https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-production-v2'
     - namespace: markets-dev
       server: 'https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-production-v2'
+    - namespace: markets
+      server: 'https://kubernetes.default.svc'
+    - namespace: markets-dev
+      server: 'https://kubernetes.default.svc'
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'
@@ -128,6 +134,8 @@ spec:
       server: 'https://kubernetes.default.svc'
     - namespace: 'planifets*'
       server: 'https://cedille.kubernetes.omni.siderolabs.io?cluster=k8s-cedille-production-v2'
+    - namespace: 'planifets*'
+      server: 'https://kubernetes.default.svc'
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: commandes
+spec:
+  ports:
+    - name: commandes
+      port: 3000
+      targetPort: http
+  selector:
+    app: commandes

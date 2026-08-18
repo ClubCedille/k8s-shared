@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: commandes-seeder
+spec:
+  template:
+    spec:
+      containers:
+        - name: commandes-seeder
+          image: us.gcr.io/fine-harbor-276700/patchets/commandes:latest
+          command:
+            - bash
+            - -c
+            - rake db:schema:load && rake db:seed
+          ports:
+            - containerPort: 3000
+          resources: {}
+          env:
+            - name: DISABLE_DATABASE_ENVIRONMENT_CHECK
+              value: "1"
+          envFrom:
+            - configMapRef:
+                name: commandes-config
+            - secretRef:
+                name: app-secrets
+          imagePullPolicy: Always
+      restartPolicy: OnFailure
+      imagePullSecrets:
+        - name: gcrcedille-pull

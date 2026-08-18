@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: planifets
+  annotations:
+    kube-score/ignore: pod-networkpolicy, pod-probes, container-image-tag
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: planifets
+  template:
+    metadata:
+      labels:
+        app: planifets
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - planifets
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: planifets
+          image: ghcr.io/applets/planifets-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: APP_ENV
+              value: production
+            - name: CI
+              value: "false"
+            # Analytics
+            - name: UMAMI_SCRIPT_URL
+              value: https://cloud.umami.is/script.js
+            - name: UMAMI_API_URL
+              value: https://cloud.umami.is/api/send
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 800m
+              memory: 500Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 1500m
+              memory: 750Mi
+              ephemeral-storage: 1Gi
+          securityContext:
+            runAsUser: 10001
+            runAsGroup: 10001
+            readOnlyRootFilesystem: true
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: planifets-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: planifets

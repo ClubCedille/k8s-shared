@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: preci-wordpress
+  namespace: preci
+  labels:
+    app: preci
+  annotations:
+    kube-score/ignore: >-
+      container-security-context-privileged,
+      container-security-context-user-group-id,
+      container-security-context-readonlyrootfilesystem
+spec:
+  selector:
+    matchLabels:
+      app: preci
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: preci
+        tier: frontend
+    spec:
+      containers:
+        - image: wordpress:php7.4-apache
+          imagePullPolicy: Always
+          name: preci-wordpress
+          envFrom:
+            - secretRef:
+                name: preci-secret
+          ports:
+            - name: http
+              containerPort: 80
+          startupProbe:
+            tcpSocket:
+              port: http
+            failureThreshold: 30
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: preci-wordpress-persistent-storage
+              mountPath: /var/www/html
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+              ephemeral-storage: 1Gi
+      volumes:
+        - name: preci-wordpress-persistent-storage
+          persistentVolumeClaim:
+            claimName: preci-wp-pv-claim
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: preci-wordpress-pdb
+  namespace: preci
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: preci
+      tier: frontend
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: preci-wp-pv-claim
+  namespace: preci
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: cephfs

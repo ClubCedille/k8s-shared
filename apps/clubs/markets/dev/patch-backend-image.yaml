@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: markets-backend
+spec:
+  selector:
+    matchLabels:
+      app: markets-backend
+  template:
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/algoets/markets-backend:dernier
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: markets-scheduler
+spec:
+  selector:
+    matchLabels:
+      app: markets-scheduler
+  template:
+    spec:
+      containers:
+        - name: scheduler
+          image: ghcr.io/algoets/markets-scheduler:dernier

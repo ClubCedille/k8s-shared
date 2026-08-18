@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: preci-wordpress
+  namespace: preci
+  labels:
+    app: preci
+spec:
+  ports:
+    - name: http
+      targetPort: 80
+      protocol: TCP
+      port: 80
+  type: ClusterIP
+  selector:
+    app: preci
+    tier: frontend

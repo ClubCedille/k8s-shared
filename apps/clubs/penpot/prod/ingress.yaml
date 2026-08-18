@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: penpot
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: contour
+  tls:
+    - hosts:
+        - penpot.prodv2.cedille.club
+      secretName: penpot-cert-tls
+  rules:
+    - host: penpot.prodv2.cedille.club
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: penpot
+                port:
+                  number: 8080

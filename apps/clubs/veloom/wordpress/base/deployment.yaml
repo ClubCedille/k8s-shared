@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: veloom-wordpress
+  namespace: veloom
+  labels:
+    app: veloom
+  annotations:
+    kube-score/ignore: >-
+      container-security-context-privileged,
+      container-security-context-user-group-id,
+      container-security-context-readonlyrootfilesystem
+spec:
+  selector:
+    matchLabels:
+      app: veloom
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: veloom
+        tier: frontend
+    spec:
+      containers:
+        - image: wordpress:6.8.3-php8.1-apache
+          imagePullPolicy: Always
+          name: veloom-wordpress
+          env:
+            - name: WORDPRESS_HOME_URL
+              value: "https://evovelo.etsmtl.ca"
+            - name: WORDPRESS_SITE_URL
+              value: "https://evovelo.etsmtl.ca"
+          envFrom:
+            - secretRef:
+                name: veloom-secret
+          ports:
+            - name: http
+              containerPort: 80
+          startupProbe:
+            tcpSocket:
+              port: http
+            failureThreshold: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /wp-login.php
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: veloom-wordpress-persistent-storage
+              mountPath: /var/www/html
+            - name: php-config
+              mountPath: /usr/local/etc/php/conf.d/uploads.ini
+              subPath: uploads.ini
+          resources:
+            requests:
+              cpu: 4
+              memory: 1024Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 6
+              memory: 2048Mi
+              ephemeral-storage: 1Gi
+      volumes:
+        - name: veloom-wordpress-persistent-storage
+          persistentVolumeClaim:
+            claimName: veloom-wp-pv-claim
+        - name: php-config
+          configMap:
+            defaultMode: 420
+            name: wp-php-config
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+        runAsGroup: 1000
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: veloom-wp-pv-claim
+  namespace: veloom
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: cephfs
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wp-php-config
+data:
+  uploads.ini: |-
+    file_uploads = On
+    upload_max_filesize = 256M
+    post_max_size = 256M
+    memory_limit = 256M
+    max_execution_time = 600
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: veloom-wordpress-pdb
+  namespace: veloom
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: veloom
+      tier: frontend

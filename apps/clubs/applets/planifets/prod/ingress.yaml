@@ -1,0 +1,66 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: planifets-applets-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-http
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/tls-acme: "true"
+spec:
+  ingressClassName: contour
+  tls:
+    - secretName: planifets-applets-tls
+      hosts:
+        - planifets.clubapplets.ca
+  rules:
+    - host: planifets.clubapplets.ca
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: planifets-service
+                port:
+                  number: 3000
+          - pathType: Prefix
+            path: /api
+            backend:
+              service:
+                name: planifets-backend-service
+                port:
+                  number: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: planifets-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/tls-acme: "true"
+spec:
+  ingressClassName: contour
+  tls:
+    - secretName: planifets-service-tls
+      hosts:
+        - planifets.prodv2.cedille.club
+  rules:
+    - host: planifets.prodv2.cedille.club
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: planifets-service
+                port:
+                  number: 3000
+          - pathType: Prefix
+            path: /api
+            backend:
+              service:
+                name: planifets-backend-service
+                port:
+                  number: 3000
+---

@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: penpot
+  namespace: penpot
+resources:
+  - prod/cnpg.yaml
+  - prod/ingress.yaml
+helmCharts:
+  - name: penpot
+    version: "0.29.0"
+    repo: "https://helm.penpot.app/"
+    releaseName: "penpot"
+    namespace: penpot
+    valuesFile: "helm/values.yaml"

@@ -1,0 +1,71 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: planifets-chatbot-shared
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: applets
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: planifets
+  source:
+    repoURL: https://github.com/ClubCedille/k8s-shared
+    path: apps/clubs/applets/planifets-chatbot/prod
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    automated:
+      selfHeal: true
+      prune: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: planifets-chatbot-staging-shared
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: applets
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: planifets-staging
+  source:
+    repoURL: https://github.com/ClubCedille/k8s-shared
+    path: apps/clubs/applets/planifets-chatbot/staging
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    automated:
+      selfHeal: true
+      prune: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: planifets-chatbot-dev-shared
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: applets
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: planifets-dev
+  source:
+    repoURL: https://github.com/ClubCedille/k8s-shared
+    path: apps/clubs/applets/planifets-chatbot/dev
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    automated:
+      selfHeal: true
+      prune: true

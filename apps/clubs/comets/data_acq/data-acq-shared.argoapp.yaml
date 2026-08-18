@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: data-acq-shared
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: k8s-shared
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: data-acq
+  sources:
+    - chart: influxdb2
+      helm:
+        releaseName: influxdb2
+        valueFiles:
+          - $values-influx/apps/clubs/comets/data_acq/values.influxdb.yaml
+      repoURL: https://helm.influxdata.com
+      targetRevision: 2.1.2
+    - repoURL: https://github.com/ClubCedille/k8s-shared.git
+      ref: values-influx
+      targetRevision: HEAD
+    - chart: grafana
+      helm:
+        releaseName: grafana
+        valueFiles:
+          - $values-grafana/apps/clubs/comets/data_acq/values.grafana.yaml
+      repoURL: https://grafana.github.io/helm-charts
+      targetRevision: 10.5.15
+    - repoURL: https://github.com/ClubCedille/k8s-shared.git
+      ref: values-grafana
+      targetRevision: HEAD
+    - repoURL: https://github.com/ClubCedille/k8s-shared
+      path: apps/clubs/comets/data_acq/resources
+      targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

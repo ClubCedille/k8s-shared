@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: markets-frontend
+  annotations:
+    kube-score/ignore: pod-networkpolicy, container-image-pull-policy,container-image-tag,  container-security-context-user-group-id, container-security-context-privileged, container-security-context-readonlyrootfilesystem
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: markets-frontend
+  template:
+    metadata:
+      labels:
+        app: markets-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ghcr.io/algoets/markets-frontend:latest
+          ports:
+            - containerPort: 80
+          envFrom:
+            - secretRef:
+                name: markets-env-secret
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: "400m"
+              memory: "512Mi"
+            limits:
+              cpu: "800m"
+              memory: "1Gi"
+              ephemeral-storage: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          volumeMounts:
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-temp
+              mountPath: /var/run
+            - name: nginx-log
+              mountPath: /var/log/nginx
+      volumes:
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-temp
+          emptyDir: {}
+        - name: nginx-log
+          emptyDir: {}
+      imagePullSecrets:
+        - name: ghcr-markets-secret

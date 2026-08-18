@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: planifets-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/tls-acme: "true"
+spec:
+  ingressClassName: contour
+  tls:
+    - secretName: planifets-staging-tls
+      hosts:
+        - planifets.staging.cedille.club
+  rules:
+    - host: planifets.staging.cedille.club
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: planifets-service
+                port:
+                  number: 3000
+          - pathType: Prefix
+            path: /api
+            backend:
+              service:
+                name: planifets-backend-service
+                port:
+                  number: 3000

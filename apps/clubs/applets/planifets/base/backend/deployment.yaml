@@ -1,0 +1,141 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: planifets-backend
+  annotations:
+    kube-score/ignore: pod-networkpolicy, pod-probes, container-image-tag
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: planifets-backend
+  template:
+    metadata:
+      labels:
+        app: planifets-backend
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - planifets-backend
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: planifets-backend
+          image: ghcr.io/applets/planifets-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: APP_ENV
+              value: production
+            - name: PORT
+              value: "3000"
+            - name: TZ
+              value: America/Toronto
+            # PostgreSQL Configuration
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: planifets-secret
+                  key: db_url
+            # Analytics
+            - name: POSTHOG_HOST
+              value: https://us.i.posthog.com
+            - name: POSTHOG_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: planifets-secret
+                  key: posthog_api_key
+            - name: CHATBOT_ENABLED
+              valueFrom:
+                secretKeyRef:
+                  name: planifets-secret
+                  key: chatbot_enabled
+                  optional: true
+            - name: LOG_LEVELS
+              value: "log,error,warn"
+            - name: YARN_CACHE_FOLDER
+              value: /tmp/.yarn-cache
+            - name: TRANSFORMERS_CACHE_DIR
+              value: /transformers-cache
+            - name: EMBEDDING_ORT_THREADS
+              value: "2"
+            - name: QDRANT_URL
+              value: "http://planifets-chatbot-qdrant:6333"
+            - name: QDRANT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: planifets-secret
+                  key: qdrant_api_key
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: planifets-secret
+                  key: gemini_api_key
+            - name: GROQ_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: planifets-secret
+                  key: groq_api_key
+            - name: NVIDIA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: planifets-secret
+                  key: nvidia_api_key
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 800m
+              memory: 700Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 2000m
+              memory: 1Gi
+              ephemeral-storage: 1Gi
+          securityContext:
+            runAsUser: 10001
+            runAsGroup: 10001
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: yarn-cache
+              mountPath: /tmp/.yarn-cache
+            - name: tmp
+              mountPath: /tmp
+            - name: transformers-cache
+              mountPath: /transformers-cache
+      volumes:
+        - name: yarn-cache
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: transformers-cache
+          persistentVolumeClaim:
+            claimName: planifets-backend-transformers-cache
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: planifets-backend-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: planifets-backend
+---

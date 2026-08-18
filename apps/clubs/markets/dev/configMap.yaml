@@ -1,0 +1,7 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: markets-configmap
+data:
+  GITHUB_BUG_REPORT_LABELS: "bug,bug-report,from-app,dev"

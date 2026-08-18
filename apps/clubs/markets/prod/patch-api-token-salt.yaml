@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: markets-backend
+spec:
+  template:
+    spec:
+      containers:
+        - name: backend
+          env:
+            - name: API_TOKEN_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: markets-api-token-salt
+                  key: API_TOKEN_SALT
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: markets-scheduler
+spec:
+  template:
+    spec:
+      containers:
+        - name: scheduler
+          env:
+            - name: API_TOKEN_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: markets-api-token-salt
+                  key: API_TOKEN_SALT

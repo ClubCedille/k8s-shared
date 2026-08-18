@@ -1,0 +1,40 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: evovelo
+spec:
+  virtualhost:
+    fqdn: evovelo.etsmtl.ca
+    tls:
+      secretName: veloom-prod-tls
+    corsPolicy:
+      allowOrigin:
+        - "https://evovelo.etsmtl.ca"
+        - "https://evovelo.cedille.club"
+      allowMethods:
+        - "*"
+      allowHeaders:
+        - "*"
+  routes:
+    - conditions:
+        - prefix: /
+      services:
+        - name: veloom-svc
+          port: 80
+      requestHeadersPolicy:
+        set:
+          - name: X-Forwarded-Proto
+            value: https
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: veloom-prod-tls
+spec:
+  secretName: veloom-prod-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: evovelo.etsmtl.ca
+  dnsNames:
+    - evovelo.etsmtl.ca

@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: markets-backend
+  annotations:
+    kube-score/ignore: pod-networkpolicy, container-image-pull-policy,container-image-tag, container-security-context-user-group-id, container-security-context-privileged, container-security-context-readonlyrootfilesystem
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: markets-backend
+  template:
+    metadata:
+      labels:
+        app: markets-backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/algoets/markets-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: markets-env-secret
+          env:
+            - name: GITHUB_BUG_REPORT_LABELS
+              valueFrom:
+                configMapKeyRef:
+                  name: markets-configmap
+                  key: GITHUB_BUG_REPORT_LABELS
+
+          # volumeMounts:
+          #   - name: logs-temp
+          #     mountPath: /app/markets/logs
+          #   - name: migrations-temp
+          #     mountPath: /app/markets/trading_system/migrations
+          resources:
+            requests:
+              cpu: "400m"
+              memory: "512Mi"
+            limits:
+              cpu: "800m"
+              memory: "1Gi"
+              ephemeral-storage: 1Gi
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          # securityContext:
+          #   runAsUser: 10001
+          #   runAsGroup: 10001
+          #   allowPrivilegeEscalation: true
+          #   readOnlyRootFilesystem: false
+          #   capabilities:
+          #     drop:
+          #       - ALL
+          #   seccompProfile:
+          #     type: RuntimeDefault
+      imagePullSecrets:
+        - name: ghcr-markets-secret
+      # volumes:
+      #   - name: logs-temp
+      #     emptyDir: {}
+      #   - name: migrations-temp
+      #     emptyDir: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: markets-scheduler
+  annotations:
+    kube-score/ignore: pod-networkpolicy, container-image-pull-policy,container-image-tag,  container-security-context-user-group-id, container-security-context-privileged, container-security-context-readonlyrootfilesystem
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: markets-scheduler
+  template:
+    metadata:
+      labels:
+        app: markets-scheduler
+    spec:
+      containers:
+        - name: scheduler
+          image: ghcr.io/algoets/markets-scheduler:latest
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: markets-env-secret
+          resources:
+            requests:
+              cpu: "300m"
+              memory: "512Mi"
+            limits:
+              cpu: "600m"
+              memory: "800Mi"
+              ephemeral-storage: 1Gi
+      imagePullSecrets:
+        - name: ghcr-markets-secret
