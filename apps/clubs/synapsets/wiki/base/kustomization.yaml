@@ -27,9 +27,9 @@ helmCharts:
       postgresql:
         enabled: true
         image:
-          registry: public.ecr.aws
-          repository: bitnami/postgresql
-          tag: 11.21.0-debian-11-r52
+          registry: docker.io
+          repository: bitnamilegacy/postgresql
+          tag: "11"
         postgresqlDatabase: wiki
         postgresqlUser: postgres
         existingSecret: wikijs-postgres-secret
