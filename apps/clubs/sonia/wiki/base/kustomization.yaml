@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+helmCharts:
+  - name: wiki
+    releaseName: wiki
+    version: 2.2.17
+    repo: https://charts.js.wiki
+    valuesInline:
+      image.tag: 2.5
+      image.pullPolicy: Always
+      resources.limits:
+        cpu: 200m
+        memory: 256Mi
+      ingress.enabled: false
+      # externalPostgresql:
+      #   databaseURL: postgresql://postgres:postgres@cnpg-rw.sonia-wikijs.svc.cluster.local:5432/wiki
+      postgresql:
+        enabled: true #false
+        image:
+          registry: public.ecr.aws
+          repository: bitnami/postgresql
+          tag: 11.21.0-debian-11-r52
+        # postgresql-uri: cnpg-rw.sonia-wikijs.svc.cluster.local
+        postgresqlDatabase: wiki
+        postgresqlUser: postgres
+        existingSecret: wikijs-postgres-secret
+        persistence:
+          enabled: true
+          size: 10Gi
+          storageClass: cephfs
+      startupProbe:
+        initialDelaySeconds: 10

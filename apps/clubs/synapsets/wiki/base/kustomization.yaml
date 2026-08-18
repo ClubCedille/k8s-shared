@@ -1,0 +1,41 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+helmCharts:
+  - name: wiki
+    releaseName: wiki
+    version: 2.2.17
+    repo: https://charts.js.wiki
+    valuesInline:
+      securityContext:
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        runAsUser: 10001
+      allowPrivilegeEscalation: false
+      image.tag: 2.5
+      image.pullPolicy: Always
+      resources:
+        limits:
+          cpu: 250m
+          memory: 512Mi
+          ephemeral-storage: 1024Mi
+        requests:
+          cpu: 200m
+          memory: 256Mi
+          ephemeral-storage: 512Mi
+      ingress.enabled: false
+      postgresql:
+        enabled: true
+        image:
+          registry: public.ecr.aws
+          repository: bitnami/postgresql
+          tag: 11.21.0-debian-11-r52
+        postgresqlDatabase: wiki
+        postgresqlUser: postgres
+        existingSecret: wikijs-postgres-secret
+        persistence:
+          enabled: true
+          size: 10Gi
+          storageClass: cephfs
+      startupProbe:
+        initialDelaySeconds: 10
