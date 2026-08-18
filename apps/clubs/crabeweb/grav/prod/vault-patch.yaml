@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grav
+spec:
+  template:
+    metadata:
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "secret-reader"
+        vault.hashicorp.com/agent-inject-template-gitsync: |
+          {{- with secret "github/token/crabeweb-grav" -}}
+          enabled: true
+          folders:
+            - pages
+            - plugins
+            - themes
+            - config
+          SyncNotice: null
+          sync:
+            on_save: true
+            on_delete: true
+            on_media: true
+            cron_enable: true
+            cron_at: '*/10 * * * *'
+          local_repository: null
+          repository: 'https://github.com/ClubCedille/crabe.demo.prodv2.cedille.club.git'
+          no_user: '0'
+          user: x-access-token
+          password: "{{ .Data.token }}"
+          webhook_enabled: '1'
+          webhook: '/_git_webhook'
+          branch: main
+          remote:
+            name: origin
+            branch: main
+          git:
+            author: gitsync
+            message: '(Grav GitSync) Automatic Commit'
+            name: GitSync
+            email: git-sync@trilby.media
+            bin: git
+            ignore: null
+            private_key: null
+          logging: true
+          {{- end }}
+        vault.hashicorp.com/agent-inject-template-admin_pwd: |
+          {{- with secret "kv/data/crabeweb-grav/default/grav/crabeweb-grav-init-pwd" -}}
+          state: enabled
+          email: admin@crabe.etsmtl.ca
+          username: admin
+          fullname: admin
+          title: Administrator
+          access:
+            admin:
+              login: true
+              super: true
+            site:
+              login: true
+          password: "{{ .Data.data.password }}"
+          {{- end }}
+        vault.hashicorp.com/agent-inject-template-sre_pwd: |
+          {{- with secret "kv/data/crabeweb-grav/default/grav/crabeweb-grav-sre-pwd" -}}
+          state: enabled
+          email: sre@cedille.club
+          username: sre
+          fullname: SRE
+          title: SRE
+          access:
+            admin:
+              login: true
+              super: true
+            site:
+              login: true
+          password: "{{ .Data.data.password }}"
+          {{- end }}
+        vault.hashicorp.com/agent-inject-template-salt: |
+          {{- with secret "kv/data/crabeweb-grav/default/grav/crabeweb-grav-salt" -}}
+          salt: "{{ .Data.data.salt }}"
+          {{- end }}

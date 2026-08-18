@@ -1,0 +1,45 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namePrefix: crabeweb-
+
+resources:
+  - ../../../../../bases/grav
+
+patches:
+  - path: vault-patch.yaml
+  - target:
+      kind: HTTPProxy
+      name: grav-ingress
+    patch: |-
+      - op: replace
+        path: /spec/virtualhost/fqdn
+        value: crabe.etsmtl.ca
+      - op: replace
+        path: /spec/virtualhost/tls/secretName
+        value: crabeweb-grav-tls
+      - op: replace
+        path: /spec/routes/0/services/0/name
+        value: crabeweb-grav
+  - target:
+      kind: Certificate
+      name: grav-tls
+    patch: |-
+      - op: replace
+        path: /spec/secretName
+        value: crabeweb-grav-tls
+      - op: replace
+        path: /spec/commonName
+        value: crabe.etsmtl.ca
+      - op: replace
+        path: /spec/dnsNames/0
+        value: crabe.etsmtl.ca
+      - op: replace
+        path: /spec/issuerRef/name
+        value: letsencrypt-http
+  - target:
+      kind: RandomSecret
+    patch: |-
+      - op: replace
+        path: /spec/path
+        value: kv/data/crabeweb-grav/default/grav
