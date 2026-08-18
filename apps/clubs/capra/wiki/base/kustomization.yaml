@@ -1,0 +1,117 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+helmCharts:
+  - name: wiki
+    releaseName: wiki
+    version: 2.2.17
+    repo: https://charts.js.wiki
+    valuesInline:
+      image:
+        tag: "2.5"
+        imagePullPolicy: Always
+      ingress:
+        enabled: false
+      resources:
+        limits:
+          cpu: 400m
+          memory: 512Mi
+          ephemeral-storage: 1Gi
+        requests:
+          cpu: 200m
+          memory: 256Mi
+          ephemeral-storage: 256Mi
+      readinessProbe:
+        httpGet:
+          path: /
+          port: http
+      postgresql:
+        enabled: true
+        image:
+          registry: docker.io
+          repository: bitnamilegacy/postgresql
+          tag: "11"
+          pullPolicy: Always
+        existingSecret: wikijs-postgres-secret
+        securityContext:
+          enabled: false
+        livenessProbe:
+          initialDelaySeconds: 3600
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 6
+        readinessProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 60
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+            ephemeral-storage: 1Gi
+          requests:
+            cpu: 250m
+            memory: 256Mi
+            ephemeral-storage: 256Mi
+        volumePermissions:
+          enabled: false
+        persistence:
+          enabled: true
+          size: 10Gi
+          storageClass: cephfs
+      startupProbe:
+        initialDelaySeconds: 120
+patches:
+  - target:
+      kind: Deployment
+      name: wiki
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: wiki
+        annotations:
+          kube-score/ignore: pod-networkpolicy, container-security-context-privileged, container-security-context-user-group-id, container-security-context-readonlyrootfilesystem
+  - target:
+      kind: StatefulSet
+      name: wiki-postgresql
+    patch: |-
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: wiki-postgresql
+        annotations:
+          argocd.argoproj.io/sync-options: Replace=true
+          kube-score/ignore: pod-networkpolicy, container-security-context-privileged, container-security-context-user-group-id, container-security-context-readonlyrootfilesystem
+      spec:
+        template:
+          spec:
+            nodeSelector:
+              kubernetes.io/hostname: k8s-cedille-production-v2-worker-4
+            securityContext: {}
+            containers:
+              - name: wiki-postgresql
+                securityContext: {}
+  - target:
+      kind: Pod
+      name: wiki-test-connection
+    patch: |-
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: wiki-test-connection
+        annotations:
+          kube-score/ignore: pod-networkpolicy, container-image-tag, container-resources, container-ephemeral-storage-request-and-limit, container-security-context-privileged, container-security-context-user-group-id, container-security-context-readonlyrootfilesystem
+      spec:
+        containers:
+        - name: wget
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - wget -q --spider wiki:80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
