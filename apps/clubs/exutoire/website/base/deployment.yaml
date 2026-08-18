@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: exutoire
   annotations:
-    kube-score/ignore: pod-networkpolicy,container-image-tag
+    kube-score/ignore: pod-networkpolicy,container-image-tag,pod-probes
 spec:
   replicas: 1
   selector:

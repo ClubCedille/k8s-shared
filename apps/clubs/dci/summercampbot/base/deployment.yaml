@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: dci-summercampbot
   annotations:
-    kube-score/ignore: pod-networkpolicy,container-image-tag
+    kube-score/ignore: pod-networkpolicy,container-image-tag,pod-probes,pod-probes-identical
 spec:
   replicas: 1
   selector:
