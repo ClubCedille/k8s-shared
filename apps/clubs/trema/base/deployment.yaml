@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trema
+  annotations:
+    kube-score/ignore: container-image-tag, pod-networkpolicy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trema
+  template:
+    metadata:
+      labels:
+        app: trema
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: /metrics
+    spec:
+      containers:
+        - name: trema
+          image: ghcr.io/clubcedille/trema:latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+              ephemeral-storage: 256Mi
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+              ephemeral-storage: 1Gi
+          ports:
+            - containerPort: 6000
+            - name: metrics
+              containerPort: 9090
+          readinessProbe:
+            exec:
+              command:
+                - python
+                - /app/scripts/check_db.py
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          env:
+            - name: API_ADDRESS
+              value: "0.0.0.0"
+            - name: API_PORT
+              value: "6000"
+            - name: MONGO_HOST
+              value: "mongo.trema.svc.cluster.local"
+            - name: MONGO_USER
+              value: "trema"
+            - name: MONGO_PORT
+              value: "27017"
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: trema-env-secret
+                  key: mongo_password
+            - name: DISCORD_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: trema-env-secret
+                  key: discord_token
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: trema-env-secret
+                  key: github_token
+            - name: CALIDUM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: trema-env-secret
+                  key: calidum_api_key

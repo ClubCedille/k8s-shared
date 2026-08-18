@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: forom-service
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: forom
+  ports:
+    - port: 8080
+      targetPort: 8080

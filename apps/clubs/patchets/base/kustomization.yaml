@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: patchets
+
+resources:
+  - deployment.yaml
+  - service.yaml
+  - autoscaler.yaml
+  - pdb.yaml
+  - networkpolicy.yaml
+  - db/postgres.yaml
+  # - seeder.yaml # TODO: Uncomment when seeding is needed.
+
+configMapGenerator:
+  - name: commandes-config
+    literals:
+      - RAILS_ENV=production
+      - SQUARE_ENV=production
+      - DATABASE_PORT=5432
+
+images:
+  - name: us.gcr.io/fine-harbor-276700/patchets/commandes
+    newTag: 1.5.0

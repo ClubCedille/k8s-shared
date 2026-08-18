@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: commandes
+  annotations:
+    kube-score/ignore: >-
+      container-image-tag,
+      container-security-context-user-group-id,
+      container-security-context-readonlyrootfilesystem
+spec:
+  selector:
+    matchLabels:
+      app: commandes
+  template:
+    metadata:
+      labels:
+        app: commandes
+    spec:
+      containers:
+        - name: commandes
+          image: ghcr.io/clubcedille/patchets-commande:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+          startupProbe:
+            tcpSocket:
+              port: http
+            failureThreshold: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - bundle
+                - exec
+                - rails
+                - runner
+                - ActiveRecord::Base.connection.execute('SELECT 1'); puts 'ready'
+            initialDelaySeconds: 20
+            periodSeconds: 30
+            timeoutSeconds: 20
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command:
+                - bundle
+                - exec
+                - rails
+                - runner
+                - ActiveRecord::Base.connection.execute('SELECT 1'); puts 'alive'
+            initialDelaySeconds: 120
+            periodSeconds: 60
+            timeoutSeconds: 20
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+              ephemeral-storage: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          envFrom:
+            - configMapRef:
+                name: commandes-config
+            - secretRef:
+                name: app-secrets
+      imagePullSecrets:
+        - name: patchets-pull

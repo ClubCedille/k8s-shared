@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: planifets-chatbot-qdrant
+  annotations:
+    kube-score/ignore: pod-networkpolicy, service-targets-pod
+spec:
+  selector:
+    app: planifets-chatbot-qdrant
+  clusterIP: None
+  ports:
+    - name: http
+      protocol: TCP
+      port: 6333
+      targetPort: 6333
+    - name: grpc
+      protocol: TCP
+      port: 6334
+      targetPort: 6334
+  type: ClusterIP

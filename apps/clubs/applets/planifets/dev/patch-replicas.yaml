@@ -1,0 +1,14 @@
+# Scale down to 1 replica in dev to save resources
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: planifets
+spec:
+  replicas: 1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: planifets-backend
+spec:
+  replicas: 1

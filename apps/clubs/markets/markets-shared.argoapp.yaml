@@ -1,0 +1,59 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: markets-shared
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd-image-updater.argoproj.io/image-list: backend=ghcr.io/algoets/markets-backend:latest,frontend=ghcr.io/algoets/markets-frontend:latest,scheduler=ghcr.io/algoets/markets-scheduler:latest
+    argocd-image-updater.argoproj.io/backend.update-strategy: digest
+    argocd-image-updater.argoproj.io/frontend.update-strategy: digest
+    argocd-image-updater.argoproj.io/scheduler.update-strategy: digest
+    argocd-image-updater.argoproj.io/backend.pull-secret: pullsecret:argocd/ghcr-markets-secret
+    argocd-image-updater.argoproj.io/frontend.pull-secret: pullsecret:argocd/ghcr-markets-secret
+    argocd-image-updater.argoproj.io/scheduler.pull-secret: pullsecret:argocd/ghcr-markets-secret
+spec:
+  project: algoets
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: markets
+  source:
+    repoURL: https://github.com/ClubCedille/k8s-shared
+    path: apps/clubs/markets/prod
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: markets-dev-shared
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd-image-updater.argoproj.io/image-list: backend=ghcr.io/algoets/markets-backend:dernier,frontend=ghcr.io/algoets/markets-frontend:dernier,scheduler=ghcr.io/algoets/markets-scheduler:dernier
+    argocd-image-updater.argoproj.io/backend.update-strategy: digest
+    argocd-image-updater.argoproj.io/frontend.update-strategy: digest
+    argocd-image-updater.argoproj.io/scheduler.update-strategy: digest
+    argocd-image-updater.argoproj.io/backend.pull-secret: pullsecret:argocd/ghcr-markets-secret
+    argocd-image-updater.argoproj.io/frontend.pull-secret: pullsecret:argocd/ghcr-markets-secret
+    argocd-image-updater.argoproj.io/scheduler.pull-secret: pullsecret:argocd/ghcr-markets-secret
+spec:
+  project: algoets
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: markets-dev
+  source:
+    repoURL: https://github.com/ClubCedille/k8s-shared
+    path: apps/clubs/markets/dev
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

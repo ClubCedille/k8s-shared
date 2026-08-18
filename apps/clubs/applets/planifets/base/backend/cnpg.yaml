@@ -1,0 +1,22 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: cnpg
+spec:
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.2
+  instances: 1
+  bootstrap:
+    initdb:
+      database: planifetsDB
+      owner: planifets
+      secret:
+        name: cnpg-secret
+  storage:
+    size: 5Gi
+    storageClass: ceph-rbd
+  postgresql:
+    parameters:
+      max_connections: "200"
+      superuser_reserved_connections: "5"
+      statement_timeout: "30000"
+      idle_in_transaction_session_timeout: "30000"

@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: planifets-chatbot-qdrant
+  annotations:
+    kube-score/ignore: pod-networkpolicy, pod-probes
+spec:
+  serviceName: planifets-chatbot-qdrant
+  replicas: 1
+  selector:
+    matchLabels:
+      app: planifets-chatbot-qdrant
+  template:
+    metadata:
+      labels:
+        app: planifets-chatbot-qdrant
+    spec:
+      securityContext:
+        fsGroup: 10001
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      containers:
+        - name: qdrant
+          image: qdrant/qdrant@sha256:0bd98fa7977f1e75694779359ca4e212822e5a71334e28421182f72f209d5286
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 6333
+              name: http
+            - containerPort: 6334
+              name: grpc
+          env:
+            - name: QDRANT__SERVICE__API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: planifets-chatbot-secret
+                  key: qdrant_api_key
+            - name: QDRANT__STORAGE__SNAPSHOTS_PATH
+              value: /qdrant/storage/snapshots
+            - name: QDRANT__TELEMETRY_DISABLED
+              value: "true"
+          livenessProbe:
+            tcpSocket:
+              port: 6333
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 6333
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 800m
+              memory: 1Gi
+              ephemeral-storage: 1Gi
+          securityContext:
+            runAsUser: 10001
+            runAsGroup: 10001
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: qdrant-storage
+              mountPath: /qdrant/storage
+            - name: tmp
+              mountPath: /tmp
+  volumeClaimTemplates:
+    - metadata:
+        name: qdrant-storage
+      spec:
+        accessModes: ["ReadWriteMany"] # for future growth and scaling
+        storageClassName: cephfs
+        resources:
+          requests:
+            storage: 5Gi
