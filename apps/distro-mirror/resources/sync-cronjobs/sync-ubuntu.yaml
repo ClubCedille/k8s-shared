@@ -155,7 +155,13 @@ spec:
                 limits:
                   cpu: "1"
                   memory: 1Gi
-                  ephemeral-storage: 1Gi
+                  # Must comfortably exceed the "scratch" emptyDir's own
+                  # sizeLimit below: kubelet counts a mounted emptyDir's
+                  # usage against the container's ephemeral-storage limit
+                  # too, on top of the volume's own limit -- learned the
+                  # hard way via a real "Pod ephemeral local storage usage
+                  # exceeds the total limit of containers" eviction.
+                  ephemeral-storage: 22Gi
           volumes:
             - name: scratch
               emptyDir:
