@@ -17,7 +17,7 @@ spec:
     namespace: webapp-crabe
   source:
     repoURL: https://github.com/ClubCedille/k8s-shared
-    path: apps/crabe/web/prod
+    path: apps/clubs/crabe/web/prod
     targetRevision: HEAD
   syncPolicy:
     syncOptions:
