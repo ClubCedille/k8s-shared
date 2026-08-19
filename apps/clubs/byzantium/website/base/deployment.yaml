@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: byzantium-etsblockchain
+  name: byzantium-website
   annotations:
     kube-score/ignore: pod-networkpolicy,container-image-tag
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: byzantium-etsblockchain
+      app: byzantium-website
   template:
     metadata:
       labels:
-        app: byzantium-etsblockchain
+        app: byzantium-website
     spec:
       securityContext:
         fsGroup: 10001

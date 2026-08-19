@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: byzantium-etsblockchain
+  name: byzantium-website
   namespace: argocd
   annotations:
     argocd-image-updater.argoproj.io/image-list: etsblockchain=ghcr.io/clubcedille/etsblockchain:latest
@@ -11,7 +11,7 @@ spec:
   project: k8s-shared
   destination:
     server: https://kubernetes.default.svc
-    namespace: byzantium-etsblockchain
+    namespace: byzantium-website
   source:
     repoURL: https://github.com/ClubCedille/k8s-shared
     path: apps/clubs/byzantium/etsblockchain/prod

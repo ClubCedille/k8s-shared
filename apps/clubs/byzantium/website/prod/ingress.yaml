@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: byzantium-etsblockchain
+  name: byzantium-website
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-etsmtl
     ingress.kubernetes.io/force-ssl-redirect: "true"
@@ -9,7 +9,7 @@ metadata:
 spec:
   ingressClassName: contour
   tls:
-    - secretName: byzantium-etsblockchain-tls
+    - secretName: byzantium-website-tls
       hosts:
         - blockchain.etsmtl.club
   rules:
@@ -20,6 +20,6 @@ spec:
             path: /
             backend:
               service:
-                name: byzantium-etsblockchain-svc
+                name: byzantium-website-svc
                 port:
                   number: 80
