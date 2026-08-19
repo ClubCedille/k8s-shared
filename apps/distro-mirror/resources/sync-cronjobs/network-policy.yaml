@@ -1,0 +1,18 @@
+# Shared by every sync-<distro> CronJob pod (matched via the app label
+# rather than one NetworkPolicy per distro). These pods have no ingress
+# (they exit after each run, don't serve traffic) and need broad egress to
+# reach arbitrary upstream mirrors plus the internal RGW endpoint, so this
+# just satisfies "the pod is covered by a NetworkPolicy" rather than
+# meaningfully restricting traffic.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: distro-mirror-sync
+spec:
+  podSelector:
+    matchLabels:
+      app: distro-mirror-sync
+  policyTypes:
+    - Egress
+  egress:
+    - {}

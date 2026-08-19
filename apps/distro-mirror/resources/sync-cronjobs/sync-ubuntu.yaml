@@ -4,6 +4,11 @@
 # cloud-images/<ver>/ so browsing mirrors the upstream release structure.
 # Full supported-release curation happens when this pattern is replicated to
 # the other distros.
+#
+# kube-score: all 3 containers need root for `apk add` (installing rsync/
+# curl/python3 at runtime, no prebuilt image bundles all of them) so
+# low-UID/GID and read-only-root-filesystem aren't achievable here without
+# maintaining a custom base image -- see /kube-score skip on PR #397.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -13,15 +18,21 @@ spec:
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 3600
   jobTemplate:
     spec:
       backoffLimit: 2
       template:
+        metadata:
+          labels:
+            app: distro-mirror-sync
+            distro: ubuntu
         spec:
           restartPolicy: OnFailure
           initContainers:
             - name: fetch-isos
               image: alpine:3.20
+              imagePullPolicy: Always
               command:
                 - sh
                 - -c
@@ -44,8 +55,18 @@ spec:
               volumeMounts:
                 - name: scratch
                   mountPath: /scratch
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                  ephemeral-storage: 128Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+                  ephemeral-storage: 512Mi
             - name: fetch-cloud-images
               image: alpine:3.20
+              imagePullPolicy: Always
               securityContext:
                 allowPrivilegeEscalation: false
                 capabilities:
@@ -67,9 +88,19 @@ spec:
               volumeMounts:
                 - name: scratch
                   mountPath: /scratch
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                  ephemeral-storage: 128Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+                  ephemeral-storage: 512Mi
           containers:
             - name: push-to-bucket
               image: rclone/rclone:1.68.2
+              imagePullPolicy: Always
               # apk add (to install python3 for the checksum/index tooling)
               # needs root, so this can't run as non-root like the other
               # containers in this pod.
@@ -120,9 +151,11 @@ spec:
                 requests:
                   cpu: 100m
                   memory: 256Mi
+                  ephemeral-storage: 256Mi
                 limits:
                   cpu: "1"
                   memory: 1Gi
+                  ephemeral-storage: 1Gi
           volumes:
             - name: scratch
               emptyDir:

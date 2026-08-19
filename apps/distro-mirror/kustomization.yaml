@@ -13,4 +13,6 @@ resources:
   - resources/httpproxy.yaml
   - resources/certificate.yaml
   - resources/network-policy.yaml
+  - resources/bucket-setup-network-policy.yaml
+  - resources/sync-cronjobs/network-policy.yaml
   - resources/sync-cronjobs/sync-ubuntu.yaml

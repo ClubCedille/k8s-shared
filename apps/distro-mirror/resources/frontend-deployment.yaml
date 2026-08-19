@@ -14,13 +14,17 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
         seccompProfile:
           type: RuntimeDefault
       containers:
         - name: nginx
           image: nginxinc/nginx-unprivileged:1.27-alpine
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
           ports:
@@ -31,6 +35,14 @@ spec:
           volumeMounts:
             - name: template
               mountPath: /etc/nginx/templates
+            - name: conf-d
+              mountPath: /etc/nginx/conf.d
+            - name: cache
+              mountPath: /var/cache/nginx
+            - name: run
+              mountPath: /var/run
+            - name: tmp
+              mountPath: /tmp
           readinessProbe:
             httpGet:
               path: /healthz
@@ -48,10 +60,20 @@ spec:
             requests:
               cpu: 50m
               memory: 64Mi
+              ephemeral-storage: 64Mi
             limits:
               cpu: 500m
               memory: 128Mi
+              ephemeral-storage: 128Mi
       volumes:
         - name: template
           configMap:
             name: distro-mirror-frontend
+        - name: conf-d
+          emptyDir: {}
+        - name: cache
+          emptyDir: {}
+        - name: run
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}

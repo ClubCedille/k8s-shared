@@ -20,15 +20,38 @@ metadata:
 spec:
   backoffLimit: 3
   template:
+    metadata:
+      labels:
+        app: distro-mirror-bucket-setup
     spec:
       restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: bucket-setup
           image: amazon/aws-cli:2.24.11
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+              ephemeral-storage: 128Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           command:
             - sh
             - -c
@@ -71,3 +94,6 @@ spec:
                 name: distro-mirror
             - secretRef:
                 name: distro-mirror
+      volumes:
+        - name: tmp
+          emptyDir: {}
