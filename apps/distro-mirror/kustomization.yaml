@@ -5,7 +5,7 @@ metadata:
   namespace: distro-mirror
 resources:
   - resources/objectbucketclaim.yaml
-  - resources/bucket-policy-job.yaml
+  - resources/bucket-setup-job.yaml
   - resources/tooling-configmap.yaml
   - resources/frontend-configmap.yaml
   - resources/frontend-deployment.yaml

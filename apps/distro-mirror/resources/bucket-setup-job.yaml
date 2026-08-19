@@ -1,0 +1,73 @@
+# Applies (idempotently) two S3-API-level settings the ObjectBucketClaim
+# itself can't express: an anonymous public-read bucket policy (so the
+# mirror can be served without authentication) and a lifecycle policy that
+# transitions objects to the GARAGE_COLD cloud-tier after a year (a coarse
+# safety net -- the real "supported version" retention lives in the sync
+# CronJobs' include-globs, which stop re-syncing/prune EOL files). Runs
+# after every ArgoCD sync since both calls are idempotent and the
+# OBC-generated bucket name only exists once the claim has bound.
+#
+# GARAGE_COLD is a pre-existing RGW zone placement target (cloud-s3 tier to
+# GarageHQ at 10.0.21.50:3900) confirmed via `radosgw-admin zone placement
+# list` on pve01 -- see docs/lifecycle-runbook.md.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: distro-mirror-bucket-setup
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,HookFailed
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: bucket-setup
+          image: amazon/aws-cli:2.24.11
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              cat > /tmp/policy.json <<EOF
+              {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": "*",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::${BUCKET_NAME}/*"
+                  }
+                ]
+              }
+              EOF
+              aws --endpoint-url "http://${BUCKET_HOST}:${BUCKET_PORT}" \
+                s3api put-bucket-policy --bucket "${BUCKET_NAME}" --policy file:///tmp/policy.json
+
+              cat > /tmp/lifecycle.json <<EOF
+              {
+                "Rules": [
+                  {
+                    "ID": "cold-tier-after-1y",
+                    "Status": "Enabled",
+                    "Filter": {"Prefix": ""},
+                    "Transitions": [
+                      {"Days": 365, "StorageClass": "GARAGE_COLD"}
+                    ]
+                  }
+                ]
+              }
+              EOF
+              aws --endpoint-url "http://${BUCKET_HOST}:${BUCKET_PORT}" \
+                s3api put-bucket-lifecycle-configuration --bucket "${BUCKET_NAME}" --lifecycle-configuration file:///tmp/lifecycle.json
+          envFrom:
+            - configMapRef:
+                name: distro-mirror
+            - secretRef:
+                name: distro-mirror
