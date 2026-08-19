@@ -1,0 +1,150 @@
+# Currently-supported releases only (43/44). dl.fedoraproject.org blocks
+# scripted fetches (bot-check), so this goes through a real public mirror
+# instead (fedora.mirrorservice.org). No rsync module was confirmed for
+# point-fetching individual release ISOs, so this is HTTPS-only. Build
+# numbers in filenames (e.g. -43-1.6.iso) aren't predictable, so each fetch
+# scrapes the directory listing for the exact current filename first.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sync-fedora
+spec:
+  schedule: "30 4 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 3600
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: distro-mirror-sync
+            distro: fedora
+        spec:
+          restartPolicy: OnFailure
+          initContainers:
+            - name: fetch-isos
+              image: alpine:3.20
+              imagePullPolicy: Always
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  apk add --no-cache curl grep
+                  base="https://fedora.mirrorservice.org/fedora/linux/releases"
+                  for rel in 43 44; do
+                    dir="${base}/${rel}/Server/x86_64/iso/"
+                    mkdir -p "/scratch/fedora/amd64/isos/${rel}"
+                    listing=$(curl -fsSL "$dir")
+                    fname=$(printf '%s' "$listing" | grep -oE "Fedora-Server-dvd-x86_64-${rel}-[0-9.]+\.iso" | head -1)
+                    curl -fsSL -o "/scratch/fedora/amd64/isos/${rel}/${fname}" "${dir}${fname}"
+                  done
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - name: scratch
+                  mountPath: /scratch
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                  ephemeral-storage: 128Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+                  ephemeral-storage: 512Mi
+            - name: fetch-cloud-images
+              image: alpine:3.20
+              imagePullPolicy: Always
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  apk add --no-cache curl grep
+                  base="https://fedora.mirrorservice.org/fedora/linux/releases"
+                  for rel in 43 44; do
+                    dir="${base}/${rel}/Cloud/x86_64/images/"
+                    mkdir -p "/scratch/fedora/amd64/cloud-images/${rel}"
+                    listing=$(curl -fsSL "$dir")
+                    fname=$(printf '%s' "$listing" | grep -oE "Fedora-Cloud-Base-Generic-${rel}-[0-9.]+\.x86_64\.qcow2" | head -1)
+                    curl -fsSL -o "/scratch/fedora/amd64/cloud-images/${rel}/${fname}" "${dir}${fname}"
+                  done
+              volumeMounts:
+                - name: scratch
+                  mountPath: /scratch
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                  ephemeral-storage: 128Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+                  ephemeral-storage: 512Mi
+          containers:
+            - name: push-to-bucket
+              image: rclone/rclone:1.68.2
+              imagePullPolicy: Always
+              # apk add (python3 for checksum/index tooling) needs root.
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  export RCLONE_CONFIG_S3_TYPE=s3
+                  export RCLONE_CONFIG_S3_PROVIDER=Ceph
+                  export RCLONE_CONFIG_S3_ENV_AUTH=false
+                  export RCLONE_CONFIG_S3_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
+                  export RCLONE_CONFIG_S3_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
+                  export RCLONE_CONFIG_S3_ENDPOINT="http://${BUCKET_HOST}:${BUCKET_PORT}"
+                  apk add --no-cache python3
+                  python3 /opt/tooling/compute_checksums.py /scratch/fedora
+                  rclone copy /scratch/fedora "s3:${BUCKET_NAME}/fedora" --transfers=4 --checkers=8 --s3-no-check-bucket
+                  python3 /opt/tooling/generate_index.py
+                  rclone copy /tmp/rendered-index "s3:${BUCKET_NAME}" --s3-no-check-bucket
+              envFrom:
+                - configMapRef:
+                    name: distro-mirror
+                - secretRef:
+                    name: distro-mirror
+              volumeMounts:
+                - name: scratch
+                  mountPath: /scratch
+                - name: tooling
+                  mountPath: /opt/tooling
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                  ephemeral-storage: 256Mi
+                limits:
+                  cpu: "1"
+                  memory: 1Gi
+                  # Must comfortably exceed the "scratch" emptyDir's own
+                  # sizeLimit below: kubelet counts a mounted emptyDir's
+                  # usage against the container's ephemeral-storage limit
+                  # too, on top of the volume's own limit.
+                  ephemeral-storage: 9Gi
+          volumes:
+            - name: scratch
+              emptyDir:
+                # 2 Server ISOs (~2.5-2.7GB each) + 2 Cloud images
+                # (~600MB each) is ~6.4GB actual; leave headroom.
+                sizeLimit: 8Gi
+            - name: tooling
+              configMap:
+                name: distro-mirror-tooling
