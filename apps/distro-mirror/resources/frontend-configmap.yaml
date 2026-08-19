@@ -11,7 +11,15 @@ data:
     server {
       listen 8080;
 
+      # /healthz (readiness) and /livez (liveness) are separate paths on
+      # purpose -- reusing one probe for both would tie "remove from
+      # service" and "restart the container" to the exact same signal.
       location = /healthz {
+        return 200 "ok\n";
+        add_header Content-Type text/plain;
+      }
+
+      location = /livez {
         return 200 "ok\n";
         add_header Content-Type text/plain;
       }

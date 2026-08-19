@@ -35,10 +35,15 @@ spec:
             httpGet:
               path: /healthz
               port: 8080
+            periodSeconds: 10
+            failureThreshold: 3
           livenessProbe:
             httpGet:
-              path: /healthz
+              path: /livez
               port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 6
           resources:
             requests:
               cpu: 50m
