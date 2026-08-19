@@ -135,9 +135,9 @@ matomo:
       livenessProbe:
         exec:
           command:
-          - /bin/sh
-          - -c
-          - "[ -f /tmp/nginx.pid ] && ps -A | grep nginx"
+            - /bin/sh
+            - -c
+            - "[ -f /tmp/nginx.pid ] && ps -A | grep nginx"
         initialDelaySeconds: 10
         periodSeconds: 5
       readinessProbe:
@@ -167,9 +167,9 @@ matomo:
       livenessProbe:
         exec:
           command:
-          - /bin/sh
-          - -c
-          - "[ -f /tmp/nginx.pid ] && ps -A | grep nginx"
+            - /bin/sh
+            - -c
+            - "[ -f /tmp/nginx.pid ] && ps -A | grep nginx"
         initialDelaySeconds: 10
         periodSeconds: 5
       readinessProbe:
