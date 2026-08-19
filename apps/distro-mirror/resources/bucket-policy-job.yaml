@@ -1,0 +1,48 @@
+# Applies (idempotently) an anonymous public-read S3 bucket policy so the
+# distro-mirror bucket can be served without authentication. Runs after every
+# ArgoCD sync since put-bucket-policy is idempotent and the OBC-generated
+# bucket name only exists once the ObjectBucketClaim has bound.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: distro-mirror-bucket-policy
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,HookFailed
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: put-bucket-policy
+          image: amazon/aws-cli:2.24.11
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              cat > /tmp/policy.json <<EOF
+              {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": "*",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::${BUCKET_NAME}/*"
+                  }
+                ]
+              }
+              EOF
+              aws --endpoint-url "http://${BUCKET_HOST}:${BUCKET_PORT}" \
+                s3api put-bucket-policy --bucket "${BUCKET_NAME}" --policy file:///tmp/policy.json
+          envFrom:
+            - configMapRef:
+                name: distro-mirror
+            - secretRef:
+                name: distro-mirror
