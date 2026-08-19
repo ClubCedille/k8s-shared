@@ -29,26 +29,26 @@ cold-tiered object restores it to hot storage for at least a day).
 1. `s3api put-bucket-policy` — anonymous `s3:GetObject` on `arn:aws:s3:::<bucket>/*`,
    required since the mirror is public/unauthenticated.
 2. `s3api put-bucket-lifecycle-configuration` — transitions all objects to
-   `GARAGE_COLD` after 365 days. This is a coarse safety net; the real
+   `GARAGE_COLD` after 7 days. This is a coarse safety net; the real
    "keep only supported versions" retention lives in the sync CronJobs'
    `--include` globs, which stop re-syncing (and should eventually prune)
-   files for EOL releases — age alone doesn't mean "unsupported."
+   files for EOL releases — age alone doesn't mean "unsupported." A short
+   window means most ISO/cloud-image traffic will actually be served from
+   Garage rather than hot Ceph storage; revisit if that ends up hurting
+   download performance for recently-synced files.
 
 Both calls are idempotent (`put-*` overwrites, no create-if-missing
 ambiguity) so the Job re-runs safely on every ArgoCD sync.
 
 ## Verifying a transition manually
 
-Lifecycle processing runs on RGW's own schedule (not immediate). To force
-and observe it on a test object without waiting a year, temporarily set a
-short `Days` value via `s3api put-bucket-lifecycle-configuration`, then on
-an RGW node:
+Lifecycle processing runs on RGW's own schedule (not immediate — daily by
+default), so even at 7 days a real transition can take over a week to
+observe passively. To force and observe it sooner on a test object, on an
+RGW node:
 
 ```bash
 radosgw-admin lc list
 radosgw-admin lc process --bucket <bucket-name>
 radosgw-admin bucket stats --bucket <bucket-name>
 ```
-
-Revert to the production 365-day rule afterward (or just let the next
-ArgoCD sync re-apply it via the setup Job).

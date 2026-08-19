@@ -1,7 +1,7 @@
 # Applies (idempotently) two S3-API-level settings the ObjectBucketClaim
 # itself can't express: an anonymous public-read bucket policy (so the
 # mirror can be served without authentication) and a lifecycle policy that
-# transitions objects to the GARAGE_COLD cloud-tier after a year (a coarse
+# transitions objects to the GARAGE_COLD cloud-tier after 7 days (a coarse
 # safety net -- the real "supported version" retention lives in the sync
 # CronJobs' include-globs, which stop re-syncing/prune EOL files). Runs
 # after every ArgoCD sync since both calls are idempotent and the
@@ -54,11 +54,11 @@ spec:
               {
                 "Rules": [
                   {
-                    "ID": "cold-tier-after-1y",
+                    "ID": "cold-tier-after-7d",
                     "Status": "Enabled",
                     "Filter": {"Prefix": ""},
                     "Transitions": [
-                      {"Days": 365, "StorageClass": "GARAGE_COLD"}
+                      {"Days": 7, "StorageClass": "GARAGE_COLD"}
                     ]
                   }
                 ]
