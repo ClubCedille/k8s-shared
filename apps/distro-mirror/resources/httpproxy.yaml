@@ -14,11 +14,11 @@ spec:
       # Envoy's default route timeout is 15s for the whole response, which
       # cuts off large ISO/cloud-image downloads mid-transfer -- confirmed
       # live (curl error 18, cut at exactly 15.09s / ~230MB into a 3.2GB
-      # ISO). Multi-gigabyte files can legitimately take a long time on a
-      # slow client connection, so there's no sane finite bound here.
+      # ISO). 4h comfortably covers even a multi-gigabyte file on a slow
+      # connection without leaving truly-stuck transfers open forever.
       timeoutPolicy:
-        response: infinity
-        idle: infinity
+        response: 4h
+        idle: 4h
       services:
         - name: distro-mirror-frontend
           port: 80
