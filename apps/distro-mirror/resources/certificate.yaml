@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: distro-mirror-tls
+spec:
+  secretName: distro-mirror-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: mirror.etsmtl.club
+  dnsNames:
+    - mirror.etsmtl.club

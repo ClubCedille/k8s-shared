@@ -1,0 +1,165 @@
+# Pilot sync job (issue: Mirror: pilote distro-mirror Ubuntu end-to-end).
+# Currently-supported LTS releases only (22.04/24.04/26.04, amd64 server ISO
+# + cloud image), laid out per-version under isos/<ver>/ and
+# cloud-images/<ver>/ so browsing mirrors the upstream release structure.
+# Full supported-release curation happens when this pattern is replicated to
+# the other distros.
+#
+# kube-score: all 3 containers need root for `apk add` (installing rsync/
+# curl/python3 at runtime, no prebuilt image bundles all of them) so
+# low-UID/GID and read-only-root-filesystem aren't achievable here without
+# maintaining a custom base image -- see /kube-score skip on PR #397.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sync-ubuntu
+spec:
+  schedule: "0 4 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 3600
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: distro-mirror-sync
+            distro: ubuntu
+        spec:
+          restartPolicy: OnFailure
+          initContainers:
+            - name: fetch-isos
+              image: alpine:3.20
+              imagePullPolicy: Always
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  apk add --no-cache rsync
+                  for rel in 22.04 24.04 26.04; do
+                    mkdir -p "/scratch/ubuntu/amd64/isos/${rel}"
+                    # -L dereferences symlinks: release ISOs are published as
+                    # symlinks to the latest point release, not regular files.
+                    rsync -rLt \
+                      --include="*live-server*amd64.iso" \
+                      --exclude="*" \
+                      "rsync://rsync.releases.ubuntu.com/releases/${rel}/" "/scratch/ubuntu/amd64/isos/${rel}/"
+                  done
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - name: scratch
+                  mountPath: /scratch
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                  ephemeral-storage: 128Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+                  ephemeral-storage: 512Mi
+            - name: fetch-cloud-images
+              image: alpine:3.20
+              imagePullPolicy: Always
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  apk add --no-cache curl
+                  # LTS version -> codename, used by cloud-images.ubuntu.com paths/filenames.
+                  for pair in 22.04:jammy 24.04:noble 26.04:resolute; do
+                    rel="${pair%%:*}"
+                    codename="${pair##*:}"
+                    mkdir -p "/scratch/ubuntu/amd64/cloud-images/${rel}"
+                    curl -fsSL -o "/scratch/ubuntu/amd64/cloud-images/${rel}/${codename}-server-cloudimg-amd64.img" \
+                      "https://cloud-images.ubuntu.com/${codename}/current/${codename}-server-cloudimg-amd64.img"
+                  done
+              volumeMounts:
+                - name: scratch
+                  mountPath: /scratch
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                  ephemeral-storage: 128Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+                  ephemeral-storage: 512Mi
+          containers:
+            - name: push-to-bucket
+              image: rclone/rclone:1.68.2
+              imagePullPolicy: Always
+              # apk add (to install python3 for the checksum/index tooling)
+              # needs root, so this can't run as non-root like the other
+              # containers in this pod.
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  export RCLONE_CONFIG_S3_TYPE=s3
+                  export RCLONE_CONFIG_S3_PROVIDER=Ceph
+                  export RCLONE_CONFIG_S3_ENV_AUTH=false
+                  export RCLONE_CONFIG_S3_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
+                  export RCLONE_CONFIG_S3_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
+                  export RCLONE_CONFIG_S3_ENDPOINT="http://${BUCKET_HOST}:${BUCKET_PORT}"
+                  apk add --no-cache python3
+
+                  # Upstream only publishes SHA256 (ISOs) or SHA256+MD5
+                  # (cloud images), inconsistently -- compute all three
+                  # ourselves so every artifact has uniform checksum data.
+                  # See ../../tooling/compute_checksums.py.
+                  python3 /opt/tooling/compute_checksums.py /scratch/ubuntu
+
+                  # --s3-no-check-bucket: the OBC-scoped user can write to its
+                  # bucket but not head/create buckets, which is what rclone
+                  # tries by default before the first upload.
+                  rclone copy /scratch/ubuntu "s3:${BUCKET_NAME}/ubuntu" --transfers=4 --checkers=8 --s3-no-check-bucket
+
+                  # Regenerate the styled, hierarchical index.html pages for
+                  # the whole bucket (not just this distro's subtree) -- see
+                  # ../../tooling/generate_index.py.
+                  python3 /opt/tooling/generate_index.py
+                  rclone copy /tmp/rendered-index "s3:${BUCKET_NAME}" --s3-no-check-bucket
+              envFrom:
+                - configMapRef:
+                    name: distro-mirror
+                - secretRef:
+                    name: distro-mirror
+              volumeMounts:
+                - name: scratch
+                  mountPath: /scratch
+                - name: tooling
+                  mountPath: /opt/tooling
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                  ephemeral-storage: 256Mi
+                limits:
+                  cpu: "1"
+                  memory: 1Gi
+                  ephemeral-storage: 1Gi
+          volumes:
+            - name: scratch
+              emptyDir:
+                sizeLimit: 20Gi
+            - name: tooling
+              configMap:
+                name: distro-mirror-tooling

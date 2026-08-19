@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: distro-mirror-frontend
+spec:
+  selector:
+    app: distro-mirror-frontend
+  ports:
+    - port: 80
+      targetPort: 8080
