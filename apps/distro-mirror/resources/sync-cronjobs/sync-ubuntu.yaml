@@ -1,6 +1,7 @@
 # Pilot sync job (issue: Mirror: pilote distro-mirror Ubuntu end-to-end).
-# Scope is intentionally narrow (current + previous LTS, amd64 server ISO +
-# cloud image) to validate the two-step rsync -> rclone pattern end-to-end.
+# Currently-supported LTS releases only (22.04/24.04/26.04, amd64 server ISO
+# + cloud image), laid out per-version under isos/<ver>/ and
+# cloud-images/<ver>/ so browsing mirrors the upstream release structure.
 # Full supported-release curation happens when this pattern is replicated to
 # the other distros.
 apiVersion: batch/v1
@@ -27,14 +28,14 @@ spec:
                 - |
                   set -eu
                   apk add --no-cache rsync
-                  mkdir -p /scratch/ubuntu/amd64/isos
-                  for rel in 22.04 24.04; do
+                  for rel in 22.04 24.04 26.04; do
+                    mkdir -p "/scratch/ubuntu/amd64/isos/${rel}"
                     # -L dereferences symlinks: release ISOs are published as
                     # symlinks to the latest point release, not regular files.
                     rsync -rLt \
                       --include="*live-server*amd64.iso" \
                       --exclude="*" \
-                      "rsync://rsync.releases.ubuntu.com/releases/${rel}/" /scratch/ubuntu/amd64/isos/
+                      "rsync://rsync.releases.ubuntu.com/releases/${rel}/" "/scratch/ubuntu/amd64/isos/${rel}/"
                   done
               securityContext:
                 allowPrivilegeEscalation: false
@@ -55,10 +56,13 @@ spec:
                 - |
                   set -eu
                   apk add --no-cache curl
-                  mkdir -p /scratch/ubuntu/amd64/cloud-images
-                  for rel in jammy noble; do
-                    curl -fsSL -o "/scratch/ubuntu/amd64/cloud-images/${rel}-server-cloudimg-amd64.img" \
-                      "https://cloud-images.ubuntu.com/${rel}/current/${rel}-server-cloudimg-amd64.img"
+                  # LTS version -> codename, used by cloud-images.ubuntu.com paths/filenames.
+                  for pair in 22.04:jammy 24.04:noble 26.04:resolute; do
+                    rel="${pair%%:*}"
+                    codename="${pair##*:}"
+                    mkdir -p "/scratch/ubuntu/amd64/cloud-images/${rel}"
+                    curl -fsSL -o "/scratch/ubuntu/amd64/cloud-images/${rel}/${codename}-server-cloudimg-amd64.img" \
+                      "https://cloud-images.ubuntu.com/${codename}/current/${codename}-server-cloudimg-amd64.img"
                   done
               volumeMounts:
                 - name: scratch
@@ -66,8 +70,9 @@ spec:
           containers:
             - name: push-to-bucket
               image: rclone/rclone:1.68.2
-              # apk add (to install python3 for the index generator) needs
-              # root, so this can't run as non-root like the other containers.
+              # apk add (to install python3 for the checksum/index tooling)
+              # needs root, so this can't run as non-root like the other
+              # containers in this pod.
               securityContext:
                 allowPrivilegeEscalation: false
                 capabilities:
@@ -83,6 +88,14 @@ spec:
                   export RCLONE_CONFIG_S3_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
                   export RCLONE_CONFIG_S3_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
                   export RCLONE_CONFIG_S3_ENDPOINT="http://${BUCKET_HOST}:${BUCKET_PORT}"
+                  apk add --no-cache python3
+
+                  # Upstream only publishes SHA256 (ISOs) or SHA256+MD5
+                  # (cloud images), inconsistently -- compute all three
+                  # ourselves so every artifact has uniform checksum data.
+                  # See ../../tooling/compute_checksums.py.
+                  python3 /opt/tooling/compute_checksums.py /scratch/ubuntu
+
                   # --s3-no-check-bucket: the OBC-scoped user can write to its
                   # bucket but not head/create buckets, which is what rclone
                   # tries by default before the first upload.
@@ -90,9 +103,8 @@ spec:
 
                   # Regenerate the styled, hierarchical index.html pages for
                   # the whole bucket (not just this distro's subtree) -- see
-                  # ../../style/generate_index.py.
-                  apk add --no-cache python3
-                  python3 /opt/generator/generate_index.py
+                  # ../../tooling/generate_index.py.
+                  python3 /opt/tooling/generate_index.py
                   rclone copy /tmp/rendered-index "s3:${BUCKET_NAME}" --s3-no-check-bucket
               envFrom:
                 - configMapRef:
@@ -102,8 +114,8 @@ spec:
               volumeMounts:
                 - name: scratch
                   mountPath: /scratch
-                - name: index-generator
-                  mountPath: /opt/generator
+                - name: tooling
+                  mountPath: /opt/tooling
               resources:
                 requests:
                   cpu: 100m
@@ -114,7 +126,7 @@ spec:
           volumes:
             - name: scratch
               emptyDir:
-                sizeLimit: 10Gi
-            - name: index-generator
+                sizeLimit: 20Gi
+            - name: tooling
               configMap:
-                name: distro-mirror-index-generator
+                name: distro-mirror-tooling

@@ -44,6 +44,11 @@ $folder-light: #9a6700;
   .icon-dir { color: $folder; }
   .muted { color: $text-dim; }
   footer { color: $text-dim; }
+
+  .toolbar button {
+    border-color: $border;
+    color: $text;
+  }
 }
 
 * {
@@ -92,6 +97,24 @@ h1 {
   }
 }
 
+.toolbar {
+  margin-bottom: 0.75rem;
+
+  button {
+    font: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+    background: none;
+    border: 1px solid;
+    border-radius: 4px;
+    padding: 0.3rem 0.6rem;
+  }
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -105,6 +128,7 @@ table {
     text-align: left;
     border-bottom: 1px solid;
     border-color: inherit;
+    white-space: nowrap;
   }
 
   th {
@@ -121,7 +145,17 @@ table {
   td.size,
   th.size {
     text-align: right;
-    white-space: nowrap;
+  }
+
+  td.checksum,
+  th.checksum {
+    display: none;
+    font-size: 0.8rem;
+  }
+
+  &.show-checksums td.checksum,
+  &.show-checksums th.checksum {
+    display: table-cell;
   }
 
   a {

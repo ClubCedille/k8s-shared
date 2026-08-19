@@ -17,7 +17,7 @@ from pathlib import PurePosixPath
 
 BUCKET = os.environ["BUCKET_NAME"]
 LOCAL_OUT = os.environ.get("INDEX_OUT_DIR", "/tmp/rendered-index")
-STYLE_PATH = os.environ.get("STYLE_PATH", "/opt/generator/style.css")
+STYLE_PATH = os.environ.get("STYLE_PATH", "/opt/tooling/style.css")
 MIRROR_TITLE = "Cedille distro mirror"
 
 
@@ -36,13 +36,16 @@ def list_objects():
     return json.loads(out)
 
 
+SKIP_NAMES = {"index.html", ".checksums.json"}
+
+
 def build_tree(objects):
-    # dirs[path] = {"dirs": {name: subpath}, "files": [(name, size, modtime)]}
-    dirs = {"": {"dirs": {}, "files": []}}
+    # dirs[path] = {"dirs": {name: subpath}, "files": [(name, size, modtime)], "checksums_path": str|None}
+    dirs = {"": {"dirs": {}, "files": [], "checksums_path": None}}
 
     def ensure_dir(path):
         if path not in dirs:
-            dirs[path] = {"dirs": {}, "files": []}
+            dirs[path] = {"dirs": {}, "files": [], "checksums_path": None}
             parent = str(PurePosixPath(path).parent)
             parent = "" if parent == "." else parent
             ensure_dir(parent)
@@ -50,15 +53,39 @@ def build_tree(objects):
         return dirs[path]
 
     for obj in objects:
-        if obj.get("IsDir") or PurePosixPath(obj["Path"]).name == "index.html":
+        if obj.get("IsDir"):
             continue
         path = PurePosixPath(obj["Path"])
         parent = str(path.parent)
         parent = "" if parent == "." else parent
         ensure_dir(parent)
-        dirs[parent]["files"].append((path.name, obj["Size"], obj.get("ModTime", "")))
+        if path.name == ".checksums.json":
+            dirs[parent]["checksums_path"] = obj["Path"]
+        elif path.name not in SKIP_NAMES:
+            dirs[parent]["files"].append((path.name, obj["Size"], obj.get("ModTime", "")))
 
     return dirs
+
+
+def load_checksums(path):
+    if path is None:
+        return {}
+    out = subprocess.run(
+        ["rclone", "cat", f"s3:{BUCKET}/{path}", "--s3-no-check-bucket"],
+        capture_output=True, check=True, text=True,
+    ).stdout
+    return json.loads(out)
+
+
+CHECKSUM_ALGOS = ("sha256", "sha1", "md5")
+
+
+def checksum_cells(checksums, name):
+    entry = checksums.get(name)
+    return "".join(
+        f'<td class="checksum">{html.escape(entry[algo])}</td>' if entry else '<td class="checksum">-</td>'
+        for algo in CHECKSUM_ALGOS
+    )
 
 
 def render(dir_path, entry, style_css):
@@ -70,17 +97,23 @@ def render(dir_path, entry, style_css):
         crumbs.append(f'<a href="/{html.escape(acc)}">{html.escape(part)}</a>')
     breadcrumb = ' <span class="sep">/</span> '.join(crumbs)
 
+    checksums = load_checksums(entry["checksums_path"])
+    empty_checksum_cells = '<td class="checksum">-</td>' * len(CHECKSUM_ALGOS)
+
     rows = []
     if dir_path:
         parent = str(PurePosixPath(dir_path).parent)
         parent_href = "/" if parent in (".", "") else f"/{parent}/"
-        rows.append(f'<tr><td><a class="icon-dir" href="{html.escape(parent_href)}">..</a></td><td class="size">-</td><td>-</td></tr>')
+        rows.append(
+            f'<tr><td><a class="icon-dir" href="{html.escape(parent_href)}">..</a></td>'
+            f'<td class="size">-</td><td>-</td>{empty_checksum_cells}</tr>'
+        )
 
     for name in sorted(entry["dirs"]):
         href = f"/{dir_path}/{name}/" if dir_path else f"/{name}/"
         rows.append(
             f'<tr><td><a class="icon-dir" href="{html.escape(href)}">{html.escape(name)}/</a></td>'
-            f'<td class="size">-</td><td>-</td></tr>'
+            f'<td class="size">-</td><td>-</td>{empty_checksum_cells}</tr>'
         )
 
     for name, size, modtime in sorted(entry["files"]):
@@ -88,10 +121,12 @@ def render(dir_path, entry, style_css):
         modtime_short = modtime[:19].replace("T", " ")
         rows.append(
             f'<tr><td><a class="icon-file" href="{html.escape(href)}">{html.escape(name)}</a></td>'
-            f'<td class="size">{human_size(size)}</td><td>{html.escape(modtime_short)}</td></tr>'
+            f'<td class="size">{human_size(size)}</td><td>{html.escape(modtime_short)}</td>'
+            f'{checksum_cells(checksums, name)}</tr>'
         )
 
     title = f"/{dir_path}/" if dir_path else "/"
+    checksum_headers = "".join(f'<th class="checksum">{algo.upper()}</th>' for algo in CHECKSUM_ALGOS)
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -104,12 +139,15 @@ def render(dir_path, entry, style_css):
 <div class="wrap">
 <h1>{html.escape(MIRROR_TITLE)}</h1>
 <div class="breadcrumb">{breadcrumb}</div>
-<table>
-<thead><tr><th>Name</th><th class="size">Size</th><th>Last modified</th></tr></thead>
+<div class="toolbar"><button type="button" onclick="document.getElementById('listing').classList.toggle('show-checksums')">Toggle checksums</button></div>
+<div class="table-scroll">
+<table id="listing">
+<thead><tr><th>Name</th><th class="size">Size</th><th>Last modified</th>{checksum_headers}</tr></thead>
 <tbody>
-{''.join(rows) if rows else '<tr><td colspan="3" class="muted">Empty</td></tr>'}
+{''.join(rows) if rows else f'<tr><td colspan="{3 + len(CHECKSUM_ALGOS)}" class="muted">Empty</td></tr>'}
 </tbody>
 </table>
+</div>
 <footer>Generated by the distro-mirror sync CronJobs.</footer>
 </div>
 </body>

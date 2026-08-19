@@ -6,7 +6,7 @@ metadata:
 resources:
   - resources/objectbucketclaim.yaml
   - resources/bucket-policy-job.yaml
-  - resources/index-generator-configmap.yaml
+  - resources/tooling-configmap.yaml
   - resources/frontend-configmap.yaml
   - resources/frontend-deployment.yaml
   - resources/frontend-service.yaml
