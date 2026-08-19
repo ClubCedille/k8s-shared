@@ -135,9 +135,9 @@ matomo:
       livenessProbe:
         exec:
           command:
-          - /bin/sh
-          - -c
-          - "[ -f /tmp/nginx.pid ] && ps -A | grep nginx"
+            - /bin/sh
+            - -c
+            - "[ -f /tmp/nginx.pid ] && ps -A | grep nginx"
         initialDelaySeconds: 10
         periodSeconds: 5
       readinessProbe:
@@ -167,9 +167,9 @@ matomo:
       livenessProbe:
         exec:
           command:
-          - /bin/sh
-          - -c
-          - "[ -f /tmp/nginx.pid ] && ps -A | grep nginx"
+            - /bin/sh
+            - -c
+            - "[ -f /tmp/nginx.pid ] && ps -A | grep nginx"
         initialDelaySeconds: 10
         periodSeconds: 5
       readinessProbe:
@@ -193,11 +193,11 @@ nginx:
   imagePullSecrets: []
   runAsUser: 100
 db:
-  hostname: matomo-db-mysql
+  hostname: matomo-mariadb
   password:
     secretKeyRef:
-      name: mariadb-config
-      key: MYSQL_ROOT_PASSWORD
+      name: matomo-db-secret
+      key: password
   name: matomo
   username: root
   prefix: matomo_

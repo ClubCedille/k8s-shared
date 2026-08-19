@@ -1,12 +1,12 @@
 ---
-namespace: nextcloud
+namespace: matomo
 
 resources:
   - prod
 
 helmCharts:
   - name: matomo
-    repo: oci://registry-1.docker.io/digitalist/matomo
+    repo: oci://registry-1.docker.io/digitalist
     version: 11.0.64
     releaseName: matomo
     namespace: matomo

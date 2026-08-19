@@ -13,8 +13,8 @@ spec:
         - prefix: /
       enableWebsockets: true
       services:
-        - name: matomo-svc
-          port: 80
+        - name: matomo-dashboard
+          port: 8080
       timeoutPolicy:
         idle: 600s
         response: 600s

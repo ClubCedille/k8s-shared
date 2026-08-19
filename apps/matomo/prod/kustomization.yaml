@@ -4,3 +4,4 @@ resources:
   - certificate.yaml
   - httpproxy.yaml
   - vault-secret.yaml
+  - mariadb
