@@ -16,3 +16,8 @@ resources:
   - resources/bucket-setup-network-policy.yaml
   - resources/sync-cronjobs/network-policy.yaml
   - resources/sync-cronjobs/sync-ubuntu.yaml
+  - resources/sync-cronjobs/sync-debian.yaml
+  - resources/sync-cronjobs/sync-fedora.yaml
+  - resources/sync-cronjobs/sync-nixos.yaml
+  - resources/sync-cronjobs/sync-arch.yaml
+  - resources/sync-cronjobs/sync-opnsense.yaml

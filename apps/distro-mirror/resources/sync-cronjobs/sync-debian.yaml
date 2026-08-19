@@ -1,0 +1,143 @@
+# Currently-supported stable release only (13/trixie). The rsync mirror used
+# here (cdimage.debian.org) only carries the current stable tree, not
+# oldstable/12 -- revisit with a different upstream source if oldstable
+# coverage is wanted later. Debian doesn't split server/desktop ISOs the way
+# Ubuntu does: the single netinst image installs either, so there's no
+# separate "desktop" artifact to fetch (debian-edu/-mac are different spins,
+# explicitly excluded, not a desktop variant).
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sync-debian
+spec:
+  schedule: "15 4 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 3600
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: distro-mirror-sync
+            distro: debian
+        spec:
+          restartPolicy: OnFailure
+          initContainers:
+            - name: fetch-iso
+              image: alpine:3.20
+              imagePullPolicy: Always
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  apk add --no-cache rsync
+                  mkdir -p /scratch/debian/amd64/isos/13
+                  rsync -rLt \
+                    --exclude="debian-edu-*" \
+                    --exclude="debian-mac-*" \
+                    --include="debian-*-amd64-netinst.iso" \
+                    --exclude="*" \
+                    "rsync://cdimage.debian.org/debian-cd/current/amd64/iso-cd/" /scratch/debian/amd64/isos/13/
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - name: scratch
+                  mountPath: /scratch
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                  ephemeral-storage: 128Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+                  ephemeral-storage: 512Mi
+            - name: fetch-cloud-image
+              image: alpine:3.20
+              imagePullPolicy: Always
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  apk add --no-cache curl
+                  mkdir -p /scratch/debian/amd64/cloud-images/13
+                  curl -fsSL -o /scratch/debian/amd64/cloud-images/13/debian-13-generic-amd64.qcow2 \
+                    "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-amd64.qcow2"
+              volumeMounts:
+                - name: scratch
+                  mountPath: /scratch
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                  ephemeral-storage: 128Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+                  ephemeral-storage: 512Mi
+          containers:
+            - name: push-to-bucket
+              image: rclone/rclone:1.68.2
+              imagePullPolicy: Always
+              # apk add (python3 for checksum/index tooling) needs root.
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  export RCLONE_CONFIG_S3_TYPE=s3
+                  export RCLONE_CONFIG_S3_PROVIDER=Ceph
+                  export RCLONE_CONFIG_S3_ENV_AUTH=false
+                  export RCLONE_CONFIG_S3_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
+                  export RCLONE_CONFIG_S3_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
+                  export RCLONE_CONFIG_S3_ENDPOINT="http://${BUCKET_HOST}:${BUCKET_PORT}"
+                  apk add --no-cache python3
+                  python3 /opt/tooling/compute_checksums.py /scratch/debian
+                  rclone copy /scratch/debian "s3:${BUCKET_NAME}/debian" --transfers=4 --checkers=8 --s3-no-check-bucket
+                  python3 /opt/tooling/generate_index.py
+                  rclone copy /tmp/rendered-index "s3:${BUCKET_NAME}" --s3-no-check-bucket
+              envFrom:
+                - configMapRef:
+                    name: distro-mirror
+                - secretRef:
+                    name: distro-mirror
+              volumeMounts:
+                - name: scratch
+                  mountPath: /scratch
+                - name: tooling
+                  mountPath: /opt/tooling
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                  ephemeral-storage: 256Mi
+                limits:
+                  cpu: "1"
+                  memory: 1Gi
+                  # Must comfortably exceed the "scratch" emptyDir's own
+                  # sizeLimit below: kubelet counts a mounted emptyDir's
+                  # usage against the container's ephemeral-storage limit
+                  # too, on top of the volume's own limit.
+                  ephemeral-storage: 6Gi
+          volumes:
+            - name: scratch
+              emptyDir:
+                sizeLimit: 5Gi
+            - name: tooling
+              configMap:
+                name: distro-mirror-tooling

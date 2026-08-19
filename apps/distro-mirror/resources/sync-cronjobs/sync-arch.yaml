@@ -1,0 +1,110 @@
+# Arch ships a single always-current rolling ISO -- no discrete supported
+# versions to enumerate, so it's stored under isos/latest/ rather than a
+# version-numbered folder (each run overwrites the previous ISO in place,
+# matching upstream's own "latest" semantics). No rsync module exists for
+# ISOs (only for the pacman package tree, out of scope) -- HTTPS only. No
+# cloud image: Arch doesn't publish an official one.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sync-arch
+spec:
+  schedule: "0 5 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 3600
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: distro-mirror-sync
+            distro: arch
+        spec:
+          restartPolicy: OnFailure
+          initContainers:
+            - name: fetch-iso
+              image: alpine:3.20
+              imagePullPolicy: Always
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  apk add --no-cache curl
+                  mkdir -p /scratch/arch/amd64/isos/latest
+                  curl -fsSL -o /scratch/arch/amd64/isos/latest/archlinux-x86_64.iso \
+                    "https://geo.mirror.pkgbuild.com/iso/latest/archlinux-x86_64.iso"
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - name: scratch
+                  mountPath: /scratch
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                  ephemeral-storage: 128Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+                  ephemeral-storage: 512Mi
+          containers:
+            - name: push-to-bucket
+              image: rclone/rclone:1.68.2
+              imagePullPolicy: Always
+              # apk add (python3 for checksum/index tooling) needs root.
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  export RCLONE_CONFIG_S3_TYPE=s3
+                  export RCLONE_CONFIG_S3_PROVIDER=Ceph
+                  export RCLONE_CONFIG_S3_ENV_AUTH=false
+                  export RCLONE_CONFIG_S3_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
+                  export RCLONE_CONFIG_S3_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
+                  export RCLONE_CONFIG_S3_ENDPOINT="http://${BUCKET_HOST}:${BUCKET_PORT}"
+                  apk add --no-cache python3
+                  python3 /opt/tooling/compute_checksums.py /scratch/arch
+                  rclone copy /scratch/arch "s3:${BUCKET_NAME}/arch" --transfers=4 --checkers=8 --s3-no-check-bucket
+                  python3 /opt/tooling/generate_index.py
+                  rclone copy /tmp/rendered-index "s3:${BUCKET_NAME}" --s3-no-check-bucket
+              envFrom:
+                - configMapRef:
+                    name: distro-mirror
+                - secretRef:
+                    name: distro-mirror
+              volumeMounts:
+                - name: scratch
+                  mountPath: /scratch
+                - name: tooling
+                  mountPath: /opt/tooling
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                  ephemeral-storage: 256Mi
+                limits:
+                  cpu: "1"
+                  memory: 1Gi
+                  # Must comfortably exceed the "scratch" emptyDir's own
+                  # sizeLimit below: kubelet counts a mounted emptyDir's
+                  # usage against the container's ephemeral-storage limit
+                  # too, on top of the volume's own limit.
+                  ephemeral-storage: 3Gi
+          volumes:
+            - name: scratch
+              emptyDir:
+                sizeLimit: 2Gi
+            - name: tooling
+              configMap:
+                name: distro-mirror-tooling
