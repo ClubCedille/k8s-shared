@@ -232,6 +232,13 @@ redis:
       enabled: true
       runAsUser: 10000
       runAsGroup: 10000
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 512Mi
   replica:
     persistence:
       enabled: false
