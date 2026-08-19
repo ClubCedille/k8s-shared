@@ -66,9 +66,9 @@ spec:
           containers:
             - name: push-to-bucket
               image: rclone/rclone:1.68.2
+              # apk add (to install python3 for the index generator) needs
+              # root, so this can't run as non-root like the other containers.
               securityContext:
-                runAsNonRoot: true
-                runAsUser: 65534
                 allowPrivilegeEscalation: false
                 capabilities:
                   drop: ["ALL"]
@@ -87,13 +87,13 @@ spec:
                   # bucket but not head/create buckets, which is what rclone
                   # tries by default before the first upload.
                   rclone copy /scratch/ubuntu "s3:${BUCKET_NAME}/ubuntu" --transfers=4 --checkers=8 --s3-no-check-bucket
-                  {
-                    echo "<html><body><h1>ubuntu/amd64</h1><ul>"
-                    rclone lsf "s3:${BUCKET_NAME}/ubuntu/amd64" -R --files-only --s3-no-check-bucket \
-                      | sed 's#.*#<li><a href="/ubuntu/amd64/&">&</a></li>#'
-                    echo "</ul></body></html>"
-                  } > /tmp/index.html
-                  rclone copyto /tmp/index.html "s3:${BUCKET_NAME}/ubuntu/amd64/index.html" --s3-no-check-bucket
+
+                  # Regenerate the styled, hierarchical index.html pages for
+                  # the whole bucket (not just this distro's subtree) -- see
+                  # ../../style/generate_index.py.
+                  apk add --no-cache python3
+                  python3 /opt/generator/generate_index.py
+                  rclone copy /tmp/rendered-index "s3:${BUCKET_NAME}" --s3-no-check-bucket
               envFrom:
                 - configMapRef:
                     name: distro-mirror
@@ -102,6 +102,8 @@ spec:
               volumeMounts:
                 - name: scratch
                   mountPath: /scratch
+                - name: index-generator
+                  mountPath: /opt/generator
               resources:
                 requests:
                   cpu: 100m
@@ -113,3 +115,6 @@ spec:
             - name: scratch
               emptyDir:
                 sizeLimit: 10Gi
+            - name: index-generator
+              configMap:
+                name: distro-mirror-index-generator
