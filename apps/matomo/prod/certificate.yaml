@@ -5,7 +5,7 @@ metadata:
 spec:
   secretName: matomo-tls
   issuerRef:
-    name: letsencrypt-etsmtl
+    name: letsencrypt-http
     kind: ClusterIssuer
   commonName: matomo.etsmtl.club
   dnsNames:
