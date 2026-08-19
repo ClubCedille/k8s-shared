@@ -90,7 +90,7 @@ spec:
               command:
                 - sh
                 - -c
-                - mariadb-admin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD"
+                - "[ -S /run/mysqld/mysqld.sock ]"
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
