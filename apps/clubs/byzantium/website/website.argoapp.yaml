@@ -14,7 +14,7 @@ spec:
     namespace: byzantium-website
   source:
     repoURL: https://github.com/ClubCedille/k8s-shared
-    path: apps/clubs/byzantium/etsblockchain/prod
+    path: apps/clubs/byzantium/website/prod
     targetRevision: HEAD
   syncPolicy:
     syncOptions:
