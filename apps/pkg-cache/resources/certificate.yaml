@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: pkg-cache-tls
+spec:
+  secretName: pkg-cache-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: apt-cache.pkg.etsmtl.club
+  dnsNames:
+    - apt-cache.pkg.etsmtl.club

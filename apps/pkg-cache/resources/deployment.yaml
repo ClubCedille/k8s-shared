@@ -1,0 +1,136 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apt-cacher-ng
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: apt-cacher-ng
+  template:
+    metadata:
+      labels:
+        app: apt-cacher-ng
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: apt-cacher-ng
+          image: mbentley/apt-cacher-ng:bullseye-20260806
+          imagePullPolicy: Always
+          # Not exposed via the Service -- only reachable from the nginx
+          # sidecar over localhost. BasicAuth lives entirely in nginx since
+          # apt-cacher-ng has no native HTTP auth suited to reverse-mirror use.
+          #
+          # PUID/PGID=0 (root) is required by this image's entrypoint: it
+          # chowns the cache volume then gosu-drops to PUID/PGID, which needs
+          # root to begin with. Setting a non-zero PUID here without also
+          # pre-chowning the PVC out-of-band just breaks startup (confirmed
+          # this is a gosu-based image, not a straight non-root process), so
+          # runAsNonRoot/runAsUser are left off this container -- allowPrivilegeEscalation
+          # and RuntimeDefault seccomp are the hardening that doesn't conflict
+          # with that startup flow.
+          securityContext:
+            allowPrivilegeEscalation: false
+          ports:
+            - containerPort: 3142
+          env:
+            - name: TZ
+              value: America/Toronto
+            - name: PUID
+              value: "0"
+            - name: PGID
+              value: "0"
+          readinessProbe:
+            tcpSocket:
+              port: 3142
+            periodSeconds: 10
+            failureThreshold: 3
+          # Distinct from the readiness probe: this hits apt-cacher-ng's own
+          # report page (its Dockerfile HEALTHCHECK target) instead of just
+          # checking the socket accepts connections.
+          livenessProbe:
+            httpGet:
+              path: /acng-report.html
+              port: 3142
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 6
+          volumeMounts:
+            - name: cache
+              mountPath: /var/cache/apt-cacher-ng
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+              ephemeral-storage: 512Mi
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:1.27-alpine
+          imagePullPolicy: Always
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d
+            - name: nginx-auth
+              mountPath: /etc/nginx/auth
+              readOnly: true
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: run
+              mountPath: /var/run
+            - name: tmp
+              mountPath: /tmp
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi
+              ephemeral-storage: 128Mi
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: apt-cacher-ng-cache
+        - name: nginx-conf
+          configMap:
+            name: apt-cache-nginx
+        - name: nginx-auth
+          secret:
+            secretName: apt-cache-htpasswd
+        - name: nginx-cache
+          emptyDir: {}
+        - name: run
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
