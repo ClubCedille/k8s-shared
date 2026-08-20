@@ -48,8 +48,12 @@ spec:
               port: 9129
             periodSeconds: 10
             failureThreshold: 3
+          # Distinct from the readiness probe: hits pacoloco's Prometheus
+          # /metrics endpoint instead of just checking the socket accepts
+          # connections.
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /metrics
               port: 9129
             initialDelaySeconds: 15
             periodSeconds: 20
