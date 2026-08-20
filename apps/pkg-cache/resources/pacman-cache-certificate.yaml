@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: pacman-cache-tls
+spec:
+  secretName: pacman-cache-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: pacman-cache.pkg.etsmtl.club
+  dnsNames:
+    - pacman-cache.pkg.etsmtl.club

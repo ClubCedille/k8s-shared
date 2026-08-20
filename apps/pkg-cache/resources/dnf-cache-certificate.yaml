@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: dnf-cache-tls
+spec:
+  secretName: dnf-cache-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: dnf-cache.pkg.etsmtl.club
+  dnsNames:
+    - dnf-cache.pkg.etsmtl.club

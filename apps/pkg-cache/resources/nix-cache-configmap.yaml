@@ -1,0 +1,42 @@
+# nginx proxy_cache in front of cache.nixos.org. Long TTL is safe here --
+# unlike the other flavors, Nix store paths are content-addressed and
+# genuinely immutable once published, so a cached narinfo/nar never goes
+# stale the way an apt/dnf/pacman package index would.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nix-cache-nginx
+data:
+  default.conf: |
+    proxy_cache_path /var/cache/nginx/nix levels=1:2 keys_zone=nix:10m max_size=30g inactive=365d use_temp_path=off;
+
+    server {
+      listen 8080;
+
+      location = /healthz {
+        return 200 "ok\n";
+        add_header Content-Type text/plain;
+      }
+
+      location = /livez {
+        return 200 "ok\n";
+        add_header Content-Type text/plain;
+      }
+
+      location / {
+        auth_basic "nix-cache";
+        auth_basic_user_file /etc/nginx/auth/htpasswd;
+
+        proxy_cache nix;
+        proxy_cache_valid 200 365d;
+        proxy_cache_use_stale error timeout updating;
+        add_header X-Cache-Status $upstream_cache_status;
+
+        proxy_ssl_server_name on;
+        proxy_set_header Host cache.nixos.org;
+        proxy_pass https://cache.nixos.org;
+
+        proxy_read_timeout 4h;
+        proxy_send_timeout 4h;
+      }
+    }

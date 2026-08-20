@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: nix-cache-tls
+spec:
+  secretName: nix-cache-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: nix-cache.pkg.etsmtl.club
+  dnsNames:
+    - nix-cache.pkg.etsmtl.club
