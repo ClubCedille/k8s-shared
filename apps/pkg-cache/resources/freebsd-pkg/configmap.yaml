@@ -1,0 +1,42 @@
+# nginx proxy_cache in front of FreeBSD's official pkg CDN. Contour strips
+# the /freebsd prefix before this receives the request (see
+# mtls-httpproxy.yaml), so paths here match pkg.freebsd.org's own layout
+# directly (e.g. /FreeBSD:14:amd64/latest/...).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: freebsd-pkg-cache-nginx
+data:
+  default.conf: |
+    proxy_cache_path /var/cache/nginx/freebsd-pkg levels=1:2 keys_zone=freebsd_pkg:10m max_size=10g inactive=90d use_temp_path=off;
+
+    server {
+      listen 8080;
+
+      location = /healthz {
+        return 200 "ok\n";
+        add_header Content-Type text/plain;
+      }
+
+      location = /livez {
+        return 200 "ok\n";
+        add_header Content-Type text/plain;
+      }
+
+      location / {
+        auth_basic "freebsd-cache";
+        auth_basic_user_file /etc/nginx/auth/htpasswd;
+
+        proxy_cache freebsd_pkg;
+        proxy_cache_valid 200 90d;
+        proxy_cache_use_stale error timeout updating;
+        add_header X-Cache-Status $upstream_cache_status;
+
+        proxy_ssl_server_name on;
+        proxy_set_header Host pkg.freebsd.org;
+        proxy_pass https://pkg.freebsd.org;
+
+        proxy_read_timeout 4h;
+        proxy_send_timeout 4h;
+      }
+    }

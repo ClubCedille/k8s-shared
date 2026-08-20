@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: freebsd-cache-tls
+spec:
+  secretName: freebsd-cache-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: freebsd-cache.pkg.etsmtl.club
+  dnsNames:
+    - freebsd-cache.pkg.etsmtl.club

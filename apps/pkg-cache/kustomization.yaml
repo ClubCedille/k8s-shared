@@ -4,10 +4,38 @@ metadata:
   name: pkg-cache
   namespace: pkg-cache
 resources:
-  - resources/pvc.yaml
-  - resources/deployment.yaml
-  - resources/service.yaml
-  - resources/network-policy.yaml
-  - resources/certificate.yaml
-  - resources/nginx-configmap.yaml
-  - resources/httpproxy.yaml
+  - resources/apt/pvc.yaml
+  - resources/apt/deployment.yaml
+  - resources/apt/service.yaml
+  - resources/apt/network-policy.yaml
+  - resources/apt/certificate.yaml
+  - resources/apt/configmap.yaml
+  - resources/apt/httpproxy.yaml
+  - resources/dnf/pvc.yaml
+  - resources/dnf/configmap.yaml
+  - resources/dnf/deployment.yaml
+  - resources/dnf/service.yaml
+  - resources/dnf/network-policy.yaml
+  - resources/dnf/certificate.yaml
+  - resources/dnf/httpproxy.yaml
+  - resources/pacman/pvc.yaml
+  - resources/pacman/configmap.yaml
+  - resources/pacman/deployment.yaml
+  - resources/pacman/service.yaml
+  - resources/pacman/network-policy.yaml
+  - resources/pacman/certificate.yaml
+  - resources/pacman/httpproxy.yaml
+  - resources/freebsd-pkg/pvc.yaml
+  - resources/freebsd-pkg/configmap.yaml
+  - resources/freebsd-pkg/deployment.yaml
+  - resources/freebsd-pkg/service.yaml
+  - resources/freebsd-pkg/network-policy.yaml
+  - resources/freebsd-pkg/certificate.yaml
+  - resources/freebsd-pkg/httpproxy.yaml
+  - resources/nix/pvc.yaml
+  - resources/nix/configmap.yaml
+  - resources/nix/deployment.yaml
+  - resources/nix/service.yaml
+  - resources/nix/network-policy.yaml
+  - resources/nix/certificate.yaml
+  - resources/nix/httpproxy.yaml

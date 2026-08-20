@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: nix-cache
+spec:
+  podSelector:
+    matchLabels:
+      app: nix-cache
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - port: 8080
+          protocol: TCP

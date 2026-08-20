@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pacman-cache
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: pacman-cache
+  template:
+    metadata:
+      labels:
+        app: pacman-cache
+    spec:
+      securityContext:
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: pacoloco
+          image: ghcr.io/anatol/pacoloco:1.9
+          imagePullPolicy: Always
+          # Not exposed via the Service -- only reachable from the nginx
+          # sidecar over localhost, same reason as apt-cacher-ng.
+          # Runs as uid/gid 65532 by default (upstream image), no root
+          # privilege drop needed unlike apt-cacher-ng.
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - containerPort: 9129
+          volumeMounts:
+            - name: config
+              mountPath: /etc/pacoloco.yaml
+              subPath: pacoloco.yaml
+              readOnly: true
+            - name: cache
+              mountPath: /var/cache/pacoloco
+          readinessProbe:
+            tcpSocket:
+              port: 9129
+            periodSeconds: 10
+            failureThreshold: 3
+          # Distinct from the readiness probe: hits pacoloco's Prometheus
+          # /metrics endpoint instead of just checking the socket accepts
+          # connections.
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 9129
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+              ephemeral-storage: 512Mi
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:1.27-alpine
+          imagePullPolicy: Always
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d
+            - name: nginx-auth
+              mountPath: /etc/nginx/auth
+              readOnly: true
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: run
+              mountPath: /var/run
+            - name: tmp
+              mountPath: /tmp
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi
+              ephemeral-storage: 128Mi
+      volumes:
+        - name: config
+          configMap:
+            name: pacman-cache-config
+        - name: cache
+          persistentVolumeClaim:
+            claimName: pacman-cache
+        - name: nginx-conf
+          configMap:
+            name: pacman-cache-nginx
+        - name: nginx-auth
+          secret:
+            secretName: pacman-cache-htpasswd
+        - name: nginx-cache
+          emptyDir: {}
+        - name: run
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}

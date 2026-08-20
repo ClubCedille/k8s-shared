@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: freebsd-pkg-cache
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: freebsd-pkg-cache
+  template:
+    metadata:
+      labels:
+        app: freebsd-pkg-cache
+    spec:
+      securityContext:
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:1.27-alpine
+          imagePullPolicy: Always
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d
+            - name: nginx-auth
+              mountPath: /etc/nginx/auth
+              readOnly: true
+            - name: cache
+              mountPath: /var/cache/nginx
+            - name: run
+              mountPath: /var/run
+            - name: tmp
+              mountPath: /tmp
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+              ephemeral-storage: 512Mi
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: freebsd-pkg-cache-nginx
+        - name: nginx-auth
+          secret:
+            secretName: freebsd-cache-htpasswd
+        - name: cache
+          persistentVolumeClaim:
+            claimName: freebsd-pkg-cache
+        - name: run
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
