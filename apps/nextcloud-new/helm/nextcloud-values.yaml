@@ -79,7 +79,12 @@ nextcloud:
       $CONFIG = array (
         'log_type' => 'errorlog',
         'logfile' => '/dev/stdout',
-        'loglevel' => 0,
+        # loglevel 0 (debug) makes every WebDAV request (PROPFIND/PUT/MKCOL) emit
+        # full-stack-trace JSON log entries for internal deprecation warnings
+        # (user_oidc lazy AppConfig, IServerContainer alias) and filecache "dirty
+        # table reads" notices. Observed adding multiple seconds of overhead per
+        # request during the group folder migration sync. 2 = warning.
+        'loglevel' => 2,
         'logdateformat' => 'F d, Y H:i:s'
         );
   ## PHP Configuration files
