@@ -23,3 +23,29 @@ spec:
                 name: byzantium-website-svc
                 port:
                   number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: byzantium-website-ets
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-http
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/tls-acme: "true"
+spec:
+  ingressClassName: contour
+  tls:
+    - secretName: byzantium-website-ets-tls
+      hosts:
+        - blockchain.etsmtl.ca
+  rules:
+    - host: blockchain.etsmtl.ca
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: byzantium-website-svc
+                port:
+                  number: 80
