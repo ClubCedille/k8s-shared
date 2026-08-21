@@ -92,6 +92,14 @@ nextcloud:
   phpConfigs:
     zz-memory_limit.ini: |-
       memory_limit=1G
+    # PHP's 60s default was truncating the S3 multipart upload stream while
+    # finalizing large (multi-GB) chunked uploads under load, surfacing as a
+    # misleading Sabre\DAV\Exception\Forbidden 403 on the WebDAV MOVE request
+    # (root cause: RuntimeException "Unable to read from stream" during
+    # Aws\S3\MultipartUploader::createPart) during the group folder migration
+    # sync.
+    zz-socket-timeout.ini: |-
+      default_socket_timeout=300
     apc.ini: |-
       apc.enable_cli=1
       apc.shm_segments=1
