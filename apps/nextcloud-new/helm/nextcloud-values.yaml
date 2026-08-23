@@ -48,6 +48,12 @@ nextcloud:
   datadir: /var/www/html/data
   persistence:
     subPath:
+  # Set securityContext parameters for the entire pod.
+  podSecurityContext:
+    fsGroup: 33
+    # Avoid a full recursive chown of the CephFS RWX volume on every pod
+    # (re)start - only fix ownership if the root dir doesn't already match.
+    fsGroupChangePolicy: OnRootMismatch
   # Accept both hostnames during the migration/validation window — remove
   # new-nextcloud.etsmtl.club once the domain swap (see plan) is complete.
   trustedDomains:
