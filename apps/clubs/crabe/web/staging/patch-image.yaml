@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp-crabe
+spec:
+  selector:
+    matchLabels:
+      app: webapp-crabe
+  template:
+    spec:
+      containers:
+        - name: webapp-crabe
+          image: ghcr.io/crabe-etsmtl/crabe-atelier:staging
