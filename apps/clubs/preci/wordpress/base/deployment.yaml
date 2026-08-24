@@ -34,19 +34,22 @@ spec:
             - name: http
               containerPort: 80
           startupProbe:
-            tcpSocket:
+            httpGet:
+              path: /wp-login.php
               port: http
             failureThreshold: 30
             periodSeconds: 10
           readinessProbe:
-            tcpSocket:
+            httpGet:
+              path: /wp-login.php
               port: http
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /wp-login.php
               port: http
             initialDelaySeconds: 60
             periodSeconds: 30
