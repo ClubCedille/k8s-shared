@@ -177,14 +177,17 @@ spec:
                   # sizeLimit below: kubelet counts a mounted emptyDir's
                   # usage against the container's ephemeral-storage limit
                   # too, on top of the volume's own limit.
-                  ephemeral-storage: 15Gi
+                  ephemeral-storage: 24Gi
           volumes:
             - name: scratch
               emptyDir:
-                # 2 Server ISOs (~2.5-2.7GB each) + 2 Workstation Live ISOs
-                # (~2.7GB each) + 2 Cloud images (~600MB each) is ~11.8GB
-                # actual; leave headroom.
-                sizeLimit: 13Gi
+                # First real run measured actual sizes, larger than the
+                # original estimate: 2 Server ISOs (~3.25GB + ~3.65GB) + 2
+                # Workstation Live ISOs (~2.7GB each) + 2 Cloud images
+                # (~600MB each) is ~13.5GB actual -- the old 13Gi sizeLimit
+                # got the fetch-desktop-isos container evicted mid-download.
+                # Leave real headroom this time.
+                sizeLimit: 20Gi
             - name: tooling
               configMap:
                 name: distro-mirror-tooling
