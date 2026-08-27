@@ -4,6 +4,12 @@
 # point-fetching individual release ISOs, so this is HTTPS-only. Build
 # numbers in filenames (e.g. -43-1.6.iso) aren't predictable, so each fetch
 # scrapes the directory listing for the exact current filename first.
+#
+# Desktop (Workstation) Live ISO lands in the same isos/<rel>/ dir as the
+# Server ISO -- filenames disambiguate. Note the Workstation filename orders
+# arch differently than Server's: Fedora-Workstation-Live-<rel>-<build>.x86_64.iso
+# vs Fedora-Server-dvd-x86_64-<rel>-<build>.iso -- verified against the live
+# mirror, not guessed.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -40,6 +46,39 @@ spec:
                     mkdir -p "/scratch/fedora/amd64/isos/${rel}"
                     listing=$(curl -fsSL "$dir")
                     fname=$(printf '%s' "$listing" | grep -oE "Fedora-Server-dvd-x86_64-${rel}-[0-9.]+\.iso" | head -1)
+                    curl -fsSL -o "/scratch/fedora/amd64/isos/${rel}/${fname}" "${dir}${fname}"
+                  done
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - name: scratch
+                  mountPath: /scratch
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                  ephemeral-storage: 128Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+                  ephemeral-storage: 512Mi
+            - name: fetch-desktop-isos
+              image: alpine:3.20
+              imagePullPolicy: Always
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  apk add --no-cache curl grep
+                  base="https://fedora.mirrorservice.org/fedora/linux/releases"
+                  for rel in 43 44; do
+                    dir="${base}/${rel}/Workstation/x86_64/iso/"
+                    mkdir -p "/scratch/fedora/amd64/isos/${rel}"
+                    listing=$(curl -fsSL "$dir")
+                    fname=$(printf '%s' "$listing" | grep -oE "Fedora-Workstation-Live-${rel}-[0-9.]+\.x86_64\.iso" | head -1)
                     curl -fsSL -o "/scratch/fedora/amd64/isos/${rel}/${fname}" "${dir}${fname}"
                   done
               securityContext:
@@ -138,13 +177,14 @@ spec:
                   # sizeLimit below: kubelet counts a mounted emptyDir's
                   # usage against the container's ephemeral-storage limit
                   # too, on top of the volume's own limit.
-                  ephemeral-storage: 9Gi
+                  ephemeral-storage: 15Gi
           volumes:
             - name: scratch
               emptyDir:
-                # 2 Server ISOs (~2.5-2.7GB each) + 2 Cloud images
-                # (~600MB each) is ~6.4GB actual; leave headroom.
-                sizeLimit: 8Gi
+                # 2 Server ISOs (~2.5-2.7GB each) + 2 Workstation Live ISOs
+                # (~2.7GB each) + 2 Cloud images (~600MB each) is ~11.8GB
+                # actual; leave headroom.
+                sizeLimit: 13Gi
             - name: tooling
               configMap:
                 name: distro-mirror-tooling
