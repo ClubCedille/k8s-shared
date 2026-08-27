@@ -212,6 +212,22 @@ nextcloud:
         secretKeyRef:
           name: nextcloud-garage-credentials
           key: nextcloud_s3_secret
+
+  extraVolumeMounts:
+    - name: job-files
+      mountPath: /nextcloud-setup.bash
+      subPath: nextcloud-setup.bash
+    - name: job-files
+      mountPath: /nextcloud-external-sites.yaml
+      subPath: nextcloud-external-sites.yaml
+    - name: job-files
+      mountPath: /clubs.yaml
+      subPath: clubs.yaml
+  extraVolumes:
+    - name: job-files
+      configMap:
+        name: nextcloud-setup-job
+
 internalDatabase:
   enabled: false
 ##
