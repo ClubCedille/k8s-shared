@@ -46,11 +46,19 @@ spec:
                     mkdir -p "/scratch/ubuntu/amd64/isos/${rel}"
                     # -L dereferences symlinks: release ISOs are published as
                     # symlinks to the latest point release, not regular files.
+                    # Superseded point releases sometimes linger as dangling
+                    # symlinks (target already pruned upstream) alongside the
+                    # current one -- e.g. observed ubuntu-24.04.3-desktop-amd64.iso
+                    # dangling next to a working 24.04.4 desktop symlink. rsync
+                    # exits 23 ("partial transfer") for those but still
+                    # transfers everything resolvable, so don't let that exit
+                    # code abort the sync -- only fail on other/worse errors.
                     rsync -rLt \
                       --include="*live-server*amd64.iso" \
                       --include="*desktop*amd64.iso" \
                       --exclude="*" \
-                      "rsync://rsync.releases.ubuntu.com/releases/${rel}/" "/scratch/ubuntu/amd64/isos/${rel}/"
+                      "rsync://rsync.releases.ubuntu.com/releases/${rel}/" "/scratch/ubuntu/amd64/isos/${rel}/" \
+                      || { rc=$?; [ "$rc" -eq 23 ] || exit "$rc"; }
                   done
               securityContext:
                 allowPrivilegeEscalation: false
