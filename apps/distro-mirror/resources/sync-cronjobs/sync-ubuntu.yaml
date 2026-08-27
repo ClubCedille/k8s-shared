@@ -173,13 +173,24 @@ spec:
                   # too, on top of the volume's own limit -- learned the
                   # hard way via a real "Pod ephemeral local storage usage
                   # exceeds the total limit of containers" eviction.
-                  ephemeral-storage: 36Gi
+                  ephemeral-storage: 56Gi
           volumes:
             - name: scratch
               emptyDir:
-                # 3 server ISOs (~1.4-3.2GB) + 3 desktop ISOs (~4.7-6.2GB)
-                # + 3 cloud images (~600MB) is ~27GB actual; leave headroom.
-                sizeLimit: 32Gi
+                # Actual usage varies more than server-ISO-only sizing
+                # suggested: upstream sometimes keeps two point-release
+                # symlinks live per version during a transition window (e.g.
+                # observed 24.04.3 + 24.04.4 live-server, and 26.04 + 26.04.1
+                # for both flavors simultaneously) -- the include globs match
+                # every non-dangling symlink, not just the newest, so those
+                # windows roughly double that release's footprint. Measured
+                # worst case across all 3 releases: ~39GB of ISOs + ~2GB
+                # cloud images. Sized well above that; if upstream ever runs
+                # 3 overlapping point releases at once this may need another
+                # bump, but a real "latest wins" rewrite is the actual fix
+                # (fetch-isos would need a scrape-the-listing approach like
+                # sync-fedora's instead of a static rsync include glob).
+                sizeLimit: 50Gi
             - name: tooling
               configMap:
                 name: distro-mirror-tooling
