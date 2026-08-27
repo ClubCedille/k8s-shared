@@ -1,7 +1,10 @@
 # Pilot sync job (issue: Mirror: pilote distro-mirror Ubuntu end-to-end).
 # Currently-supported LTS releases only (22.04/24.04/26.04, amd64 server ISO
-# + cloud image), laid out per-version under isos/<ver>/ and
+# + desktop ISO + cloud image), laid out per-version under isos/<ver>/ and
 # cloud-images/<ver>/ so browsing mirrors the upstream release structure.
+# Server and desktop ISOs share the same isos/<ver>/ dir since upstream
+# publishes both directly under releases/<ver>/ with no per-flavor
+# subdirectory -- filenames alone (*live-server* vs *desktop*) disambiguate.
 # Full supported-release curation happens when this pattern is replicated to
 # the other distros.
 #
@@ -45,6 +48,7 @@ spec:
                     # symlinks to the latest point release, not regular files.
                     rsync -rLt \
                       --include="*live-server*amd64.iso" \
+                      --include="*desktop*amd64.iso" \
                       --exclude="*" \
                       "rsync://rsync.releases.ubuntu.com/releases/${rel}/" "/scratch/ubuntu/amd64/isos/${rel}/"
                   done
@@ -161,11 +165,13 @@ spec:
                   # too, on top of the volume's own limit -- learned the
                   # hard way via a real "Pod ephemeral local storage usage
                   # exceeds the total limit of containers" eviction.
-                  ephemeral-storage: 22Gi
+                  ephemeral-storage: 36Gi
           volumes:
             - name: scratch
               emptyDir:
-                sizeLimit: 20Gi
+                # 3 server ISOs (~1.4-3.2GB) + 3 desktop ISOs (~4.7-6.2GB)
+                # + 3 cloud images (~600MB) is ~27GB actual; leave headroom.
+                sizeLimit: 32Gi
             - name: tooling
               configMap:
                 name: distro-mirror-tooling
