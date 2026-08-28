@@ -309,11 +309,11 @@ resources:
   requests:
     memory: 10Gi
     cpu: 1500m
-    ephemeral-storage: 1Gi
+    ephemeral-storage: 2Gi
   limits:
     memory: 30Gi
     cpu: 5000m
-    ephemeral-storage: 5Gi
+    ephemeral-storage: 20Gi
 ## Liveness and readiness probe values
 livenessProbe:
   enabled: true
