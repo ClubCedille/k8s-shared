@@ -40,5 +40,3 @@ data:
       rm -rf "$PLUGINS_DIR/$plugin"
       cp -a "/tmp/plugin-src/$plugin" "$PLUGINS_DIR/"
     done < /opt/ctfd-plugins/plugins.txt
-
-    chown -R 1001:1001 "$PLUGINS_DIR"
