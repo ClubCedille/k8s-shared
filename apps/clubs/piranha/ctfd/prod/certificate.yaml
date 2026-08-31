@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ctfd-tls
+  namespace: ctfd
+spec:
+  secretName: ctfd-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: ing101.fraternitedupiranha.com
+  dnsNames:
+    - ing101.fraternitedupiranha.com

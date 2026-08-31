@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ctfd-plugins
+data:
+  # List of CTFd plugins to install, one per line.
+  # Format: <plugin-folder-name> <git-repo-url>
+  # The folder at the root of the repo matching <plugin-folder-name> is copied
+  # into CTFd's plugins directory. Lines starting with '#' are ignored.
+  plugins.txt: |
+    manual_verification https://github.com/0xc7m/ctfd-manual-verification.git
+
+  # Installs the plugins declared above into the shared plugins volume,
+  # keeping the stock plugins that ship with the CTFd image.
+  install-plugins.sh: |
+    #!/bin/sh
+    set -eu
+
+    PLUGINS_DIR=/plugins
+
+    while read -r plugin repo; do
+      # skip blank lines and comments
+      [ -z "${plugin:-}" ] && continue
+      case "$plugin" in \#*) continue ;; esac
+      [ -z "${repo:-}" ] && {
+        echo "ctfd-plugins: no repo for plugin '$plugin'" >&2
+        exit 1
+      }
+
+      echo "ctfd-plugins: installing '$plugin' from $repo"
+      rm -rf /tmp/plugin-src
+      git clone --depth 1 "$repo" /tmp/plugin-src
+      rm -rf /tmp/plugin-src/.git
+
+      if [ ! -d "/tmp/plugin-src/$plugin" ]; then
+        echo "ctfd-plugins: plugin dir '$plugin' not found in repo" >&2
+        exit 1
+      fi
+
+      rm -rf "$PLUGINS_DIR/$plugin"
+      cp -a "/tmp/plugin-src/$plugin" "$PLUGINS_DIR/"
+    done < /opt/ctfd-plugins/plugins.txt
+
+    chown -R 1001:1001 "$PLUGINS_DIR"
