@@ -1,0 +1,164 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ctfd
+  annotations:
+    kube-score/ignore: pod-networkpolicy, pod-probes-identical, container-security-context-readonlyrootfilesystem, container-security-context-user-group-id, pod-disruption-budget
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ctfd
+  template:
+    metadata:
+      labels:
+        app: ctfd
+      annotations:
+        backup.velero.io/backup-volumes: ctfd-storage
+
+    spec:
+      initContainers:
+        # Copy the stock plugins that ship with the CTFd image into the shared
+        # plugins volume so the configured plugins can be merged alongside them.
+        - name: copy-plugins
+          image: ctfd/ctfd:3.8.2
+          imagePullPolicy: Always
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              if [ ! -d /plugins/challenges ]; then
+                cp -a /opt/CTFd/CTFd/plugins/. /plugins/
+              fi
+          volumeMounts:
+            - name: plugins
+              mountPath: /plugins
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+              ephemeral-storage: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+              ephemeral-storage: 512Mi
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
+            allowPrivilegeEscalation: false
+
+        # Install the plugins listed in the ctfd-plugins ConfigMap into the
+        # shared plugins volume. See plugins-configmap.yaml for the list.
+        - name: install-plugins
+          image: alpine/git:1.0.22
+          imagePullPolicy: Always
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              sh /opt/ctfd-plugins/install-plugins.sh
+          volumeMounts:
+            - name: plugins
+              mountPath: /plugins
+            - name: ctfd-plugin-conf
+              mountPath: /opt/ctfd-plugins
+              readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+              ephemeral-storage: 1Gi
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+
+      containers:
+        - name: ctfd
+          image: ctfd/ctfd:3.8.2
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+
+          env:
+            - name: UPLOAD_FOLDER
+              value: "/var/uploads"
+            - name: LOG_FOLDER
+              value: "/var/log/CTFd"
+            - name: WORKERS
+              value: "4"
+            - name: REDIS_URL
+              value: "redis://redis.ctfd.svc.cluster.local:6379"
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ctfd-secret
+                  key: SECRET_KEY
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: MYSQL_PASSWORD
+                  name: ctfd-secret
+            - name: DATABASE_URL
+              value: mysql+pymysql://ctfd_user:$(DATABASE_PASSWORD)@mysql.ctfd.svc.cluster.local/ctfd
+
+          volumeMounts:
+            - name: uploads
+              mountPath: /var/uploads
+            - name: logs
+              mountPath: /var/log/CTFd
+            - name: plugins
+              mountPath: /opt/CTFd/CTFd/plugins
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 40
+            periodSeconds: 20
+            failureThreshold: 5
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 40
+            periodSeconds: 20
+            failureThreshold: 5
+
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+              ephemeral-storage: 1Gi
+
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
+            fsGroup: 1001
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: ctfd-uploads-pvc
+        - name: logs
+          persistentVolumeClaim:
+            claimName: ctfd-logs-pvc
+        - name: plugins
+          emptyDir: {}
+        - name: ctfd-plugin-conf
+          configMap:
+            name: ctfd-plugins
