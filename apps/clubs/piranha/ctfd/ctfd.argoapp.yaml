@@ -8,7 +8,7 @@ metadata:
 spec:
   destination:
     server: https://kubernetes.default.svc
-    namespace: ctfd
+    namespace: piranha-ctfd
   project: k8s-shared
   source:
     repoURL: https://github.com/ClubCedille/k8s-shared.git
