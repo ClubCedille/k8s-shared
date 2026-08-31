@@ -19,7 +19,7 @@ spec:
 apiVersion: projectcontour.io/v1
 kind: HTTPProxy
 metadata:
-  name: ctfd-httpproxy
+  name: cedille-ctfd-httpproxy
 spec:
   virtualhost:
     fqdn: ing101.piranha.cedille.club
