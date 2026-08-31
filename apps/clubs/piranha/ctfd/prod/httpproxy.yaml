@@ -24,7 +24,7 @@ spec:
   virtualhost:
     fqdn: ing101.piranha.cedille.club
     tls:
-      secretName: -ctfd-tls
+      secretName: cedille-ctfd-tls
       minimumProtocolVersion: "1.3"
   routes:
     - conditions:
