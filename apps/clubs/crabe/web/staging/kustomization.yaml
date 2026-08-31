@@ -24,3 +24,51 @@ patches:
               name: webapp-crabe-env
           - secretRef:
               name: webapp-crabe-secrets
+  - target:
+      kind: Deployment
+      name: webapp-crabe
+    patch: |
+      - op: add
+        path: /spec/template/spec/initContainers
+        value:
+          - name: fix-storage-perms
+            image: ghcr.io/crabe-etsmtl/crabe-atelier:staging
+            imagePullPolicy: Always
+            command:
+              - sh
+              - -c
+              - chown -R 10001:10001 /var/www/storage
+            securityContext:
+              runAsUser: 0
+              runAsGroup: 0
+            volumeMounts:
+              - name: storage
+                mountPath: /var/www/storage
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                cpu: 100m
+                memory: 128Mi
+      - op: add
+        path: /spec/template/spec/volumes
+        value:
+          - name: storage
+            emptyDir: {}
+      - op: add
+        path: /spec/template/spec/containers/0/volumeMounts
+        value:
+          - name: storage
+            mountPath: /var/www/storage
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+            ephemeral-storage: 1Gi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+            ephemeral-storage: 256Mi
