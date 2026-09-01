@@ -37,7 +37,14 @@ patches:
             command:
               - sh
               - -c
-              - chown -R 10001:10001 /var/www/storage
+              - >-
+                mkdir -p
+                /var/www/storage/framework/sessions
+                /var/www/storage/framework/views
+                /var/www/storage/framework/cache/data
+                /var/www/storage/logs
+                &&
+                chown -R 10001:10001 /var/www/storage
             securityContext:
               runAsUser: 0
               runAsGroup: 0
