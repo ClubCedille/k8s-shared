@@ -2,7 +2,6 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: frat-ctfd-tls
-  namespace: ctfd
 spec:
   secretName: frat-ctfd-tls
   issuerRef:
@@ -15,13 +14,12 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: cedille-ctfd-tls
-  namespace: ctfd
+  name: ets-ctfd-tls
 spec:
-  secretName: cedille-ctfd-tls
+  secretName: ets-ctfd-tls
   issuerRef:
-    name: letsencrypt-http
+    name: letsencrypt-etsmtl
     kind: ClusterIssuer
-  commonName: ing101.piranha.cedille.club
+  commonName: ing101.etsmtl.club
   dnsNames:
-    - ing101.piranha.cedille.club
+    - ing101.etsmtl.club
