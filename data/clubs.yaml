@@ -26,3 +26,5 @@
   quota: 1000
 - name: eclipse
   quota: 8000
+- name: canoe
+  quota: 1000

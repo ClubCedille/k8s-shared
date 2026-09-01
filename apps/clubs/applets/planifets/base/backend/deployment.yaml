@@ -107,7 +107,7 @@ spec:
               ephemeral-storage: 256Mi
             limits:
               cpu: 2000m
-              memory: 1Gi
+              memory: 2Gi
               ephemeral-storage: 1Gi
           securityContext:
             runAsUser: 10001
