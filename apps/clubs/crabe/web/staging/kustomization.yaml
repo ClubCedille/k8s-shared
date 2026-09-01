@@ -72,3 +72,27 @@ patches:
             cpu: 100m
             memory: 256Mi
             ephemeral-storage: 256Mi
+  - target:
+      kind: Deployment
+      name: webapp-crabe
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/ports/0/containerPort
+        value: 8000
+      - op: replace
+        path: /spec/template/spec/containers/0/readinessProbe/httpGet/port
+        value: 8000
+  - target:
+      kind: Service
+      name: crabe-svc
+    patch: |
+      - op: replace
+        path: /spec/ports/0/port
+        value: 8000
+  - target:
+      kind: Ingress
+      name: staging-crabe-ingress
+    patch: |
+      - op: replace
+        path: /spec/rules/0/http/paths/0/backend/service/port/number
+        value: 8000
