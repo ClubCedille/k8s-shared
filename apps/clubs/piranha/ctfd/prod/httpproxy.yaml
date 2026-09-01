@@ -19,12 +19,12 @@ spec:
 apiVersion: projectcontour.io/v1
 kind: HTTPProxy
 metadata:
-  name: cedille-ctfd-httpproxy
+  name: ets-ctfd-httpproxy
 spec:
   virtualhost:
-    fqdn: ing101.piranha.cedille.club
+    fqdn: ing101.etsmtl.club
     tls:
-      secretName: cedille-ctfd-tls
+      secretName: ets-ctfd-tls
       minimumProtocolVersion: "1.3"
   routes:
     - conditions:
