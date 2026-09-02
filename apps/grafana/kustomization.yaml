@@ -8,6 +8,23 @@ resources:
   - resources/httpproxy.yaml
   - resources/postgres.yaml
   - resources/vault.yaml
+  - resources/dashboards/infra-overview.yaml
+  - resources/dashboards/infra-pve-nodes.yaml
+  - resources/dashboards/infra-pve-cluster.yaml
+  - resources/dashboards/infra-ceph.yaml
+  - resources/dashboards/infra-ipmi.yaml
+  - resources/dashboards/infra-network.yaml
+  - resources/dashboards/infra-nas.yaml
+  - resources/dashboards/infra-blackbox.yaml
+  - resources/dashboards/infra-smart.yaml
+  - resources/dashboards/infra-logs-overview.yaml
+  - resources/dashboards/infra-logs-pve.yaml
+  - resources/dashboards/infra-logs-nas.yaml
+  - resources/dashboards/infra-logs-ceph.yaml
+  - resources/dashboards/infra-logs-system.yaml
+  - resources/dashboards/infra-logs-switch.yaml
+  - resources/dashboards/summercamp-infra.yaml
+  - resources/dashboards/summercamp-challenges.yaml
 helmCharts:
   - name: grafana
     version: "10.5.15"
