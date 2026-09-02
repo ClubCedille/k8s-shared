@@ -19,7 +19,7 @@ spec:
   vaultAuthRef: grafana-auth
   type: kv-v1
   mount: kv
-  path: data/grafana/default/grafana-oidc-secret
+  path: data/monitoring/default/grafana-oidc-secret
   destination:
     name: grafana-oidc-secret
     create: true

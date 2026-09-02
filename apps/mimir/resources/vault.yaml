@@ -23,7 +23,7 @@ spec:
   vaultAuthRef: mimir-auth
   type: kv-v1
   mount: kv
-  path: data/monitoring/mimir-push-htpasswd
+  path: data/monitoring/default/mimir-push-htpasswd
   destination:
     name: mimir-push-htpasswd
     create: true

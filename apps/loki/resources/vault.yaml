@@ -23,7 +23,7 @@ spec:
   vaultAuthRef: loki-auth
   type: kv-v1
   mount: kv
-  path: data/monitoring/loki-push-htpasswd
+  path: data/monitoring/default/loki-push-htpasswd
   destination:
     name: loki-push-htpasswd
     create: true
