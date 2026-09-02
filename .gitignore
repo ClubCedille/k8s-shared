@@ -9,3 +9,4 @@
 *.secret
 *.tfvars
 *.terraform.lock.hcl
+.htpasswd-*

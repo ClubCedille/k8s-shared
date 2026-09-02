@@ -1,0 +1,29 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: mimir-auth
+spec:
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    audiences:
+      - vault
+    role: secret-reader
+    serviceAccount: default
+---
+# Populated by terraform/monitoring/push-auth-vault (username/password for
+# Prometheus remote_write, plus a precomputed apr1 htpasswd line consumed
+# directly by gateway.nginx.basicAuth.existingSecret below -- see that
+# module for why the hash is computed in Terraform rather than in-cluster.
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: mimir-push-htpasswd
+spec:
+  vaultAuthRef: mimir-auth
+  type: kv-v1
+  mount: kv
+  path: data/monitoring/mimir-push-htpasswd
+  destination:
+    name: mimir-push-htpasswd
+    create: true

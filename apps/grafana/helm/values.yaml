@@ -1,0 +1,86 @@
+# Centralized Grafana for the monitoring stack -- see the Grafana/Mimir/
+# Loki plan (Plateforme-Cedille#654 phase 2). Queries Mimir and Loki
+# in-cluster via Service DNS (both are provisioned as datasources below);
+# neither of their read paths is exposed externally.
+
+replicas: 1
+
+persistence:
+  enabled: false
+
+env:
+  GF_DATABASE_TYPE: postgres
+  GF_DATABASE_HOST: postgresql-grafana-rw.monitoring.svc.cluster.local:5432
+  GF_DATABASE_NAME: grafana
+  GF_DATABASE_SSL_MODE: disable
+
+envValueFrom:
+  GF_DATABASE_USER:
+    secretKeyRef:
+      name: grafana-pg-app
+      key: username
+  GF_DATABASE_PASSWORD:
+    secretKeyRef:
+      name: grafana-pg-app
+      key: password
+  # OIDC (Authentik) -- see terraform/grafana/authentik-vault. Grafana reads
+  # any grafana.ini value from GF_<SECTION>_<KEY> env vars, which keeps the
+  # client secret out of this values.yaml.
+  GF_AUTH_GENERIC_OAUTH_CLIENT_ID:
+    secretKeyRef:
+      name: grafana-oidc-secret
+      key: OIDC_CLIENT_ID
+  GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET:
+    secretKeyRef:
+      name: grafana-oidc-secret
+      key: OIDC_CLIENT_SECRET
+
+grafana.ini:
+  server:
+    domain: grafana.etsmtl.club
+    root_url: "https://grafana.etsmtl.club"
+  auth.generic_oauth:
+    enabled: true
+    name: Authentik
+    allow_sign_up: true
+    scopes: "openid email profile"
+    auth_url: "https://auth.etsmtl.club/application/o/authorize/"
+    token_url: "https://auth.etsmtl.club/application/o/token/"
+    api_url: "https://auth.etsmtl.club/application/o/userinfo/"
+    signout_redirect_url: "https://auth.etsmtl.club/application/o/grafana/end-session/"
+    login_attribute_path: preferred_username
+    # New OAuth sign-ups land as Viewer by default (Grafana's normal OAuth
+    # default) -- promote the first admin manually via the local admin
+    # account (admin/admin, see chart default adminUser/adminPassword)
+    # before disabling the login form. Left enabled here so that account
+    # stays reachable during initial setup.
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      # Both datasources bypass their app's nginx gateway (mimir-gateway /
+      # loki-gateway) entirely and hit the backend Service directly --
+      # those gateways only exist to BasicAuth-protect the externally
+      # exposed push path (see apps/mimir and apps/loki httpproxy.yaml).
+      # The query-frontend/single-binary Services below have no external
+      # exposure and no auth, per the plan's "aucune exposition de leur API
+      # de lecture n'est nécessaire".
+      - name: Mimir
+        type: prometheus
+        access: proxy
+        url: http://mimir-query-frontend.monitoring.svc.cluster.local:8080/prometheus
+        isDefault: true
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki.monitoring.svc.cluster.local:3100
+
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    labelValue: "1"
+    folder: /tmp/dashboards
+    provider:
+      foldersFromFilesStructure: true

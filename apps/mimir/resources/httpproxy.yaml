@@ -1,0 +1,20 @@
+# Only the remote_write push path is exposed externally -- Grafana reads
+# Mimir in-cluster via Service DNS (mimir-query-frontend), so no read-path
+# route is needed here. BasicAuth is enforced by the chart's own nginx
+# gateway (see helm/values.yaml gateway.nginx.basicAuth), not by Contour.
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: mimir
+spec:
+  virtualhost:
+    fqdn: mimir.etsmtl.club
+    tls:
+      secretName: mimir-tls
+      minimumProtocolVersion: "1.3"
+  routes:
+    - conditions:
+        - prefix: /api/v1/push
+      services:
+        - name: mimir-gateway
+          port: 80

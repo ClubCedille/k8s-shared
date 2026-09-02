@@ -1,0 +1,113 @@
+# Mimir single-tenant, long-term metrics storage for the centralized
+# monitoring stack -- see the Grafana/Mimir/Loki plan (Plateforme-Cedille#654
+# phase 2). Only the write path (gateway -> distributor, routed at
+# mimir.etsmtl.club/api/v1/push) is exposed externally; Grafana queries this
+# in-cluster via the mimir-query-frontend Service, so no read-path routing
+# is configured here.
+#
+# Sized for a small single-source deployment (Prometheus remote_write from
+# one VM, ~1 replica per component where the chart allows it) rather than
+# the chart's HA defaults -- revisit if/when more clusters remote_write here.
+
+minio:
+  enabled: false
+
+# Ingest-storage (Kafka-backed) architecture is opt-in machinery for HA/
+# multi-zone setups -- chart defaults it to enabled, which stands up a
+# whole Kafka StatefulSet we don't need for a single small source.
+kafka:
+  enabled: false
+
+mimir:
+  structuredConfig:
+    common:
+      # Default (unset) is 3, which requires 3 live ingesters to accept a
+      # write -- with only 1 ingester replica below, writes would fail
+      # outright ("at least 2 live replicas required, could only find 1").
+      replication_factor: 1
+      storage:
+        backend: s3
+        s3:
+          bucket_name: "${BUCKET_NAME}"
+          endpoint: "${BUCKET_HOST}:${BUCKET_PORT}"
+          access_key_id: "${AWS_ACCESS_KEY_ID}"
+          secret_access_key: "${AWS_SECRET_ACCESS_KEY}"
+    limits:
+      # Single small source for now -- default ingestion-rate limits are
+      # tuned for multi-tenant/HA scale and reject a normal node_exporter
+      # fleet's scrape volume well before it gets anywhere close.
+      ingestion_rate: 100000
+      ingestion_burst_size: 200000
+
+# Every component that loads mimir.config needs -config.expand-env=true to
+# resolve the ${BUCKET_*}/${AWS_*} placeholders above from the OBC-provided
+# env vars (see global.extraEnvFrom).
+distributor:
+  extraArgs:
+    config.expand-env: "true"
+querier:
+  extraArgs:
+    config.expand-env: "true"
+query_frontend:
+  extraArgs:
+    config.expand-env: "true"
+query_scheduler:
+  extraArgs:
+    config.expand-env: "true"
+store_gateway:
+  extraArgs:
+    config.expand-env: "true"
+  persistentVolume:
+    storageClass: ceph-rbd
+  # Zone-aware replication is on by default and splits `replicas` across 3
+  # separate zone-a/b/c StatefulSets (1 each, ignoring the total) -- with a
+  # single Kubernetes zone this just triples the pod count for nothing.
+  zoneAwareReplication:
+    enabled: false
+compactor:
+  extraArgs:
+    config.expand-env: "true"
+  persistentVolume:
+    storageClass: ceph-rbd
+
+ingester:
+  # Chart default is 3 (replication_factor 3) for HA -- durability already
+  # comes from Ceph under the PVC, so 1 is enough at this scale.
+  replicas: 1
+  extraArgs:
+    config.expand-env: "true"
+  persistentVolume:
+    storageClass: ceph-rbd
+  # Same zone-aware caveat as store_gateway above -- without this,
+  # `replicas: 1` is silently ignored and 3 zone StatefulSets (1 pod each)
+  # get created instead.
+  zoneAwareReplication:
+    enabled: false
+
+# Alertmanager and rule evaluation stay on the existing Prometheus/
+# Alertmanager on monitoring01 (see plan's "Ce qui ne change pas") --
+# Mimir's own alertmanager/ruler components are not needed.
+alertmanager:
+  enabled: false
+ruler:
+  enabled: false
+overrides_exporter:
+  enabled: false
+
+global:
+  # Bucket credentials + endpoint from the ObjectBucketClaim in
+  # resources/objectbucketclaim.yaml (Secret/ConfigMap named after the OBC:
+  # mimir-blocks). Applied to all components via the chart's global scope.
+  extraEnvFrom:
+    - configMapRef:
+        name: mimir-blocks
+    - secretRef:
+        name: mimir-blocks
+
+gateway:
+  nginx:
+    basicAuth:
+      enabled: true
+      # Precomputed by terraform/monitoring/push-auth-vault, synced in by
+      # resources/vault.yaml. Must contain a '.htpasswd' key.
+      existingSecret: mimir-push-htpasswd

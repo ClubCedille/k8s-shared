@@ -1,0 +1,29 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: loki-auth
+spec:
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    audiences:
+      - vault
+    role: secret-reader
+    serviceAccount: default
+---
+# Populated by terraform/monitoring/push-auth-vault (username/password for
+# Alloy's loki.write, plus a precomputed apr1 htpasswd line consumed
+# directly by gateway.basicAuth.existingSecret below -- see that module for
+# why the hash is computed in Terraform rather than in-cluster.
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: loki-push-htpasswd
+spec:
+  vaultAuthRef: loki-auth
+  type: kv-v1
+  mount: kv
+  path: data/monitoring/loki-push-htpasswd
+  destination:
+    name: loki-push-htpasswd
+    create: true

@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: grafana
+  namespace: monitoring
+resources:
+  - resources/certificate.yaml
+  - resources/httpproxy.yaml
+  - resources/postgres.yaml
+  - resources/vault.yaml
+helmCharts:
+  - name: grafana
+    version: "10.5.15"
+    repo: "https://grafana.github.io/helm-charts"
+    releaseName: "grafana"
+    namespace: monitoring
+    valuesFile: "helm/values.yaml"
