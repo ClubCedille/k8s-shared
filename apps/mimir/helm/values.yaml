@@ -59,6 +59,11 @@ store_gateway:
     config.expand-env: "true"
   persistentVolume:
     storageClass: ceph-rbd
+  # Zone-aware replication is on by default and splits `replicas` across 3
+  # separate zone-a/b/c StatefulSets (1 each, ignoring the total) -- with a
+  # single Kubernetes zone this just triples the pod count for nothing.
+  zoneAwareReplication:
+    enabled: false
 compactor:
   extraArgs:
     config.expand-env: "true"
@@ -73,6 +78,11 @@ ingester:
     config.expand-env: "true"
   persistentVolume:
     storageClass: ceph-rbd
+  # Same zone-aware caveat as store_gateway above -- without this,
+  # `replicas: 1` is silently ignored and 3 zone StatefulSets (1 pod each)
+  # get created instead.
+  zoneAwareReplication:
+    enabled: false
 
 # Alertmanager and rule evaluation stay on the existing Prometheus/
 # Alertmanager on monitoring01 (see plan's "Ce qui ne change pas") --
