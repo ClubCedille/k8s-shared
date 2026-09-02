@@ -27,6 +27,13 @@ kafka:
 
 mimir:
   structuredConfig:
+    # Mimir requires an X-Scope-OrgID header on every request by default
+    # (multi-tenant mode) -- confirmed live: Grafana's queries failed with
+    # "unexpected response with status code 401: no org id" since the
+    # datasource doesn't set one. This is a single-tenant deployment (see
+    # top comment), so disable multi-tenancy outright instead of adding a
+    # header everywhere.
+    auth_enabled: false
     ingest_storage:
       enabled: false
     # There is no single "common" replication_factor field -- confirmed live
@@ -55,6 +62,11 @@ mimir:
           endpoint: "${BUCKET_HOST}:${BUCKET_PORT}"
           access_key_id: "${AWS_ACCESS_KEY_ID}"
           secret_access_key: "${AWS_SECRET_ACCESS_KEY}"
+          # Ceph RGW (the ceph-bucket StorageClass) only serves plain HTTP
+          # internally. Confirmed live: "server gave HTTP response to
+          # HTTPS client" -- s3.insecure switches the scheme to http://,
+          # it is NOT the same as insecure_skip_verify (TLS cert checks).
+          insecure: true
     limits:
       # Single small source for now -- default ingestion-rate limits are
       # tuned for multi-tenant/HA scale and reject a normal node_exporter
