@@ -34,12 +34,13 @@ mimir:
     # top comment), so disable multi-tenancy outright instead of adding a
     # header everywhere.
     #
-    # Flat "auth_enabled" (a flag name from older Cortex/Mimir docs) is not
-    # a real field in this version's config schema -- confirmed live:
-    # "field auth_enabled not found in type mimir.Config". The actual flag
-    # is -auth.multitenancy-enabled, i.e. nested under "auth:" in YAML.
-    auth:
-      multitenancy_enabled: false
+    # Verified directly against pkg/mimir/mimir.go (mimir-3.2.0 tag) this
+    # time, after two wrong guesses in a row (flat "auth_enabled" doesn't
+    # exist; nesting it under "auth:" doesn't either -- the CLI flag
+    # -auth.multitenancy-enabled does NOT mean nested YAML here). The
+    # Config struct tags this field `yaml:"multitenancy_enabled"` at the
+    # root, alongside "target" and "no_auth_tenant".
+    multitenancy_enabled: false
     ingest_storage:
       enabled: false
     # There is no single "common" replication_factor field -- confirmed live
