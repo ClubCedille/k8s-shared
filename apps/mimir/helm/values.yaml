@@ -18,13 +18,30 @@ minio:
 kafka:
   enabled: false
 
+# kafka.enabled only toggles the Kafka subchart deployment -- the base
+# mimir.config template hardcodes ingest_storage.enabled: true regardless
+# (confirmed in the chart's mimir.config template), so without this
+# override ingesters/distributors try to use Kafka-backed ingest storage
+# with no Kafka broker to talk to. Falls back to classic
+# distributor-to-ingester gRPC push.
+
 mimir:
   structuredConfig:
+    ingest_storage:
+      enabled: false
+    # There is no single "common" replication_factor field -- confirmed live
+    # ("can't unmarshal common config: field replication_factor not found in
+    # type mimir.commonConfigUnmarshaler"). It has to be set per-ring:
+    # ingester (write path) and store_gateway (read path). Default is 3 on
+    # both, which requires 3 live replicas -- with 1 replica below, writes/
+    # reads would fail outright ("at least 2 live replicas required").
+    ingester:
+      ring:
+        replication_factor: 1
+    store_gateway:
+      sharding_ring:
+        replication_factor: 1
     common:
-      # Default (unset) is 3, which requires 3 live ingesters to accept a
-      # write -- with only 1 ingester replica below, writes would fail
-      # outright ("at least 2 live replicas required, could only find 1").
-      replication_factor: 1
       storage:
         backend: s3
         s3:
