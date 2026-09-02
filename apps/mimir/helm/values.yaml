@@ -36,6 +36,12 @@ mimir:
     # both, which requires 3 live replicas -- with 1 replica below, writes/
     # reads would fail outright ("at least 2 live replicas required").
     ingester:
+      # Chart hardcodes this to false, assuming ingest_storage (Kafka) is
+      # enabled -- confirmed live: "cannot disable Push gRPC method in
+      # ingester, while ingest storage is not enabled". With ingest_storage
+      # disabled above, classic gRPC push is the only write path, so it
+      # must stay on.
+      push_grpc_method_enabled: true
       ring:
         replication_factor: 1
     store_gateway:
