@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: mimir
+  namespace: monitoring
+resources:
+  - resources/objectbucketclaim.yaml
+  - resources/httpproxy.yaml
+  - resources/certificate.yaml
+  - resources/vault.yaml
+helmCharts:
+  - name: mimir-distributed
+    version: "6.2.0"
+    repo: "https://grafana.github.io/helm-charts"
+    releaseName: "mimir"
+    namespace: monitoring
+    valuesFile: "helm/values.yaml"
