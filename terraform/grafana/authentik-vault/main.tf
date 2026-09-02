@@ -33,10 +33,14 @@ provider "vault" {
 }
 
 locals {
-  app_slug     = "grafana"
-  app_name     = "Grafana"
-  hostname     = "grafana.etsmtl.club"
-  vault_secret = "kv/data/grafana/default/grafana-oidc-secret"
+  app_slug = "grafana"
+  app_name = "Grafana"
+  hostname = "grafana.etsmtl.club"
+  # secret-reader's Vault policy scopes reads to kv/data/<namespace>/
+  # <service_account_name>/* -- Grafana runs in namespace "monitoring"
+  # (not "grafana") with serviceAccount: default (confirmed live: 403
+  # permission denied with the wrong namespace segment).
+  vault_secret = "kv/data/monitoring/default/grafana-oidc-secret"
 }
 
 resource "random_password" "grafana_client_secret" {

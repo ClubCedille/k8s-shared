@@ -73,7 +73,11 @@ data "local_file" "htpasswd" {
 resource "vault_kv_secret" "push_htpasswd" {
   for_each = local.apps
 
-  path = "kv/data/monitoring/${each.key}-push-htpasswd"
+  # secret-reader's Vault policy scopes reads to kv/data/<namespace>/
+  # <service_account_name>/* -- both apps' VaultAuth use serviceAccount:
+  # default in namespace monitoring, so the "default/" segment is required
+  # (confirmed live: 403 permission denied without it).
+  path = "kv/data/monitoring/default/${each.key}-push-htpasswd"
 
   data_json = jsonencode({
     username    = each.value
