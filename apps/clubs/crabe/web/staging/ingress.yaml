@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: staging-crabe-ingress
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-http
+    cert-manager.io/cluster-issuer: letsencrypt-etsmtl
     ingress.kubernetes.io/force-ssl-redirect: "true"
     kubernetes.io/tls-acme: "true"
 spec:
@@ -11,9 +11,9 @@ spec:
   tls:
     - secretName: staging-crabe-tls
       hosts:
-        - staging.atelier.crabe.cedille.club
+        - staging.atelier.crabe.etsmtl.club
   rules:
-    - host: staging.atelier.crabe.cedille.club
+    - host: staging.atelier.crabe.etsmtl.club
       http:
         paths:
           - pathType: Prefix
