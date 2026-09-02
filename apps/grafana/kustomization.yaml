@@ -23,8 +23,6 @@ resources:
   - resources/dashboards/infra-logs-ceph.yaml
   - resources/dashboards/infra-logs-system.yaml
   - resources/dashboards/infra-logs-switch.yaml
-  - resources/dashboards/summercamp-infra.yaml
-  - resources/dashboards/summercamp-challenges.yaml
 helmCharts:
   - name: grafana
     version: "10.5.15"

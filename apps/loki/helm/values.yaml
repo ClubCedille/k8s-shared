@@ -6,6 +6,14 @@
 # loki-gateway Service.
 
 loki:
+  # Loki enforces its own multi-tenancy independently of Mimir (X-Scope-OrgID
+  # header required by default) -- confirmed live: dashboards querying Loki
+  # failed with "no org id" even after fixing the equivalent Mimir setting.
+  # Verified directly against pkg/loki/loki.go (v3.6.12 tag): AuthEnabled is
+  # a genuine flat root field here (yaml:"auth_enabled"), unlike Mimir where
+  # the analogous field is named multitenancy_enabled -- don't assume the
+  # two charts share a field name just because they share a vendor.
+  auth_enabled: false
   commonConfig:
     replication_factor: 1
   schemaConfig:

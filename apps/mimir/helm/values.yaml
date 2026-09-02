@@ -135,6 +135,14 @@ ruler:
   enabled: false
 overrides_exporter:
   enabled: false
+# rollout-operator only orchestrates safe rolling restarts across
+# zone-aware replica groups (ingester/store-gateway) -- zone-aware
+# replication is disabled everywhere above, so it has nothing to do here.
+# Confirmed live: it never becomes ready, since its ZoneAwarePodDisruptionBudget
+# CRD watch fails permanently ("the server could not find the requested
+# resource") -- that CRD is only installed when zone-awareness is in use.
+rollout_operator:
+  enabled: false
 
 global:
   # Bucket credentials + endpoint from the ObjectBucketClaim in
