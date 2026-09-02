@@ -43,6 +43,23 @@ locals {
   vault_secret = "kv/data/monitoring/default/grafana-oidc-secret"
 }
 
+# Membership in either group grants the Grafana "Editor" role (dashboard
+# creation + Explore/Drilldown) on next login, via role_attribute_path in
+# apps/grafana/helm/values.yaml. Kept as two separate groups rather than
+# one, even though they currently grant the same Grafana role -- Grafana
+# OSS has no Team Sync (Enterprise-only, confirmed against Grafana's own
+# docs), so a finer-grained "Explore only, no dashboard editing" tier
+# isn't achievable without either paying for Enterprise or standing up a
+# custom sync job; splitting the groups now means membership is already
+# tracked separately if/when one of those becomes worth doing.
+resource "authentik_group" "grafana_dashboard_creators" {
+  name = "grafana-dashboard-creators"
+}
+
+resource "authentik_group" "grafana_metrics_explorers" {
+  name = "grafana-metrics-explorers"
+}
+
 resource "random_password" "grafana_client_secret" {
   length           = 48
   special          = true
@@ -81,6 +98,16 @@ data "authentik_property_mapping_provider_scope" "profile" {
   managed = "goauthentik.io/providers/oauth2/scope-profile"
 }
 
+# None of the existing apps expose the "groups" claim except Coder's own
+# provider-specific mapping (terraform/coder/authentik-vault) -- property
+# mappings are attached per-provider in Authentik, so Grafana needs its
+# own copy of the same expression rather than reusing Coder's.
+resource "authentik_property_mapping_provider_scope" "groups" {
+  name       = "grafana-scope-groups"
+  scope_name = "groups"
+  expression = "return {\"groups\": [group.name for group in user.ak_groups.all()]}"
+}
+
 resource "authentik_provider_oauth2" "grafana" {
   name               = local.app_slug
   client_id          = local.app_slug
@@ -92,6 +119,7 @@ resource "authentik_provider_oauth2" "grafana" {
     data.authentik_property_mapping_provider_scope.openid.id,
     data.authentik_property_mapping_provider_scope.email.id,
     data.authentik_property_mapping_provider_scope.profile.id,
+    authentik_property_mapping_provider_scope.groups.id,
   ]
   allowed_redirect_uris = [
     {
