@@ -8,6 +8,21 @@ replicas: 1
 persistence:
   enabled: false
 
+# Chart default (false) creates a cluster-scoped ClusterRole/
+# ClusterRoleBinding named "grafana-clusterrole(binding)" for the
+# dashboard sidecar's configmap/secret watch. Cluster-scoped names aren't
+# namespaced, so a second, unrelated Grafana in this cluster using the
+# same release name collided with ours on that exact object -- confirmed
+# live: our ClusterRoleBinding kept getting re-pointed at the *other*
+# Grafana's ServiceAccount (in namespace data-acq) whenever that app
+# synced after ours, leaving our own sidecar with a Role that has no
+# rules at all ("secrets is forbidden ... system:serviceaccount:
+# monitoring:grafana") and crash-looping. Namespaced RBAC avoids the
+# collision entirely (Role/RoleBinding names only need to be unique
+# within a namespace) and is tighter scope regardless.
+rbac:
+  namespaced: true
+
 env:
   GF_DATABASE_TYPE: postgres
   GF_DATABASE_HOST: postgresql-grafana-rw.monitoring.svc.cluster.local:5432
@@ -90,5 +105,10 @@ sidecar:
     label: grafana_dashboard
     labelValue: "1"
     folder: /tmp/dashboards
+    # All our dashboards are ConfigMaps (see resources/dashboards/) --
+    # chart default watches both configmaps and secrets, which needs RBAC
+    # for both. Narrowing this is belt-and-suspenders on top of the
+    # rbac.namespaced fix above, not strictly required by it.
+    resource: configmap
     provider:
       foldersFromFilesStructure: true
