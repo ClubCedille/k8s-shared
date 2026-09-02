@@ -43,12 +43,20 @@ grafana.ini:
     enabled: true
     name: Authentik
     allow_sign_up: true
-    scopes: "openid email profile"
+    scopes: "openid email profile groups"
     auth_url: "https://auth.etsmtl.club/application/o/authorize/"
     token_url: "https://auth.etsmtl.club/application/o/token/"
     api_url: "https://auth.etsmtl.club/application/o/userinfo/"
     signout_redirect_url: "https://auth.etsmtl.club/application/o/grafana/end-session/"
     login_attribute_path: preferred_username
+    # Members of either Authentik group (see terraform/grafana/
+    # authentik-vault) get Editor (dashboard creation + Explore/
+    # Drilldown) on next login. Everyone else falls through to
+    # auto_assign_org_role (Viewer, chart default). Grafana OSS has no
+    # Team Sync (Enterprise-only), so both groups currently grant the
+    # same role -- see the comment on the group resources in
+    # authentik-vault for why they're still kept separate.
+    role_attribute_path: "contains(groups, 'grafana-dashboard-creators') && 'Editor' || contains(groups, 'grafana-metrics-explorers') && 'Editor' || 'Viewer'"
     # New OAuth sign-ups land as Viewer by default (Grafana's normal OAuth
     # default) -- promote the first admin manually via the local admin
     # account (admin/admin, see chart default adminUser/adminPassword)
