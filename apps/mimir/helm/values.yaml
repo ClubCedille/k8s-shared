@@ -55,6 +55,11 @@ mimir:
           endpoint: "${BUCKET_HOST}:${BUCKET_PORT}"
           access_key_id: "${AWS_ACCESS_KEY_ID}"
           secret_access_key: "${AWS_SECRET_ACCESS_KEY}"
+          # Ceph RGW (the ceph-bucket StorageClass) only serves plain HTTP
+          # internally. Confirmed live: "server gave HTTP response to
+          # HTTPS client" -- s3.insecure switches the scheme to http://,
+          # it is NOT the same as insecure_skip_verify (TLS cert checks).
+          insecure: true
     limits:
       # Single small source for now -- default ingestion-rate limits are
       # tuned for multi-tenant/HA scale and reject a normal node_exporter
