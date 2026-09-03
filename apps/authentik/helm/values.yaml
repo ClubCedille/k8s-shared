@@ -8,7 +8,7 @@ server:
     # -- If defined, a repository applied to all authentik deployments
     repository: ghcr.io/goauthentik/server
     # -- Overrides the global authentik whose default is the chart appVersion
-    tag: "2026.5.0"
+    tag: "2026.8"
   ingress:
     enabled: false
     hosts:
@@ -21,6 +21,17 @@ server:
     enabled: true
     maxReplicas: 5
     minReplicas: 2
+  initContainers:
+    - name: fix-permissions
+      image: busybox:1.36
+      imagePullPolicy: Always
+      command: ["sh", "-c", "chown -R 1000:1000 /data"]
+      securityContext:
+        runAsUser: 0
+        runAsNonRoot: false
+      volumeMounts:
+        - name: authentik-branding
+          mountPath: /data
 
 worker:
   enabled: true
@@ -53,6 +64,12 @@ global:
     fsGroup: 1000
 
   env:
+# AUTHENTIK_STORAGE__BACKEND=s3
+# AUTHENTIK_STORAGE__S3__ACCESS_KEY=<access_key>
+# AUTHENTIK_STORAGE__S3__SECRET_KEY=<secret_key>
+# AUTHENTIK_STORAGE__S3__BUCKET_NAME=<bucket_name>
+# AUTHENTIK_STORAGE__S3__ENDPOINT=<s3_endpoint>
+
     - name: AUTHENTIK_STORAGE__BACKEND
       value: "file"
     - name: AUTHENTIK_STORAGE__FILE__PATH
