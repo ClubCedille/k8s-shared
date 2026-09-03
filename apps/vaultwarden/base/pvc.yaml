@@ -4,8 +4,8 @@ metadata:
   name: vaultwarden-pvc
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: 5Gi
-  storageClassName: cephfs
+  storageClassName: ceph-rbd
