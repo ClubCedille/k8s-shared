@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - secret
   - cnpg.cluster.yaml
+  - vault.yaml
 
 helmCharts:
   - name: sonarqube
