@@ -1,0 +1,83 @@
+# Applies (idempotently) a lifecycle policy the ObjectBucketClaim itself
+# can't express: transition objects older than 1 day to the GARAGE_COLD
+# cloud-tier (physically stored on GarageHQ), so Ceph RGW acts as the hot
+# default endpoint while bulk/cold data lives on Garage. 1 day is the
+# minimum standard S3 lifecycle granularity (RGW has no supported per-bucket
+# sub-day transition — see nextcloud-migration-2026-09/analyse-tiering-ceph-garage.md).
+# Runs after every ArgoCD sync since the call is idempotent and the
+# OBC-generated bucket name only exists once the claim has bound.
+#
+# GARAGE_COLD is a pre-existing RGW zone placement target (cloud-s3 tier to
+# GarageHQ at 10.0.21.50:3900), already used by distro-mirror and reserved
+# for Nextcloud/Supabase — see apps/distro-mirror/docs/lifecycle-runbook.md.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nextcloud-rgw-bucket-setup
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,HookFailed
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: nextcloud-rgw-bucket-setup
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: bucket-setup
+          image: amazon/aws-cli:2.24.11
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+              ephemeral-storage: 128Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              cat > /tmp/lifecycle.json <<EOF
+              {
+                "Rules": [
+                  {
+                    "ID": "cold-tier-after-1d",
+                    "Status": "Enabled",
+                    "Filter": {"Prefix": ""},
+                    "Transitions": [
+                      {"Days": 1, "StorageClass": "GARAGE_COLD"}
+                    ]
+                  }
+                ]
+              }
+              EOF
+              aws --endpoint-url "http://${BUCKET_HOST}:${BUCKET_PORT}" \
+                s3api put-bucket-lifecycle-configuration --bucket "${BUCKET_NAME}" --lifecycle-configuration file:///tmp/lifecycle.json
+          envFrom:
+            - configMapRef:
+                name: nextcloud-rgw-bucket
+            - secretRef:
+                name: nextcloud-rgw-bucket
+      volumes:
+        - name: tmp
+          emptyDir: {}

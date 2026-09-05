@@ -189,15 +189,37 @@ nextcloud:
           key: client_secret
     - name: AUTHENTIK_CONFIG_URL
       value: https://auth.etsmtl.club/application/o/nextcloud-new-oidc/.well-known/openid-configuration
-    # S3 primary storage — writes directly to GarageHQ (bypasses Ceph RGW, see plan for why).
+    # S3 primary storage — writes to Ceph RGW (hot, SSD, default placement),
+    # bucket provisioned via ObjectBucketClaim (resources/objectbucketclaim.yaml,
+    # same pattern as distro-mirror/loki/mimir). RGW transitions objects older
+    # than 1 day (minimum standard S3 lifecycle granularity) to the
+    # pre-existing GARAGE_COLD storage class (already used by distro-mirror
+    # and reserved for Nextcloud/Supabase — see
+    # apps/distro-mirror/docs/lifecycle-runbook.md), which physically lands
+    # them on GarageHQ (bulk/cold, see the tiering feasibility analysis in
+    # nextcloud-migration-2026-09/). Transparent to Nextcloud: reads of
+    # transitioned objects are proxied by RGW (allow_read_through), no
+    # app-level awareness needed. Lifecycle policy applied by
+    # resources/bucket-setup-job.yaml (ArgoCD PostSync hook).
+    # The previous Garage-only bucket (nextcloud-data on GarageHQ direct,
+    # 10.0.21.50:3900) is kept as-is, untouched, for perf benchmarking.
     - name: OBJECTSTORE_S3_BUCKET
-      value: nextcloud-data
+      valueFrom:
+        configMapKeyRef:
+          name: nextcloud-rgw-bucket
+          key: BUCKET_NAME
     - name: OBJECTSTORE_S3_REGION
-      value: garage
+      value: default
     - name: OBJECTSTORE_S3_HOST
-      value: "10.0.21.50"
+      valueFrom:
+        configMapKeyRef:
+          name: nextcloud-rgw-bucket
+          key: BUCKET_HOST
     - name: OBJECTSTORE_S3_PORT
-      value: "3900"
+      valueFrom:
+        configMapKeyRef:
+          name: nextcloud-rgw-bucket
+          key: BUCKET_PORT
     - name: OBJECTSTORE_S3_SSL
       value: "false"
     - name: OBJECTSTORE_S3_USEPATH_STYLE
@@ -205,13 +227,13 @@ nextcloud:
     - name: OBJECTSTORE_S3_KEY
       valueFrom:
         secretKeyRef:
-          name: nextcloud-garage-credentials
-          key: nextcloud_s3_key
+          name: nextcloud-rgw-bucket
+          key: AWS_ACCESS_KEY_ID
     - name: OBJECTSTORE_S3_SECRET
       valueFrom:
         secretKeyRef:
-          name: nextcloud-garage-credentials
-          key: nextcloud_s3_secret
+          name: nextcloud-rgw-bucket
+          key: AWS_SECRET_ACCESS_KEY
 internalDatabase:
   enabled: false
 ##
@@ -297,7 +319,7 @@ service:
   annotations: {}
 ## Enable persistence using Persistent Volume Claims
 ## NOTE: this PVC now only holds /var/www/html config+apps (shared RWX across the 3
-## replicas). User file data lives in Garage via OBJECTSTORE_S3_* above — see pvc.yaml
+## replicas). User file data lives in Ceph RGW (tiered to Garage) via OBJECTSTORE_S3_* above — see pvc.yaml
 ## (shrunk from the 30Ti of the old cephfs-only instance to 20Gi).
 ##
 persistence:
