@@ -94,7 +94,7 @@ data:
           "targets": [
             {
               "datasource": {"type": "prometheus", "uid": "${datasource}"},
-              "expr": "100 - avg by (instance) (rate(cpu_usage_idle{job=\"opnsense_telegraf\",instance=~\"$instance\",cpu=\"cpu-total\"}[5m]))",
+              "expr": "100 - avg by (instance) (cpu_usage_idle{job=\"opnsense_telegraf\",instance=~\"$instance\",cpu=\"cpu-total\"})",
               "legendFormat": "{{instance}}",
               "refId": "A"
             }
