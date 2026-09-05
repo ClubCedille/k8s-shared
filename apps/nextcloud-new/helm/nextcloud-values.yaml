@@ -189,20 +189,8 @@ nextcloud:
           key: client_secret
     - name: AUTHENTIK_CONFIG_URL
       value: https://auth.etsmtl.club/application/o/nextcloud-new-oidc/.well-known/openid-configuration
-    # S3 primary storage — writes to Ceph RGW (hot, SSD, default placement),
-    # bucket provisioned via ObjectBucketClaim (resources/objectbucketclaim.yaml,
-    # same pattern as distro-mirror/loki/mimir). RGW transitions objects older
-    # than 1 day (minimum standard S3 lifecycle granularity) to the
-    # pre-existing GARAGE_COLD storage class (already used by distro-mirror
-    # and reserved for Nextcloud/Supabase — see
-    # apps/distro-mirror/docs/lifecycle-runbook.md), which physically lands
-    # them on GarageHQ (bulk/cold, see the tiering feasibility analysis in
-    # nextcloud-migration-2026-09/). Transparent to Nextcloud: reads of
-    # transitioned objects are proxied by RGW (allow_read_through), no
-    # app-level awareness needed. Lifecycle policy applied by
-    # resources/bucket-setup-job.yaml (ArgoCD PostSync hook).
-    # The previous Garage-only bucket (nextcloud-data on GarageHQ direct,
-    # 10.0.21.50:3900) is kept as-is, untouched, for perf benchmarking.
+    # S3 primary storage — Ceph RGW (hot), tiered to Garage (cold) via
+    # lifecycle. See docs/rgw-tiering-runbook.md.
     - name: OBJECTSTORE_S3_BUCKET
       valueFrom:
         configMapKeyRef:

@@ -1,15 +1,5 @@
-# Applies (idempotently) a lifecycle policy the ObjectBucketClaim itself
-# can't express: transition objects older than 1 day to the GARAGE_COLD
-# cloud-tier (physically stored on GarageHQ), so Ceph RGW acts as the hot
-# default endpoint while bulk/cold data lives on Garage. 1 day is the
-# minimum standard S3 lifecycle granularity (RGW has no supported per-bucket
-# sub-day transition — see nextcloud-migration-2026-09/analyse-tiering-ceph-garage.md).
-# Runs after every ArgoCD sync since the call is idempotent and the
-# OBC-generated bucket name only exists once the claim has bound.
-#
-# GARAGE_COLD is a pre-existing RGW zone placement target (cloud-s3 tier to
-# GarageHQ at 10.0.21.50:3900), already used by distro-mirror and reserved
-# for Nextcloud/Supabase — see apps/distro-mirror/docs/lifecycle-runbook.md.
+# Applies the GARAGE_COLD lifecycle transition the OBC can't express.
+# See docs/rgw-tiering-runbook.md.
 apiVersion: batch/v1
 kind: Job
 metadata:
