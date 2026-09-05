@@ -31,6 +31,21 @@ loki:
     enabled: false
   querier:
     max_concurrent: 2
+  # Retention policy (2026-09-04): 90 days, working number pending a
+  # recalibration once the OPNsense syslog sources (system+firewall+CARP/HA,
+  # no allowlist, added same day) have run long enough to give a real
+  # ingestion-rate baseline -- see project_cedille_infra_review_2026-09
+  # memory for the volume projection this was based on. Compaction/retention
+  # runs inside the single-binary pod itself in this deployment mode (the
+  # top-level `compactor: replicas: 0` below is unrelated -- it just
+  # disables the separate microservices-mode Deployment, standard for
+  # SingleBinary). delete_request_store must match the object_store above
+  # (s3) -- the chart refuses to start with retention_enabled=true otherwise.
+  limits_config:
+    retention_period: 2160h # 90 days
+  compactor:
+    retention_enabled: true
+    delete_request_store: s3
   storage:
     bucketNames:
       chunks: "${BUCKET_NAME}"

@@ -80,6 +80,12 @@ mimir:
       # fleet's scrape volume well before it gets anywhere close.
       ingestion_rate: 100000
       ingestion_burst_size: 200000
+      # Retention policy (2026-09-04): 90 days, working number -- see Loki's
+      # values.yaml (same PR) for the full rationale and the pending
+      # recalibration note. Default here is 0 (keep forever); the compactor
+      # already runs (see compactor: block below), it just wasn't told to
+      # delete anything.
+      compactor_blocks_retention_period: 2160h
 
 # Every component that loads mimir.config needs -config.expand-env=true to
 # resolve the ${BUCKET_*}/${AWS_*} placeholders above from the OBC-provided

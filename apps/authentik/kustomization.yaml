@@ -15,3 +15,29 @@ helmCharts:
     releaseName: "authentik"
     namespace: authentik
     valuesFile: "helm/values.yaml"
+
+# kube-score flags several checks on the upstream chart's templates that the
+# club has no control over (container-resources, ephemeral-storage,
+# runAsNonRoot uid/gid, missing NetworkPolicy, floating image tags). See
+# k8s-shared/README.md#politique-kube-score for the rationale/checklist.
+patches:
+  - target:
+      kind: Deployment
+      name: authentik-server
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: authentik-server
+        annotations:
+          kube-score/ignore: container-resources, container-ephemeral-storage-request-and-limit, container-security-context-user-group-id, pod-networkpolicy, container-image-tag, container-image-pull-policy
+  - target:
+      kind: Deployment
+      name: authentik-worker
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: authentik-worker
+        annotations:
+          kube-score/ignore: container-resources, container-ephemeral-storage-request-and-limit, container-security-context-user-group-id, pod-networkpolicy, container-image-tag, container-image-pull-policy
