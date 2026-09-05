@@ -8,6 +8,8 @@ resources:
   - resources/cronjob.yaml
   - resources/vault-secret.yaml
   - resources/vault.yaml
+  - resources/objectbucketclaim.yaml
+  - resources/bucket-setup-job.yaml
 
 patches:
   - target:

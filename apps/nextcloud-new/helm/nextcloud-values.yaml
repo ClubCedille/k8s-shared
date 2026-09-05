@@ -189,15 +189,25 @@ nextcloud:
           key: client_secret
     - name: AUTHENTIK_CONFIG_URL
       value: https://auth.etsmtl.club/application/o/nextcloud-new-oidc/.well-known/openid-configuration
-    # S3 primary storage — writes directly to GarageHQ (bypasses Ceph RGW, see plan for why).
+    # S3 primary storage — Ceph RGW (hot), tiered to Garage (cold) via
+    # lifecycle. See docs/rgw-tiering-runbook.md.
     - name: OBJECTSTORE_S3_BUCKET
-      value: nextcloud-data
+      valueFrom:
+        configMapKeyRef:
+          name: nextcloud-rgw-bucket
+          key: BUCKET_NAME
     - name: OBJECTSTORE_S3_REGION
-      value: garage
+      value: default
     - name: OBJECTSTORE_S3_HOST
-      value: "10.0.21.50"
+      valueFrom:
+        configMapKeyRef:
+          name: nextcloud-rgw-bucket
+          key: BUCKET_HOST
     - name: OBJECTSTORE_S3_PORT
-      value: "3900"
+      valueFrom:
+        configMapKeyRef:
+          name: nextcloud-rgw-bucket
+          key: BUCKET_PORT
     - name: OBJECTSTORE_S3_SSL
       value: "false"
     - name: OBJECTSTORE_S3_USEPATH_STYLE
@@ -205,13 +215,13 @@ nextcloud:
     - name: OBJECTSTORE_S3_KEY
       valueFrom:
         secretKeyRef:
-          name: nextcloud-garage-credentials
-          key: nextcloud_s3_key
+          name: nextcloud-rgw-bucket
+          key: AWS_ACCESS_KEY_ID
     - name: OBJECTSTORE_S3_SECRET
       valueFrom:
         secretKeyRef:
-          name: nextcloud-garage-credentials
-          key: nextcloud_s3_secret
+          name: nextcloud-rgw-bucket
+          key: AWS_SECRET_ACCESS_KEY
 internalDatabase:
   enabled: false
 ##
@@ -296,10 +306,8 @@ service:
   nodePort:
   annotations: {}
 ## Enable persistence using Persistent Volume Claims
-## NOTE: this PVC now only holds /var/www/html config+apps (shared RWX across the 3
-## replicas). User file data lives in Garage via OBJECTSTORE_S3_* above — see pvc.yaml
-## (shrunk from the 30Ti of the old cephfs-only instance to 20Gi).
-##
+## NOTE: PVC only holds /var/www/html config+apps now (20Gi, shrunk from the
+## old 30Ti cephfs-only instance). User data lives in Ceph RGW — see pvc.yaml.
 persistence:
   enabled: true
   existingClaim: nextcloud-pvc

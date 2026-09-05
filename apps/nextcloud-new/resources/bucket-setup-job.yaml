@@ -1,0 +1,73 @@
+# Applies the GARAGE_COLD lifecycle transition the OBC can't express.
+# See docs/rgw-tiering-runbook.md.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nextcloud-rgw-bucket-setup
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,HookFailed
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: nextcloud-rgw-bucket-setup
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: bucket-setup
+          image: amazon/aws-cli:2.24.11
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+              ephemeral-storage: 128Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              cat > /tmp/lifecycle.json <<EOF
+              {
+                "Rules": [
+                  {
+                    "ID": "cold-tier-after-1d",
+                    "Status": "Enabled",
+                    "Filter": {"Prefix": ""},
+                    "Transitions": [
+                      {"Days": 1, "StorageClass": "GARAGE_COLD"}
+                    ]
+                  }
+                ]
+              }
+              EOF
+              aws --endpoint-url "http://${BUCKET_HOST}:${BUCKET_PORT}" \
+                s3api put-bucket-lifecycle-configuration --bucket "${BUCKET_NAME}" --lifecycle-configuration file:///tmp/lifecycle.json
+          envFrom:
+            - configMapRef:
+                name: nextcloud-rgw-bucket
+            - secretRef:
+                name: nextcloud-rgw-bucket
+      volumes:
+        - name: tmp
+          emptyDir: {}
