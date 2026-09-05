@@ -12,5 +12,5 @@ helmCharts:
 resources:
   - resources/namespace-operator.yaml
   - resources/vault-auth.yaml
-  - resources/vault-static-secret.yaml
+  - resources/vault-secret.yaml
   - resources/garagecluster.yaml
