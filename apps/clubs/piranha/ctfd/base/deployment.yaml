@@ -95,7 +95,7 @@ spec:
             - name: WORKERS
               value: "4"
             - name: REDIS_URL
-              value: "redis://redis.ctfd.svc.cluster.local:6379"
+              value: "redis://redis.piranha-ctfd.svc.cluster.local:6379"
             - name: SECRET_KEY
               valueFrom:
                 secretKeyRef:
@@ -107,7 +107,7 @@ spec:
                   key: MYSQL_PASSWORD
                   name: ctfd-secret
             - name: DATABASE_URL
-              value: mysql+pymysql://ctfd_user:$(DATABASE_PASSWORD)@mysql.ctfd.svc.cluster.local/ctfd
+              value: mysql+pymysql://ctfd_user:$(DATABASE_PASSWORD)@mysql.piranha-ctfd.svc.cluster.local/ctfd
 
           volumeMounts:
             - name: uploads
