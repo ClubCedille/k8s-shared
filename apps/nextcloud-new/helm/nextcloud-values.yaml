@@ -306,10 +306,8 @@ service:
   nodePort:
   annotations: {}
 ## Enable persistence using Persistent Volume Claims
-## NOTE: this PVC now only holds /var/www/html config+apps (shared RWX across the 3
-## replicas). User file data lives in Ceph RGW (tiered to Garage) via OBJECTSTORE_S3_* above — see pvc.yaml
-## (shrunk from the 30Ti of the old cephfs-only instance to 20Gi).
-##
+## NOTE: PVC only holds /var/www/html config+apps now (20Gi, shrunk from the
+## old 30Ti cephfs-only instance). User data lives in Ceph RGW — see pvc.yaml.
 persistence:
   enabled: true
   existingClaim: nextcloud-pvc
