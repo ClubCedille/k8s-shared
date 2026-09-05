@@ -1,3 +1,4 @@
+#https://registry.terraform.io/providers/goauthentik/authentik/latest/docs
 # Set Brand config
 resource "authentik_brand" "authentik-test" {
   domain           = "authentik-test"

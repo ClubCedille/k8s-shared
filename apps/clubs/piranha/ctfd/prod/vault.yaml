@@ -1,0 +1,31 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: piranha-auth
+spec:
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    audiences:
+    - vault
+    role: secret-reader
+    serviceAccount: default
+---
+# Populated by VaultStaticSecret from path data/piranha-ctfd/default/ctfd-secret.
+# Keys must match what the Deployment and mysql StatefulSet reference:
+#   SECRET_KEY, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_ROOT_PASSWORD
+# vault write kv/data/piranha-ctfd/default/ctfd-secret \
+#   SECRET_KEY=<...> MYSQL_USER=ctfd_user MYSQL_PASSWORD=<...> \
+#   MYSQL_DATABASE=ctfd MYSQL_ROOT_PASSWORD=<...>
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: ctfd-secret
+spec:
+  vaultAuthRef: piranha-auth
+  type: kv-v1
+  mount: kv
+  path: data/piranha-ctfd/default/ctfd-secret
+  destination:
+    name: ctfd-secret
+    create: true
