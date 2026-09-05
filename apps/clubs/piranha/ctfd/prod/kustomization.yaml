@@ -4,4 +4,5 @@ kind: Kustomization
 resources:
   - httpproxy.yaml
   - certificate.yaml
+  - vault.yaml
   - ../base/
