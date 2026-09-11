@@ -10,7 +10,7 @@ resources:
   - resources/postgresql.yaml
 helmCharts:
   - name: authentik
-    version: "2026.5"
+    version: "2026.8"
     repo: "https://charts.goauthentik.io"
     releaseName: "authentik"
     namespace: authentik
