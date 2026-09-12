@@ -1,7 +1,16 @@
 # Nextcloud Ceph RGW hot tier / Garage cold tier runbook
 
+**Status (2026-09-12): disabled.** `nextcloud-values.yaml` was reverted to
+write directly to GarageHQ (`nextcloud-data` bucket) because of the RGW
+cloud-tier crash — see "Known issue" below and
+[tracker.ceph.com/issues/80309](https://tracker.ceph.com/issues/80309). The
+`nextcloud-rgw-bucket` ObjectBucketClaim, its `GARAGE_COLD` lifecycle job,
+and the Garage-side `nextcloud-garage-cold-tier` bucket are left in place
+(not deleted) so the RGW/tiered path can be re-enabled once the upstream bug
+is fixed; they will be cleaned up if tiering is abandoned instead.
+
 Nextcloud's primary S3 storage (`OBJECTSTORE_S3_*` in `helm/nextcloud-values.yaml`)
-points at Ceph RGW (`10.0.21.59:7480`), not GarageHQ directly. The bucket is
+otherwise pointed at Ceph RGW (`10.0.21.59:7480`), not GarageHQ directly. The bucket is
 provisioned via `resources/objectbucketclaim.yaml` (same pattern as
 `distro-mirror`/`loki`/`mimir`), and `resources/bucket-setup-job.yaml` (ArgoCD
 `PostSync` hook) applies a lifecycle policy transitioning objects older than
