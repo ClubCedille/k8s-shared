@@ -5,7 +5,7 @@ metadata:
   name: ets-ctfd-httpproxy
 spec:
   virtualhost:
-    fqdn: ing102.etsmtl.club
+    fqdn: ing101.etsmtl.club
     tls:
       secretName: ets-ctfd-tls
       minimumProtocolVersion: "1.3"
