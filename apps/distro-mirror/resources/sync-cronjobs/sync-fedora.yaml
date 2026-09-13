@@ -44,9 +44,9 @@ spec:
                   for rel in 43 44; do
                     dir="${base}/${rel}/Server/x86_64/iso/"
                     mkdir -p "/scratch/fedora/amd64/isos/${rel}"
-                    listing=$(curl -fsSL "$dir")
+                    listing=$(curl -fsSL --retry 3 --retry-delay 5 --retry-connrefused "$dir")
                     fname=$(printf '%s' "$listing" | grep -oE "Fedora-Server-dvd-x86_64-${rel}-[0-9.]+\.iso" | head -1)
-                    curl -fsSL -o "/scratch/fedora/amd64/isos/${rel}/${fname}" "${dir}${fname}"
+                    curl -fsSL --retry 3 --retry-delay 5 --retry-connrefused -o "/scratch/fedora/amd64/isos/${rel}/${fname}" "${dir}${fname}"
                   done
               securityContext:
                 allowPrivilegeEscalation: false
@@ -63,7 +63,13 @@ spec:
                 limits:
                   cpu: "1"
                   memory: 512Mi
-                  ephemeral-storage: 512Mi
+                  # Must comfortably exceed the "scratch" emptyDir's sizeLimit
+                  # (20Gi): the kubelet counts the mounted emptyDir's usage
+                  # against this container's ephemeral-storage limit too, on
+                  # top of the volume's own limit -- same reasoning as
+                  # push-to-bucket below. The old 512Mi limit got this
+                  # container evicted mid-download intermittently.
+                  ephemeral-storage: 24Gi
             - name: fetch-desktop-isos
               image: alpine:3.20
               imagePullPolicy: Always
@@ -77,9 +83,9 @@ spec:
                   for rel in 43 44; do
                     dir="${base}/${rel}/Workstation/x86_64/iso/"
                     mkdir -p "/scratch/fedora/amd64/isos/${rel}"
-                    listing=$(curl -fsSL "$dir")
+                    listing=$(curl -fsSL --retry 3 --retry-delay 5 --retry-connrefused "$dir")
                     fname=$(printf '%s' "$listing" | grep -oE "Fedora-Workstation-Live-${rel}-[0-9.]+\.x86_64\.iso" | head -1)
-                    curl -fsSL -o "/scratch/fedora/amd64/isos/${rel}/${fname}" "${dir}${fname}"
+                    curl -fsSL --retry 3 --retry-delay 5 --retry-connrefused -o "/scratch/fedora/amd64/isos/${rel}/${fname}" "${dir}${fname}"
                   done
               securityContext:
                 allowPrivilegeEscalation: false
@@ -96,7 +102,10 @@ spec:
                 limits:
                   cpu: "1"
                   memory: 512Mi
-                  ephemeral-storage: 512Mi
+                  # See fetch-isos above: must comfortably exceed the
+                  # scratch emptyDir's sizeLimit, not just this container's
+                  # own writes.
+                  ephemeral-storage: 24Gi
             - name: fetch-cloud-images
               image: alpine:3.20
               imagePullPolicy: Always
@@ -114,9 +123,9 @@ spec:
                   for rel in 43 44; do
                     dir="${base}/${rel}/Cloud/x86_64/images/"
                     mkdir -p "/scratch/fedora/amd64/cloud-images/${rel}"
-                    listing=$(curl -fsSL "$dir")
+                    listing=$(curl -fsSL --retry 3 --retry-delay 5 --retry-connrefused "$dir")
                     fname=$(printf '%s' "$listing" | grep -oE "Fedora-Cloud-Base-Generic-${rel}-[0-9.]+\.x86_64\.qcow2" | head -1)
-                    curl -fsSL -o "/scratch/fedora/amd64/cloud-images/${rel}/${fname}" "${dir}${fname}"
+                    curl -fsSL --retry 3 --retry-delay 5 --retry-connrefused -o "/scratch/fedora/amd64/cloud-images/${rel}/${fname}" "${dir}${fname}"
                   done
               volumeMounts:
                 - name: scratch
@@ -129,7 +138,10 @@ spec:
                 limits:
                   cpu: "1"
                   memory: 512Mi
-                  ephemeral-storage: 512Mi
+                  # See fetch-isos above: must comfortably exceed the
+                  # scratch emptyDir's sizeLimit, not just this container's
+                  # own writes.
+                  ephemeral-storage: 24Gi
           containers:
             - name: push-to-bucket
               image: rclone/rclone:1.68.2
