@@ -9,7 +9,8 @@ spec:
     - conditions:
         - prefix: /
       timeoutPolicy:
-        response: 1m
+        response: 4h
+        idle: 4h
       enableWebsockets: true
       requestHeadersPolicy:
         set:
@@ -41,7 +42,8 @@ spec:
     - conditions:
         - prefix: /
       timeoutPolicy:
-        response: 1m
+        response: 4h
+        idle: 4h
       enableWebsockets: true
       requestHeadersPolicy:
         set:
