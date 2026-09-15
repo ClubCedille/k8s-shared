@@ -15,6 +15,9 @@ resource "authentik_group" "club-cedille" {
   ]
 }
 
+resource "authentik_rbac_role" "club-cedille" {
+  name = "club-cedille"
+}
 #resource "authentik_group" "exec-cedille" {
 #  name = "exec-cedille"
 #  is_superuser = false
