@@ -11,7 +11,7 @@ resource "authentik_group" "club-cedille" {
   name = "club-cedille"
   is_superuser = false
   roles = [
-    authentik_role.club-cedille
+    authentik_role.club-cedille.id
   ]
 }
 
