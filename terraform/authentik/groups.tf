@@ -10,10 +10,12 @@ resource "authentik_group" "test-terraform" {
 resource "authentik_group" "club-cedille" {
   name = "club-cedille"
   is_superuser = false
+  roles = [
+    "club-cedille"
+  ]
 }
 
 #resource "authentik_group" "exec-cedille" {
 #  name = "exec-cedille"
 #  is_superuser = false
 #}
-
