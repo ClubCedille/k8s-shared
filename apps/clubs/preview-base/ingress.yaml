@@ -24,6 +24,6 @@ spec:
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
-  commonName: preview.prodv2.cedille.club
+  commonName: preview.cedille.club
   dnsNames:
-    - preview.prodv2.cedille.club
+    - preview.cedille.club
