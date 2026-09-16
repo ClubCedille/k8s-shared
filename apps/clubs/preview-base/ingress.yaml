@@ -22,7 +22,7 @@ metadata:
 spec:
   secretName: preview-tls
   issuerRef:
-    name: letsencrypt-prod
+    name: letsencrypt-http
     kind: ClusterIssuer
   commonName: preview.cedille.club
   dnsNames:
