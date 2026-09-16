@@ -7,31 +7,31 @@ spec:
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]
   generators:
-  - matrix:
-      generators:
-        # To enable preview for a new project, just add an element here.
-        - list:
-            elements:
-              - appName: cedille
-                repo: cedille.etsmtl.ca
-                previewDomain: cedille
-                basePath: apps/clubs/cedille/website/base
-                image: ghcr.io/clubcedille/cedille.etsmtl.ca
-                serviceName: cedille-service
-              - appName: synapse
-                repo: synapsets.etsmtl.ca
-                previewDomain: synapse
-                basePath: apps/clubs/synapsets/website/base
-                image: ghcr.io/clubcedille/synapsets.etsmtl.ca
-                serviceName: synapsets-service
-        - pullRequest:
-            github:
-              owner: ClubCedille
-              repo: '{{.repo}}'
-              tokenRef:
-                secretName: github-pr-token
-                key: token
-            requeueAfterSeconds: 90
+    - matrix:
+        generators:
+          # To enable preview for a new project, just add an element here.
+          - list:
+              elements:
+                - appName: cedille
+                  repo: cedille.etsmtl.ca
+                  previewDomain: cedille
+                  basePath: apps/clubs/cedille/website/base
+                  image: ghcr.io/clubcedille/cedille.etsmtl.ca
+                  serviceName: cedille-service
+                - appName: synapse
+                  repo: synapsets.etsmtl.ca
+                  previewDomain: synapse
+                  basePath: apps/clubs/synapsets/website/base
+                  image: ghcr.io/clubcedille/synapsets.etsmtl.ca
+                  serviceName: synapsets-service
+          - pullRequest:
+              github:
+                owner: ClubCedille
+                repo: '{{.repo}}'
+                tokenRef:
+                  secretName: github-pr-token
+                  key: token
+              requeueAfterSeconds: 90
   template:
     metadata:
       name: '{{.appName}}-pr-{{.number}}'
