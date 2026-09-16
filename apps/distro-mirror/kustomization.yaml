@@ -20,4 +20,6 @@ resources:
   - resources/sync-cronjobs/sync-fedora.yaml
   - resources/sync-cronjobs/sync-nixos.yaml
   - resources/sync-cronjobs/sync-arch.yaml
+  - resources/sync-cronjobs/sync-gnu-volume.yaml
+  - resources/sync-cronjobs/sync-gnu.yaml
   - resources/sync-cronjobs/sync-opnsense.yaml
