@@ -1,0 +1,113 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: preview-generator
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+  - matrix:
+      generators:
+        # To enable preview for a new project, just add an element here.
+        - list:
+            elements:
+              - appName: cedille
+                repo: cedille.etsmtl.ca
+                previewDomain: cedille
+                basePath: apps/clubs/cedille/website/base
+                image: ghcr.io/clubcedille/cedille.etsmtl.ca
+                serviceName: cedille-service
+              - appName: synapse
+                repo: synapsets.etsmtl.ca
+                previewDomain: synapse
+                basePath: apps/clubs/synapsets/website/base
+                image: ghcr.io/clubcedille/synapsets.etsmtl.ca
+                serviceName: synapsets-service
+        - pullRequest:
+            github:
+              owner: ClubCedille
+              repo: '{{.repo}}'
+              tokenRef:
+                secretName: github-pr-token
+                key: token
+            requeueAfterSeconds: 90
+  template:
+    metadata:
+      name: '{{.appName}}-pr-{{.number}}'
+      annotations:
+        argocd.argoproj.io/sync-wave: "2"
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+      labels:
+        app-type: "preview"
+        preview-pr-number: "{{.number}}"
+        preview-pr-branch: '{{.branch | replace "/" "-"}}'
+        preview-pr-sha: "{{.head_sha}}"
+        source-owner: "ClubCedille"
+        source-repo: "{{.repo}}"
+        preview-host: "pr-{{.number}}.{{.previewDomain}}.preview.cedille.club"
+    spec:
+      project: k8s-shared
+      sources:
+        - repoURL: https://github.com/ClubCedille/k8s-shared
+          targetRevision: HEAD
+          path: '{{.basePath}}'
+          kustomize:
+            images:
+              - '{{.image}}:{{.head_sha}}'
+            nameSuffix: '-pr-{{.number}}'
+            patches:
+              - target:
+                  kind: Deployment
+                patch: |-
+                  - op: replace
+                    path: /spec/replicas
+                    value: 1
+        - repoURL: https://github.com/ClubCedille/k8s-shared
+          targetRevision: HEAD
+          path: apps/preview-base
+          kustomize:
+            nameSuffix: '-pr-{{.number}}'
+            patches:
+              - target:
+                  kind: HTTPProxy
+                  name: preview-ingress
+                patch: |-
+                  - op: replace
+                    path: /spec/virtualhost/fqdn
+                    value: pr-{{.number}}.{{.previewDomain}}.preview.cedille.club
+                  - op: replace
+                    path: /spec/virtualhost/tls/secretName
+                    value: preview-tls-pr-{{.number}}
+              - target:
+                  kind: Certificate
+                  name: preview-tls
+                patch: |-
+                  - op: replace
+                    path: /spec/commonName
+                    value: pr-{{.number}}.{{.previewDomain}}.preview.cedille.club
+                  - op: replace
+                    path: /spec/dnsNames/0
+                    value: pr-{{.number}}.{{.previewDomain}}.preview.cedille.club
+                  - op: replace
+                    path: /spec/secretName
+                    value: preview-tls-pr-{{.number}}
+              - target:
+                  group: projectcontour.io
+                  version: v1
+                  kind: HTTPProxy
+                  name: preview-ingress
+                patch: |-
+                  - op: replace
+                    path: /spec/routes/0/services/0/name
+                    value: {{.serviceName}}-pr-{{.number}}
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{.appName}}-pr-{{.number}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
