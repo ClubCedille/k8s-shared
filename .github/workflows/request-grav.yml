@@ -138,4 +138,3 @@ jobs:
             Mot de passe par défaut:
             > `kubectl port-forward -n vault svc/vault-ui 8200`
             > https://localhost:8200/ui/vault/secrets/kv/show/${{ inputs.nom_club }}-grav/default/grav/${{ inputs.nom_club }}-grav-init-pwd
-          token: ${{ secrets.PULL_REQUEST_TOKEN }}
