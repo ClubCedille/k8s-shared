@@ -6,3 +6,4 @@ metadata:
 
 resources:
   - resources/certificate.yaml
+  - resources/catchall-httpproxy.yaml
