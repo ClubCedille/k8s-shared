@@ -49,6 +49,10 @@ jobs:
             echo "::error::Il ne doit contenir que des lettres minuscules, des chiffres et des tirets (-)."
             exit 1
           fi
+          if [[ ! "${{ inputs.domaine }}" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]]; then
+            echo "::error::ERREUR: Le nom du domaine '${{ inputs.domaine }}' est invalide."
+            exit 1
+          fi
 
       - name: Create k8s folder
         run: mkdir -p "${{ env.PROD_DIR }}"
