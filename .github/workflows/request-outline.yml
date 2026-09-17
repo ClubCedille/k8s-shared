@@ -135,6 +135,8 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           branch: outlinewiki/${{ env.CLUB }}
+          # team-reviewers: |
+          #   deploiement
           labels: |
             automated
             outlinewiki
