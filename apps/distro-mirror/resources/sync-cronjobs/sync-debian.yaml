@@ -74,6 +74,8 @@ spec:
                   mkdir -p /scratch/debian/amd64/cloud-images/13
                   curl -fsSL -o /scratch/debian/amd64/cloud-images/13/debian-13-generic-amd64.qcow2 \
                     "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-amd64.qcow2"
+                  curl -fsSL -o /scratch/debian/amd64/cloud-images/13/debian-13-nocloud-amd64.qcow2 \
+                    "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-nocloud-amd64.qcow2"
               volumeMounts:
                 - name: scratch
                   mountPath: /scratch
@@ -85,7 +87,7 @@ spec:
                 limits:
                   cpu: "1"
                   memory: 512Mi
-                  ephemeral-storage: 512Mi
+                  ephemeral-storage: 8Gi
           containers:
             - name: push-to-bucket
               image: rclone/rclone:1.68.2
@@ -133,11 +135,11 @@ spec:
                   # sizeLimit below: kubelet counts a mounted emptyDir's
                   # usage against the container's ephemeral-storage limit
                   # too, on top of the volume's own limit.
-                  ephemeral-storage: 6Gi
+                  ephemeral-storage: 8Gi
           volumes:
             - name: scratch
               emptyDir:
-                sizeLimit: 5Gi
+                sizeLimit: 8Gi
             - name: tooling
               configMap:
                 name: distro-mirror-tooling
