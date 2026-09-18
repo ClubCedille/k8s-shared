@@ -1,0 +1,14 @@
+# minAvailable: 1 sur 2 replicas -- évite qu'une disruption volontaire
+# (drain de node, etc.) ne fasse tomber les deux pods Alloy en même temps,
+# ce qui interromprait la collecte de logs cluster-wide.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: alloy-logs
+  namespace: monitoring
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: alloy-logs
+      app.kubernetes.io/name: alloy

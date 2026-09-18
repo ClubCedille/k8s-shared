@@ -1,0 +1,98 @@
+# Collecte des logs applicatifs (stdout/stderr) de tous les pods du cluster,
+# poussés vers le Loki déjà déployé (apps/loki) -- comble le trou laissé par
+# le pipeline existant, qui n'ingère que les logs d'infra syslog externes
+# poussés par l'Alloy tournant sur monitoring01 (voir apps/loki/resources/
+# vault.yaml). Réutilise le même agent (Alloy) plutôt que d'en introduire un
+# second dans la stack.
+#
+# Utilise `loki.source.kubernetes`, qui lit les logs via l'API Kubernetes
+# (comme `kubectl logs -f`) plutôt que de tailer /var/log/pods sur chaque
+# node -- pas de hostPath, pas de contexte privilégié requis, et permet de
+# tourner en Deployment clusterisé (alloy.clustering) plutôt qu'en DaemonSet
+# par node.
+#
+# Pousse directement vers le Service interne loki.monitoring.svc.cluster.local
+# -- comme Grafana, on contourne le gateway BasicAuth externe (celui-ci
+# n'existe que pour protéger le chemin d'écriture exposé sur Internet à
+# loki.etsmtl.club). Aucun secret Vault n'est donc nécessaire ici.
+controller:
+  type: deployment
+  replicas: 2
+  volumes:
+    extra:
+      - name: alloy-data
+        emptyDir: {}
+
+alloy:
+  # Pas de télémetrie anonyme sortante vers Grafana Labs depuis une stack
+  # interne.
+  enableReporting: false
+
+  clustering:
+    enabled: true
+
+  # Défaut du chart (/tmp/alloy) sur le rootfs -- readOnlyRootFilesystem
+  # ci-dessous a donc besoin d'un volume dédié en écriture (mounts.extra +
+  # controller.volumes.extra). Rien de persistant n'y est réellement stocké:
+  # loki.source.kubernetes ne fait pas de tail de fichier avec position DB.
+  storagePath: /var/lib/alloy/data
+  securityContext:
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+    capabilities:
+      drop: ["ALL"]
+
+  mounts:
+    extra:
+      - name: alloy-data
+        mountPath: /var/lib/alloy/data
+
+  # Ordre de grandeur de départ pour ~2 replicas clusterisés couvrant tous
+  # les pods du cluster -- à recalibrer avec la charge réelle observée, en
+  # même temps que le sizing Loki (voir apps/loki/helm/values.yaml).
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  configMap:
+    content: |
+      discovery.kubernetes "pods" {
+        role = "pod"
+      }
+
+      discovery.relabel "pods" {
+        targets = discovery.kubernetes.pods.targets
+
+        // Labels Loki volontairement limités à namespace/app/container pour
+        // contrôler la cardinalité des streams -- pod name/uid/node sont
+        // attachés automatiquement en structured metadata par
+        // loki.source.kubernetes plutôt qu'en labels indexés.
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+          target_label  = "app"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+      }
+
+      loki.source.kubernetes "pods" {
+        targets    = discovery.relabel.pods.output
+        forward_to = [loki.write.default.receiver]
+      }
+
+      loki.write "default" {
+        endpoint {
+          url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+        }
+      }

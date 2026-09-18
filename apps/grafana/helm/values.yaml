@@ -5,6 +5,18 @@
 
 replicas: 1
 
+# Le chart n'a pas de resources par défaut -- pas de problème tant que
+# Grafana ne fait que le trafic infra (bas volume), mais apps/alloy-logs
+# ajoute Explore/dashboards sur un volume de logs bien plus large (proxy de
+# requêtes Loki plus coûteux côté Grafana). Limite fixée à 2 CPU / 2Gi.
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: 2
+    memory: 2Gi
+
 persistence:
   enabled: false
 
@@ -44,6 +56,11 @@ grafana.ini:
   server:
     domain: grafana.etsmtl.club
     root_url: "https://grafana.etsmtl.club"
+  dataproxy:
+    # Défaut 30s -- des requêtes Explore/dashboards sur le volume de logs
+    # applicatifs ajouté par apps/alloy-logs peuvent dépasser ça sur de
+    # larges plages de temps.
+    timeout: 60
   auth.generic_oauth:
     enabled: true
     name: Authentik
