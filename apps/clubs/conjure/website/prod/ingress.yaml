@@ -22,4 +22,4 @@ spec:
               service:
                 name: conjure-service
                 port:
-                  number: 3000
+                  name: http
