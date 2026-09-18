@@ -11,7 +11,7 @@ spec:
   routes:
     - conditions:
         - exact: /b&h
-      requestRedirect:
+      requestRedirectPolicy:
         statusCode: 301
         scheme: https
         hostname: www.zeffy.com
