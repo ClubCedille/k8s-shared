@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: etsmtl-club-tls
+spec:
+  secretName: etsmtl-club-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: etsmtl.club
+  dnsNames:
+    - etsmtl.club
