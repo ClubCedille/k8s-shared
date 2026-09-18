@@ -40,6 +40,12 @@ alloy:
     readOnlyRootFilesystem: true
     allowPrivilegeEscalation: false
     runAsNonRoot: true
+    # L'image grafana/alloy tourne en root par défaut (pas de USER dans le
+    # Dockerfile) -- runAsNonRoot: true sans UID explicite fait échouer le
+    # pod (CreateContainerConfigError). L'image embarque un utilisateur
+    # alloy (473:473) prévu pour ça.
+    runAsUser: 473
+    runAsGroup: 473
     capabilities:
       drop: ["ALL"]
 
