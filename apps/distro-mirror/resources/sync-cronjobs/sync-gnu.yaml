@@ -1,0 +1,127 @@
+# GNU's rsync module mirrors every release of every package (current +
+# historical) as a single tree, mirroring the whole upstream module (~169GB,
+# per gnu.org/server/mirror.html).
+#
+# Unlike the other syncs, this uses a persistent volume rather than an
+# ephemeral emptyDir: the tree is far too large to re-download + re-upload
+# nightly (worker node disks are ~110-220GB free, and re-cloning 169GB every
+# run wastes bandwidth too). With a PVC the nightly run is a true delta:
+# rsync (with --delete-excluded, which implies --delete) prunes anything
+# removed upstream, and only changed files are transferred. rclone copy skips
+# unchanged objects because rsync -t preserves mtimes and they match what was
+# uploaded last run. Generated .checksums.json sidecars are re-created every
+# run (rsync --delete-excluded removes the previous ones, since upstream
+# doesn't have them) -- sequence is init rsync, then compute, then push.
+#
+# Flags are GNU's officially recommended mirror recipe (rsync -rltpHS
+# --delete-excluded). Critically -l/-H preserve symlinks and hardlinks, which
+# is how the tree stays at ~169GB instead of exploding -- do NOT switch to -L,
+# dereferencing inflates the footprint. The symlinks themselves are harmless
+# further down the pipeline: rclone follows them at upload (the S3 tree then
+# matches the HTTP-visible expanded view) and os.walk/hash are file-targeted.
+#
+# First real run should validate the 180Gi sizing (upstream is ~157GiB); the
+# PVC is on cephfs with allowVolumeExpansion, so it can be grown if needed.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sync-gnu
+spec:
+  schedule: "30 5 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 3600
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: distro-mirror-sync
+            distro: gnu
+        spec:
+          restartPolicy: OnFailure
+          initContainers:
+            - name: fetch-tree
+              image: alpine:3.20
+              imagePullPolicy: Always
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  apk add --no-cache rsync
+                  mkdir -p /scratch/gnu
+                  rsync -rltpHS --delete-excluded --timeout=600 \
+                    "rsync://mirror.csclub.uwaterloo.ca/gnu/" /scratch/gnu/
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - name: scratch
+                  mountPath: /scratch
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                  ephemeral-storage: 128Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+                  ephemeral-storage: 1Gi
+          containers:
+            - name: push-to-bucket
+              image: rclone/rclone:1.68.2
+              imagePullPolicy: Always
+              # apk add (python3 for checksum/index tooling) needs root.
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  export RCLONE_CONFIG_S3_TYPE=s3
+                  export RCLONE_CONFIG_S3_PROVIDER=Ceph
+                  export RCLONE_CONFIG_S3_ENV_AUTH=false
+                  export RCLONE_CONFIG_S3_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
+                  export RCLONE_CONFIG_S3_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
+                  export RCLONE_CONFIG_S3_ENDPOINT="http://${BUCKET_HOST}:${BUCKET_PORT}"
+                  apk add --no-cache python3
+                  python3 /opt/tooling/compute_checksums.py /scratch/gnu
+                  rclone copy /scratch/gnu "s3:${BUCKET_NAME}/gnu" --transfers=4 --checkers=8 --s3-no-check-bucket
+                  python3 /opt/tooling/generate_index.py
+                  rclone copy /tmp/rendered-index "s3:${BUCKET_NAME}" --s3-no-check-bucket
+              envFrom:
+                - configMapRef:
+                    name: distro-mirror
+                - secretRef:
+                    name: distro-mirror
+              volumeMounts:
+                - name: scratch
+                  mountPath: /scratch
+                - name: tooling
+                  mountPath: /opt/tooling
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                  ephemeral-storage: 256Mi
+                limits:
+                  cpu: "1"
+                  # generate_index.py loads the full bucket listing (incl.
+                  # this 100k+-object tree) into memory via lsjson.
+                  memory: 2Gi
+                  # Data lives on the PVC, not the node's ephemeral disk.
+                  ephemeral-storage: 2Gi
+          volumes:
+            - name: scratch
+              persistentVolumeClaim:
+                claimName: sync-gnu-scratch
+            - name: tooling
+              configMap:
+                name: distro-mirror-tooling
