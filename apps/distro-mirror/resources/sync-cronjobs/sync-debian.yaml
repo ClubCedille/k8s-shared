@@ -72,9 +72,9 @@ spec:
                   set -eu
                   apk add --no-cache curl
                   mkdir -p /scratch/debian/amd64/cloud-images/13
-                  curl -fsSL -o /scratch/debian/amd64/cloud-images/13/debian-13-generic-amd64.qcow2 \
+                  curl -fsSL --retry 3 --retry-delay 5 --retry-connrefused -o /scratch/debian/amd64/cloud-images/13/debian-13-generic-amd64.qcow2 \
                     "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-amd64.qcow2"
-                  curl -fsSL -o /scratch/debian/amd64/cloud-images/13/debian-13-nocloud-amd64.qcow2 \
+                  curl -fsSL --retry 3 --retry-delay 5 --retry-connrefused -o /scratch/debian/amd64/cloud-images/13/debian-13-nocloud-amd64.qcow2 \
                     "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-nocloud-amd64.qcow2"
               volumeMounts:
                 - name: scratch
