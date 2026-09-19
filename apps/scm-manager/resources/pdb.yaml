@@ -1,0 +1,10 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: scm-manager-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: scm-manager
+      release: scm-manager
