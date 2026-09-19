@@ -5,7 +5,13 @@ metadata:
   namespace: sonarqube
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:17.2
-  instances: 1
+  instances: 3
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1Gi
+    limits:
+      memory: 2Gi
   bootstrap:
     initdb:
       database: sonarqube
