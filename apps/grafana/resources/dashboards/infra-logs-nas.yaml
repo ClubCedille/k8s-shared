@@ -180,8 +180,10 @@ data:
             "name": "instance",
             "options": [],
             "query": {
-              "query": "label_values({job=\"nas\"}, instance)",
-              "refId": "StandardVariableQuery"
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "type": 1,
+              "label": "instance",
+              "stream": "{job=\"nas\"}"
             },
             "refresh": 2,
             "sort": 1,
@@ -202,8 +204,10 @@ data:
             "name": "unit",
             "options": [],
             "query": {
-              "query": "label_values({job=\"nas\"}, unit)",
-              "refId": "StandardVariableQuery"
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "type": 1,
+              "label": "unit",
+              "stream": "{job=\"nas\"}"
             },
             "refresh": 2,
             "sort": 1,
