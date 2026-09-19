@@ -273,8 +273,10 @@ data:
             "name": "namespace",
             "options": [],
             "query": {
-              "query": "label_values(namespace)",
-              "refId": "StandardVariableQuery"
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "type": 1,
+              "label": "namespace",
+              "stream": ""
             },
             "refresh": 2,
             "sort": 1,
@@ -295,8 +297,10 @@ data:
             "name": "app",
             "options": [],
             "query": {
-              "query": "label_values({namespace=~\"$namespace\"}, app)",
-              "refId": "StandardVariableQuery"
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "type": 1,
+              "label": "app",
+              "stream": "{namespace=~\"$namespace\"}"
             },
             "refresh": 2,
             "sort": 1,
@@ -317,8 +321,10 @@ data:
             "name": "container",
             "options": [],
             "query": {
-              "query": "label_values({namespace=~\"$namespace\", app=~\"$app\"}, container)",
-              "refId": "StandardVariableQuery"
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "type": 1,
+              "label": "container",
+              "stream": "{namespace=~\"$namespace\", app=~\"$app\"}"
             },
             "refresh": 2,
             "sort": 1,
