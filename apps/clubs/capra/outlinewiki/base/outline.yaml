@@ -13,10 +13,11 @@ kind: StatefulSet
 metadata:
   name: capra-outlinewiki
   annotations:
+    argocd.argoproj.io/sync-options: Replace=true
     kube-score/ignore: pod-networkpolicy, container-security-context-readonlyrootfilesystem, container-security-context-privileged, container-security-context-user-group-id, container-image-tag
 spec:
   serviceName: capra-outlinewiki-svc
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: capra-outlinewiki
@@ -25,26 +26,6 @@ spec:
       labels:
         app: capra-outlinewiki
     spec:
-      initContainers:
-        - name: fix-permissions
-          image: busybox:1.36
-          imagePullPolicy: Always
-          command: ["sh", "-c", "chown -R 10001:10001 /var/lib/outline/data"]
-          securityContext:
-            runAsUser: 0
-            runAsNonRoot: false
-          volumeMounts:
-            - name: capra-outlinewiki-pv-claim
-              mountPath: /var/lib/outline/data
-          resources:
-            requests:
-              cpu: "50m"
-              memory: "128Mi"
-              ephemeral-storage: "128Mi"
-            limits:
-              cpu: "100m"
-              memory: "256Mi"
-              ephemeral-storage: "256Mi"
       containers:
         - image: outlinewiki/outline:1.7.0
           name: outline
@@ -54,12 +35,35 @@ spec:
                 name: outline-secrets
             - configMapRef:
                 name: outline-config
+          env:
+            - name: FILE_STORAGE
+              value: s3
+            - name: AWS_REGION
+              value: "us-east-1"
+            - name: AWS_S3_UPLOAD_BUCKET_URL
+              value: "http://10.0.21.59:7480"
+            - name: AWS_S3_FORCE_PATH_STYLE
+              value: "true"
+            - name: AWS_S3_ACL
+              value: private
+            - name: AWS_S3_UPLOAD_BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: capra-outlinewiki-attachments
+                  key: BUCKET_NAME
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: capra-outlinewiki-attachments
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: capra-outlinewiki-attachments
+                  key: AWS_SECRET_ACCESS_KEY
           ports:
             - containerPort: 3000
               protocol: TCP
-          volumeMounts:
-            - mountPath: /var/lib/outline/data
-              name: capra-outlinewiki-pv-claim
           securityContext:
             runAsUser: 10001
             runAsGroup: 10001
@@ -93,15 +97,14 @@ spec:
       imagePullSecrets:
         - name: dockerhub-secret
       restartPolicy: Always
-  volumeClaimTemplates:
-    - metadata:
-        name: capra-outlinewiki-pv-claim
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 15Gi
-        storageClassName: cephfs
+---
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: capra-outlinewiki-attachments
+spec:
+  generateBucketName: capra-outlinewiki-attachments
+  storageClassName: ceph-bucket
 ---
 apiVersion: v1
 kind: Service
