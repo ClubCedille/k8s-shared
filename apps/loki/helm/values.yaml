@@ -78,6 +78,13 @@ loki:
       s3ForcePathStyle: true
       insecure: true
 
+# Pas de PDB par défaut dans le chart pour singleBinary : loki tourne en
+# instance unique (replicas:1), un drain de node l'évincerait sans aucun
+# signal. On force un budget bloquant plutôt qu'un silence -- voir le
+# chantier drain-safety k8s-shared.
+podDisruptionBudget:
+  maxUnavailable: 0
+
 deploymentMode: SingleBinary
 singleBinary:
   replicas: 1

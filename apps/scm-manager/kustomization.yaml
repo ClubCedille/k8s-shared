@@ -4,6 +4,7 @@ metadata:
   name: scm-manager
   namespace: scm-manager
 resources:
+  - resources/pdb.yaml
   - resources/httpproxy.yaml
   - resources/certificate.yaml
   - resources/network-policy.yaml
