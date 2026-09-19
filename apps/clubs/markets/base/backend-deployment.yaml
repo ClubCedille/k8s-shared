@@ -43,7 +43,7 @@ spec:
               memory: "512Mi"
             limits:
               cpu: "800m"
-              memory: "1Gi"
+              memory: "2Gi"
               ephemeral-storage: 1Gi
           readinessProbe:
             tcpSocket:
