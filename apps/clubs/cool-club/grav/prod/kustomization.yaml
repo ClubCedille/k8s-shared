@@ -1,0 +1,46 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namePrefix: cool-club-
+
+resources:
+  - ../../../../../bases/grav
+  - vault-secret.yaml
+
+patches:
+  - path: vault-patch.yaml
+  - target:
+      kind: HTTPProxy
+      name: grav-ingress
+    patch: |-
+      - op: replace
+        path: /spec/virtualhost/fqdn
+        value: cool-club.etsmtl.ca
+      - op: replace
+        path: /spec/virtualhost/tls/secretName
+        value: cool-club-grav-tls
+      - op: replace
+        path: /spec/routes/0/services/0/name
+        value: cool-club-grav
+  - target:
+      kind: Certificate
+      name: grav-tls
+    patch: |-
+      - op: replace
+        path: /spec/secretName
+        value: cool-club-grav-tls
+      - op: replace
+        path: /spec/commonName
+        value: cool-club.etsmtl.ca
+      - op: replace
+        path: /spec/dnsNames/0
+        value: cool-club.etsmtl.ca
+      - op: replace
+        path: /spec/issuerRef/name
+        value: letsencrypt-http
+  - target:
+      kind: RandomSecret
+    patch: |-
+      - op: replace
+        path: /spec/path
+        value: kv/data/cool-club-grav/default/grav
