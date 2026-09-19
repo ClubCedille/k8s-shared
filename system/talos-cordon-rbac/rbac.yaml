@@ -1,0 +1,25 @@
+# RBAC minimal pour le SA GitHub Actions omni-github-actions (kubeconfig
+# éphémère, groupe cedille:talos-cordon) — voir ClubCedille/AnsibleRoles
+# talos/docs/README.md. Scope volontairement limité à get/list/patch sur
+# nodes : pas d'accès pods/eviction, le drain reste manuel.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cedille-talos-cordon
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cedille-talos-cordon
+subjects:
+  - kind: Group
+    name: "cedille:talos-cordon"
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: cedille-talos-cordon
+  apiGroup: rbac.authorization.k8s.io
