@@ -13,6 +13,7 @@ kind: StatefulSet
 metadata:
   name: dci-outlinewiki
   annotations:
+    argocd.argoproj.io/sync-options: Replace=true
     kube-score/ignore: pod-networkpolicy, container-security-context-readonlyrootfilesystem, container-security-context-privileged, container-security-context-user-group-id, container-image-tag
 spec:
   serviceName: dci-outlinewiki-svc
