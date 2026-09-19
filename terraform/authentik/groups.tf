@@ -1,5 +1,6 @@
-resource "authentik_group" "admin" {
-  name = "admin"
+import {
+    to = authentik_group.club-cedille
+    id = 6071e045-b7f0-428c-aed9-ea23ebd53d5d
 }
 
 resource "authentik_group" "authentik_admins" {
@@ -373,4 +374,3 @@ resource "authentik_group" "summercamp" {
 resource "authentik_group" "test-terraform" {
   name = "test-terraform"
 }
-
