@@ -44,7 +44,7 @@ patches:
                 /var/www/storage/framework/cache/data
                 /var/www/storage/logs
                 &&
-                chown -R 10001:10001 /var/www/storage
+                chown -R 10001:10001 /var/www
             securityContext:
               runAsUser: 0
               runAsGroup: 0
