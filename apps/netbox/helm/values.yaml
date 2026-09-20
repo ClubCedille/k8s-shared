@@ -47,8 +47,8 @@ valkey:
   architecture: standalone
   auth:
     enabled: true
-    existingSecretName: valkey-secret
-    existingSecretKey: valkey-password
+    existingSecret: valkey-secret
+    existingSecretPasswordKey: valkey-password
 
 persistence:
   enabled: true
