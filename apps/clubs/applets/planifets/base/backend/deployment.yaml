@@ -5,7 +5,7 @@ metadata:
   annotations:
     kube-score/ignore: pod-networkpolicy, pod-probes, container-image-tag
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: planifets-backend
