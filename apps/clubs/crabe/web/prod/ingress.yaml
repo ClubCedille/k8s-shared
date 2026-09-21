@@ -22,4 +22,4 @@ spec:
               service:
                 name: crabe-svc
                 port:
-                  number: 8080
+                  number: 8000
