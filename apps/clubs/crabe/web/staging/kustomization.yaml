@@ -7,67 +7,17 @@ resources:
   - vault-secret.yaml
   - configmap.yaml
 
-patchesStrategicMerge:
-  - patch-image.yaml
-
 patches:
   - target:
       kind: Deployment
       name: webapp-crabe
     patch: |
-      - op: remove
-        path: /spec/template/spec/containers/0/env
-      - op: add
-        path: /spec/template/spec/containers/0/envFrom
-        value:
-          - configMapRef:
-              name: webapp-crabe-env
-          - secretRef:
-              name: webapp-crabe-secrets
-  - target:
-      kind: Deployment
-      name: webapp-crabe
-    patch: |
-      - op: add
-        path: /spec/template/spec/initContainers
-        value:
-          - name: fix-storage-perms
-            image: ghcr.io/crabe-etsmtl/crabe-atelier:staging
-            imagePullPolicy: Always
-            command:
-              - sh
-              - -c
-              - >-
-                mkdir -p
-                /var/www/storage/framework/sessions
-                /var/www/storage/framework/views
-                /var/www/storage/framework/cache/data
-                /var/www/storage/logs
-                &&
-                chown -R 10001:10001 /var/www
-            securityContext:
-              runAsUser: 0
-              runAsGroup: 0
-            volumeMounts:
-              - name: storage
-                mountPath: /var/www/storage
-            resources:
-              requests:
-                cpu: 10m
-                memory: 32Mi
-              limits:
-                cpu: 100m
-                memory: 128Mi
-      - op: add
-        path: /spec/template/spec/volumes
-        value:
-          - name: storage
-            emptyDir: {}
-      - op: add
-        path: /spec/template/spec/containers/0/volumeMounts
-        value:
-          - name: storage
-            mountPath: /var/www/storage
+      - op: replace
+        path: /spec/template/spec/initContainers/0/image
+        value: ghcr.io/crabe-etsmtl/crabe-atelier:staging
+      - op: replace
+        path: /spec/template/spec/containers/0/image
+        value: ghcr.io/crabe-etsmtl/crabe-atelier:staging
       - op: replace
         path: /spec/template/spec/containers/0/resources
         value:
@@ -79,16 +29,6 @@ patches:
             cpu: 100m
             memory: 256Mi
             ephemeral-storage: 256Mi
-  - target:
-      kind: Deployment
-      name: webapp-crabe
-    patch: |
-      - op: replace
-        path: /spec/template/spec/containers/0/ports/0/containerPort
-        value: 8000
-      - op: replace
-        path: /spec/template/spec/containers/0/readinessProbe/httpGet/port
-        value: 8000
   - target:
       kind: Service
       name: crabe-svc
