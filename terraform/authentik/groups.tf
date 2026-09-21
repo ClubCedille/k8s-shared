@@ -2,6 +2,10 @@ resource "authentik_group" "authentik_admins" {
   name = "authentik Admins"
 }
 
+resource "authentik_group" "admin" {
+  name = "admin"
+}
+
 resource "authentik_group" "authentik_agent-users" {
   name = "authentik Agent-Users"
 
