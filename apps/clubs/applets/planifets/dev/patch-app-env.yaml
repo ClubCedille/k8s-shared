@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: planifets-backend
+spec:
+  template:
+    spec:
+      containers:
+        - name: planifets-backend
+          env:
+            - name: APP_ENV
+              value: development

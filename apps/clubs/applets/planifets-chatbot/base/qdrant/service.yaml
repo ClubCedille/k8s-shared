@@ -17,4 +17,8 @@ spec:
       protocol: TCP
       port: 6334
       targetPort: 6334
+    - name: p2p
+      protocol: TCP
+      port: 6335
+      targetPort: 6335
   type: ClusterIP
