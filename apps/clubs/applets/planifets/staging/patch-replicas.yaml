@@ -1,4 +1,4 @@
-# Scale down to 1 replica in dev to save resources
+# Scale down to 1 replica in staging to save resources
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,3 +12,10 @@ metadata:
   name: planifets-backend
 spec:
   replicas: 1
+  template:
+    spec:
+      containers:
+        - name: planifets-backend
+          env:
+            - name: APP_ENV
+              value: staging

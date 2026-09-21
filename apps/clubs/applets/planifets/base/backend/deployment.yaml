@@ -14,6 +14,11 @@ spec:
       labels:
         app: planifets-backend
     spec:
+      securityContext:
+        # The CephFS PVC is mounted root-owned. Make it writable by appuser
+        # so that transformers.js can populate its model cache.
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

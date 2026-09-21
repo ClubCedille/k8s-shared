@@ -12,3 +12,10 @@ metadata:
   name: planifets-backend
 spec:
   replicas: 1
+  template:
+    spec:
+      containers:
+        - name: planifets-backend
+          env:
+            - name: APP_ENV
+              value: development
