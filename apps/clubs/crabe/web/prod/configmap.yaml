@@ -19,7 +19,7 @@ data:
   DB_CONNECTION: "mysql"
   DB_HOST: "mysql"
   DB_PORT: "3306"
-  DB_DATABASE: "crabedb"
+  DB_DATABASE: "crabe"
   SESSION_DRIVER: "database"
   SESSION_LIFETIME: "60"
   SESSION_ENCRYPT: "false"
