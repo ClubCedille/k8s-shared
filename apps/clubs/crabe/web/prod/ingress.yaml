@@ -11,9 +11,22 @@ spec:
   tls:
     - secretName: crabe-tls
       hosts:
-        - atelier.crabe.cedille.club
+        - atelier.crabe.prodv2.cedille.club
+    - secretName: crabe-etsmtl-tls
+      hosts:
+        - atelier.crabe.etsmtl.club
   rules:
-    - host: atelier.crabe.cedille.club
+    - host: atelier.crabe.prodv2.cedille.club
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: crabe-svc
+                port:
+                  number: 8000
+    - host: atelier.crabe.etsmtl.club
       http:
         paths:
           - pathType: Prefix
