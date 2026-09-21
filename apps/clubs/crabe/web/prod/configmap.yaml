@@ -6,7 +6,7 @@ data:
   APP_NAME: "Laravel"
   APP_ENV: "production"
   APP_DEBUG: "true"
-  APP_URL: "https://atelier.crabe.cedille.club"
+  APP_URL: "https://atelier.crabe.prodv2.cedille.club"
   APP_LOCALE: "en"
   APP_FALLBACK_LOCALE: "en"
   APP_FAKER_LOCALE: "en_US"
