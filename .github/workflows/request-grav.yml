@@ -49,6 +49,10 @@ jobs:
             echo "::error::Il ne doit contenir que des lettres minuscules, des chiffres et des tirets (-)."
             exit 1
           fi
+          if [[ ! "${{ inputs.domaine }}" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]]; then
+            echo "::error::ERREUR: Le nom du domaine '${{ inputs.domaine }}' est invalide."
+            exit 1
+          fi
 
       - name: Create k8s folder
         run: mkdir -p "${{ env.PROD_DIR }}"
@@ -107,25 +111,25 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
-          title: "Créer un site web GRAV pour ${{ inputs.nom_club }}"
+          title: "Créer un site web GRAV pour ${{ env.CLUB }}"
           branch: grav/${{ inputs.nom_club }}
-          team-reviewers: |
-            SRE
+          # team-reviewers: |
+          #   deploiement
           labels: |
             automated
             grav
-            ${{ inputs.nom_club }}
+            ${{ env.CLUB }}
           body: |
             PR automatisée pour la création d'un site web GRAV.
 
-            Nom du club: `${{ inputs.nom_club }}`
+            Nom du club: `${{ env.CLUB }}`
             Domaine: `${{ inputs.domaine }}`
             Contexte: ${{ inputs.contexte }}
             Squelette: ${{ inputs.skeleton_url || 'Base Grav Admin (défaut)' }}
 
             **Changements inclus:**
             - Manifestes K8s (kustomize + Argo Application) dans `${{ env.ROOT_DIR }}`.
-            - Rôle Vault GitHub (`GitHubSecretEngineRole`) dans `apps/vault-gh-roles/${{ inputs.nom_club }}-grav.yaml`.
+            - Rôle Vault GitHub (`GitHubSecretEngineRole`) dans `apps/vault-gh-roles/${{ env.CLUB }}-grav.yaml`.
 
             **Non inclus — à faire manuellement :**
             - Création du repo GitHub `${{ inputs.domaine }}` (pas de Terraform GitHub côté k8s-shared, voir ClubCedille/k8s-cedille-production-v2#227).
@@ -133,5 +137,4 @@ jobs:
 
             Mot de passe par défaut:
             > `kubectl port-forward -n vault svc/vault-ui 8200`
-            > https://localhost:8200/ui/vault/secrets/kv/show/${{ inputs.nom_club }}-grav/default/grav/${{ inputs.nom_club }}-grav-init-pwd
-          token: ${{ secrets.PULL_REQUEST_TOKEN }}
+            > https://localhost:8200/ui/vault/secrets/kv/show/${{ env.CLUB }}-grav/default/grav/${{ env.CLUB }}-grav-init-pwd

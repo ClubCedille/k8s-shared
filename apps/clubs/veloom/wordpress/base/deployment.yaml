@@ -11,12 +11,11 @@ metadata:
       container-security-context-user-group-id,
       container-security-context-readonlyrootfilesystem
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: veloom
       tier: frontend
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
@@ -32,6 +31,25 @@ spec:
               value: "https://evovelo.etsmtl.ca"
             - name: WORDPRESS_SITE_URL
               value: "https://evovelo.etsmtl.ca"
+            - name: S3_UPLOADS_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: veloom-wordpress-media
+                  key: BUCKET_NAME
+            - name: S3_UPLOADS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: veloom-wordpress-media
+                  key: AWS_ACCESS_KEY_ID
+            - name: S3_UPLOADS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: veloom-wordpress-media
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: S3_UPLOADS_ENDPOINT
+              value: "http://10.0.21.59:7480"
+            - name: S3_UPLOADS_BUCKET_URL
+              value: "http://10.0.21.59:7480"
           envFrom:
             - secretRef:
                 name: veloom-secret
@@ -77,7 +95,7 @@ spec:
       volumes:
         - name: veloom-wordpress-persistent-storage
           persistentVolumeClaim:
-            claimName: veloom-wp-pv-claim
+            claimName: veloom-wp-shared
         - name: php-config
           configMap:
             defaultMode: 420
@@ -90,15 +108,24 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: veloom-wp-pv-claim
+  name: veloom-wp-shared
   namespace: veloom
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: 10Gi
   storageClassName: cephfs
+---
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: veloom-wordpress-media
+  namespace: veloom
+spec:
+  generateBucketName: veloom-wordpress-media
+  storageClassName: ceph-bucket
 ---
 apiVersion: v1
 kind: ConfigMap

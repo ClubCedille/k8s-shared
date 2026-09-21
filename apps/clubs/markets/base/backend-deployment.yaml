@@ -29,6 +29,8 @@ spec:
                 configMapKeyRef:
                   name: markets-configmap
                   key: GITHUB_BUG_REPORT_LABELS
+            - name: RISK_FREE_RATE
+              value: "4.0"
 
           # volumeMounts:
           #   - name: logs-temp
@@ -41,7 +43,7 @@ spec:
               memory: "512Mi"
             limits:
               cpu: "800m"
-              memory: "1Gi"
+              memory: "2Gi"
               ephemeral-storage: 1Gi
           readinessProbe:
             tcpSocket:

@@ -6,7 +6,7 @@ metadata:
     kube-score/ignore: pod-networkpolicy, pod-probes
 spec:
   serviceName: planifets-chatbot-qdrant
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: planifets-chatbot-qdrant
@@ -17,6 +17,16 @@ spec:
     spec:
       securityContext:
         fsGroup: 10001
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - planifets-chatbot-qdrant
+              topologyKey: kubernetes.io/hostname
       volumes:
         - name: tmp
           emptyDir: {}
@@ -29,7 +39,16 @@ spec:
               name: http
             - containerPort: 6334
               name: grpc
+            - containerPort: 6335
+              name: p2p
           env:
+            # https://qdrant.tech/documentation/scaling/distributed_deployment/#enabling-distributed-mode-in-self-hosted-qdrant
+            - name: QDRANT__CLUSTER__ENABLED
+              value: "true"
+            - name: QDRANT__CLUSTER__P2P__PORT
+              value: "6335"
+            - name: QDRANT__STORAGE__COLLECTION__REPLICATION_FACTOR
+              value: "3"
             - name: QDRANT__SERVICE__API_KEY
               valueFrom:
                 secretKeyRef:
@@ -39,6 +58,19 @@ spec:
               value: /qdrant/storage/snapshots
             - name: QDRANT__TELEMETRY_DISABLED
               value: "true"
+          # Initialize the Qdrant cluster with pod 0, then let the other peers join it
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              ordinal="${HOSTNAME##*-}"
+              uri="http://${HOSTNAME}.planifets-chatbot-qdrant:6335"
+              if [ "$ordinal" = "0" ]; then
+                exec ./entrypoint.sh --uri "$uri"
+              fi
+              exec ./entrypoint.sh \
+                --bootstrap "http://planifets-chatbot-qdrant-0.planifets-chatbot-qdrant:6335" \
+                --uri "$uri"
           livenessProbe:
             tcpSocket:
               port: 6333
@@ -77,3 +109,13 @@ spec:
         resources:
           requests:
             storage: 5Gi
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: planifets-chatbot-qdrant-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: planifets-chatbot-qdrant

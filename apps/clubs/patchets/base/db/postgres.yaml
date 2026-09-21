@@ -71,3 +71,14 @@ spec:
       protocol: TCP
   selector:
     app: postgresql
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: patchets-postgresql-pdb
+  namespace: patchets
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: postgresql

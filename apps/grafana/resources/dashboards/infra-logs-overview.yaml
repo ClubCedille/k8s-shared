@@ -270,8 +270,10 @@ data:
             "name": "instance",
             "options": [],
             "query": {
-              "query": "label_values(instance)",
-              "refId": "StandardVariableQuery"
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "type": 1,
+              "label": "instance",
+              "stream": ""
             },
             "refresh": 2,
             "sort": 1,
@@ -292,8 +294,10 @@ data:
             "name": "job",
             "options": [],
             "query": {
-              "query": "label_values(job)",
-              "refId": "StandardVariableQuery"
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "type": 1,
+              "label": "job",
+              "stream": ""
             },
             "refresh": 2,
             "sort": 1,

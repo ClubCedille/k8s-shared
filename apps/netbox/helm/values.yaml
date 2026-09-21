@@ -47,12 +47,16 @@ valkey:
   architecture: standalone
   auth:
     enabled: true
-    existingSecretName: valkey-secret
-    existingSecretKey: valkey-password
+    existingSecret: valkey-secret
+    existingSecretPasswordKey: valkey-password
 
 persistence:
   enabled: true
-  accessMode: ReadWriteOnce
+  # ReadWriteOnce provoque un deadlock au redémarrage : le pod web et
+  # netbox-worker peuvent être schedulés sur des nœuds différents, et le
+  # volume RWO ne peut être attaché qu'à un seul nœud à la fois (le
+  # StorageClass cephfs supporte nativement RWX).
+  accessMode: ReadWriteMany
   size: 5Gi
 
 # SSO Gestion
@@ -65,11 +69,18 @@ extraVolumes:
   - name: sso-secret-volume
     secret:
       secretName: sso-secret
+  - name: token-peppers-volume
+    secret:
+      secretName: netbox-token-peppers
 
 extraVolumeMounts:
   - name: sso-secret-volume
     mountPath: /etc/netbox/config/sso.py
     subPath: sso.py
+    readOnly: true
+  - name: token-peppers-volume
+    mountPath: /etc/netbox/config/token-peppers.py
+    subPath: token-peppers.py
     readOnly: true
 
 livenessProbe:

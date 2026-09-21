@@ -12,5 +12,5 @@ spec:
     - conditions:
         - prefix: /
       services:
-        - name: netbox-v1
+        - name: netbox
           port: 80

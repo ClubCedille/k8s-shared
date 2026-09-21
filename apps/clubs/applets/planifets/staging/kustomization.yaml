@@ -6,3 +6,6 @@ resources:
   - ../base/backend
   - ingress.yaml
   - vault-secret.yaml
+
+patches:
+  - path: patch-app-env.yaml
