@@ -50,11 +50,10 @@ spec:
       containers:
         - name: webapp-crabe
           envFrom:
-            value:
-              - configMapRef:
-                  name: webapp-crabe-env
-              - secretRef:
-                  name: webapp-crabe-secrets
+            - configMapRef:
+                name: webapp-crabe-env
+            - secretRef:
+                name: webapp-crabe-secrets
           image: ghcr.io/crabe-etsmtl/crabe-atelier:latest
           imagePullPolicy: Always
           command: ["composer", "run", "k8s"]
