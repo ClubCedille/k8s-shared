@@ -4,6 +4,7 @@ resource "authentik_group" "authentik_admins" {
 
 resource "authentik_group" "admin" {
   name = "admin"
+  is_superuser = true
 }
 
 resource "authentik_group" "authentik_agent-users" {
@@ -28,6 +29,7 @@ resource "authentik_group" "club-algoets" {
   roles = [
     authentik_rbac_role.exec-algoets.id,
   ]
+
 }
 
 resource "authentik_group" "club-applets" {
@@ -45,11 +47,6 @@ resource "authentik_group" "club-canoe" {
 resource "authentik_group" "club-capra" {
   name = "club-capra"
 }
-
-#resource "authentik_group" "admin" {
-#  name = "admin"
-#  is_superuser = false
-#}
 
 resource "authentik_group" "club-cedille" {
   name = "club-cedille"
