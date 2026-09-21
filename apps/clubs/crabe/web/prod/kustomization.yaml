@@ -5,3 +5,4 @@ resources:
   - ../base/
   - ingress.yaml
   - vault-secret.yaml
+  - configmap.yaml
