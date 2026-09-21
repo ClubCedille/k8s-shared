@@ -42,6 +42,11 @@ resource "authentik_group" "club-capra" {
   name = "club-capra"
 }
 
+#resource "authentik_group" "admin" {
+#  name = "admin"
+#  is_superuser = false
+#}
+
 resource "authentik_group" "club-cedille" {
   name = "club-cedille"
 

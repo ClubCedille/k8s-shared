@@ -8,4 +8,4 @@ resources:
   - vault-secret.yaml
 
 patches:
-  - path: patch-replicas.yaml
+  - path: patch-app-env.yaml

@@ -4,7 +4,13 @@ metadata:
   name: netbox-db
   namespace: netbox
 spec:
-  instances: 1
+  instances: 3
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
   storage:
     size: 5Gi
     storageClass: cephfs

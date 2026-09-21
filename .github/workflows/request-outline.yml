@@ -7,7 +7,10 @@ on:
         type: string
         required: true
         description: "Nom du club (lettres minuscules, chiffres et tirets '-' seulement, e.g: mon-super-club) Le domaine sera configuré selon ce nom (e.g wiki.mon-super-club.etsmtl.club)"
-
+      domaine:
+        type: string
+        required: false
+        description: "Nom du domaine (par défaut: wiki.{nom_club}.etsmtl.club)"
 jobs:
   create_pr:
     runs-on: ubuntu-latest
@@ -24,15 +27,20 @@ jobs:
       TEMPLATE_PROD_DIR: bases/outlinewiki/prod-templates
       j2_vars: |
         nom_club=${{ inputs.nom_club }}
+        domaine=${{ inputs.domaine }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Verify nom_club input
+      - name: Verify inputs
         run: |
           if [[ ! "${{ inputs.nom_club }}" =~ ^[a-z0-9-]+$ ]]; then
             echo "::error::ERREUR: Le nom du club '${{ inputs.nom_club }}' est invalide."
             echo "::error::Il ne doit contenir que des lettres minuscules, des chiffres et des tirets (-)."
+            exit 1
+          fi
+          if [[ ! "${{ inputs.domaine }}" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]]; then
+            echo "::error::ERREUR: Le nom du domaine '${{ inputs.domaine }}' est invalide."
             exit 1
           fi
 
@@ -127,6 +135,8 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           branch: outlinewiki/${{ env.CLUB }}
+          # team-reviewers: |
+          #   deploiement
           labels: |
             automated
             outlinewiki

@@ -19,71 +19,61 @@ spec:
     spec:
       imagePullSecrets:
         - name: ghcr-secret
-      containers:
-        - name: webapp-crabe
-          env:
-            - name: DB_DRIVER
-              valueFrom:
-                secretKeyRef:
-                  name: webapp-crabe-secrets
-                  key: DB_DRIVER
-            - name: DB_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: webapp-crabe-secrets
-                  key: DB_NAME
-            - name: DB_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: webapp-crabe-secrets
-                  key: DB_HOST
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: webapp-crabe-secrets
-                  key: DB_USER
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: webapp-crabe-secrets
-                  key: DB_PASSWORD
-            - name: DB_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: webapp-crabe-secrets
-                  key: DB_ROOT_PASSWORD
-            - name: SITE_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: webapp-crabe-secrets
-                  key: SITE_NAME
-            - name: ITEMS_PER_PAGE_CONSOLE
-              valueFrom:
-                secretKeyRef:
-                  name: webapp-crabe-secrets
-                  key: ITEMS_PER_PAGE_CONSOLE
-            - name: ITEMS_INVENTORY_PAGE
-              valueFrom:
-                secretKeyRef:
-                  name: webapp-crabe-secrets
-                  key: ITEMS_INVENTORY_PAGE
-            - name: EMAIL_ADDRESS
-              value: "crabe@ens.etsmtl.ca"
-            - name: VERSION_NUMBER
-              value: "1.0.2"
+      volumes:
+        - name: storage
+          emptyDir: {}
+      initContainers:
+        - name: fix-storage-perms
           image: ghcr.io/crabe-etsmtl/crabe-atelier:latest
           imagePullPolicy: Always
-          ports:
-            - containerPort: 8080
+          command:
+            - sh
+            - -c
+            - >-
+              mkdir -p
+              /var/www/storage/framework/sessions
+              /var/www/storage/framework/views
+              /var/www/storage/framework/cache/data
+              /var/www/storage/logs
+              &&
+              chown -R 10001:10001 /var/www
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          volumeMounts:
+            - name: storage
+              mountPath: /var/www/storage
           resources:
             requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
               cpu: 100m
               memory: 128Mi
+      containers:
+        - name: webapp-crabe
+          envFrom:
+            - configMapRef:
+                name: webapp-crabe-env
+            - secretRef:
+                name: webapp-crabe-secrets
+          image: ghcr.io/crabe-etsmtl/crabe-atelier:latest
+          imagePullPolicy: Always
+          command: ["composer", "run", "k8s"]
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
               ephemeral-storage: 256Mi
             limits:
-              cpu: 500m
-              memory: 256Mi
+              cpu: 600m
+              memory: 512Mi
               ephemeral-storage: 1Gi
+          volumeMounts:
+            - name: storage
+              mountPath: /var/www/storage
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
@@ -98,6 +88,6 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-              port: 8080
+              port: 8000
             initialDelaySeconds: 30
             periodSeconds: 10

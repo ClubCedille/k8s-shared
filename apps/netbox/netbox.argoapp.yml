@@ -18,3 +18,27 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+  # django-secret et netbox-superuser sont générés avec une valeur aléatoire
+  # à chaque rendu (randAscii/randAlphaNumeric, sans lookup Helm fonctionnel
+  # côté ArgoCD) -- sans ce ignoreDifferences, selfHeal republie une nouvelle
+  # valeur à chaque reconciliation sans jamais redémarrer les pods
+  # netbox/netbox-worker, qui gardent l'ancienne en mémoire (Django ne relit
+  # pas le fichier monté) -> AuthenticationError/désynchro aléatoire en prod.
+  #
+  # netbox-valkey n'a plus besoin d'entrée ici : apps/netbox/helm/values.yaml
+  # pointe maintenant valkey.auth.existingSecret vers le secret stable
+  # valkey-secret (clé valkey-password provisionnée manuellement), donc le
+  # sous-chart bitnami/valkey ne génère plus ce secret du tout.
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: django-secret
+      namespace: netbox
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Secret
+      name: netbox-superuser
+      namespace: netbox
+      jsonPointers:
+        - /data

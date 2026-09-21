@@ -1,0 +1,32 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: alloy-logs
+  namespace: monitoring
+resources:
+  - resources/poddisruptionbudget.yaml
+helmCharts:
+  - name: alloy
+    version: "1.12.1"
+    repo: "https://grafana.github.io/helm-charts"
+    releaseName: "alloy-logs"
+    namespace: monitoring
+    valuesFile: "helm/values.yaml"
+patches:
+  # Checks systématiquement ignorés pour les workloads issus de helmCharts:
+  # dans ce repo (voir README, pattern de référence apps/clubs/capra/wiki/
+  # base/kustomization.yaml) -- container-security-context-privileged et
+  # container-security-context-readonlyrootfilesystem restent volontairement
+  # non ignorés, mais ce dernier passe déjà réellement ici (voir
+  # helm/values.yaml alloy.securityContext.readOnlyRootFilesystem), donc
+  # rien à ignorer pour ce check-là.
+  - target:
+      kind: Deployment
+      name: alloy-logs
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: alloy-logs
+        annotations:
+          kube-score/ignore: pod-networkpolicy, container-resources, container-ephemeral-storage-request-and-limit, container-security-context-user-group-id, container-image-tag, container-image-pull-policy

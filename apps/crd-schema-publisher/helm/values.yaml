@@ -218,9 +218,9 @@ podAntiAffinityPreset: ""
 # ---------------------------------------------------------------------------
 podDisruptionBudget:
   # -- Create a PodDisruptionBudget
-  enabled: false
+  enabled: true
   # -- Minimum number of available pods
-  # minAvailable: 1
+  minAvailable: 1
   # -- Maximum number of unavailable pods
   # maxUnavailable: 1
 
