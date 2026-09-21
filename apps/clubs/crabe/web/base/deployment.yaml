@@ -19,6 +19,9 @@ spec:
     spec:
       imagePullSecrets:
         - name: ghcr-secret
+      volumes:
+        - name: storage
+          emptyDir: {}
       initContainers:
         - name: fix-storage-perms
           image: ghcr.io/crabe-etsmtl/crabe-atelier:latest
@@ -68,9 +71,6 @@ spec:
               cpu: 600m
               memory: 512Mi
               ephemeral-storage: 1Gi
-          volumes:
-            - name: storage
-              emptyDir: {}
           volumeMounts:
             - name: storage
               mountPath: /var/www/storage
