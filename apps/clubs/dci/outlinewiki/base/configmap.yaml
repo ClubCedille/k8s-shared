@@ -6,12 +6,6 @@ data:
   URL: https://wiki.dci.etsmtl.club
   REDIS_URL: redis://dci-redis-svc.dci-outlinewiki.svc.cluster.local:6379
   DEFAULT_LANGUAGE: fr_FR
-  FILE_STORAGE: s3
-  FILE_STORAGE_UPLOAD_MAX_SIZE: "262144000"
-  AWS_REGION: "us-east-1"
-  AWS_S3_UPLOAD_BUCKET_URL: https://s3.dci.etsmtl.club
-  AWS_S3_FORCE_PATH_STYLE: "true"
-  AWS_S3_ACL: private
   OIDC_AUTH_URI: https://auth.etsmtl.club/application/o/authorize/
   OIDC_DISPLAY_NAME: OpenID Connect
   OIDC_LOGOUT_URI: https://auth.etsmtl.club/application/o/outlinewiki-dci/end-session/
@@ -19,3 +13,10 @@ data:
   OIDC_TOKEN_URI: https://auth.etsmtl.club/application/o/token/
   OIDC_USERINFO_URI: https://auth.etsmtl.club/application/o/userinfo/
   OIDC_USERNAME_CLAIM: preferred_username
+  FILE_STORAGE: s3
+  FILE_STORAGE_UPLOAD_MAX_SIZE: "262144000"
+  AWS_REGION: "us-east-1"
+  AWS_S3_UPLOAD_BUCKET_URL: https://s3.dci.etsmtl.club
+  AWS_S3_FORCE_PATH_STYLE: "true"
+  AWS_S3_ACL: private
+  AWS_S3_UPLOAD_BUCKET_NAME: dci-outlinewiki-attachment-022a98cd-b236-47d9-b0b2-526b5082d22d

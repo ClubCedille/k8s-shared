@@ -36,11 +36,6 @@ spec:
             - configMapRef:
                 name: outline-config
           env:
-            - name: AWS_S3_UPLOAD_BUCKET_NAME
-              valueFrom:
-                configMapKeyRef:
-                  name: dci-outlinewiki-attachments
-                  key: BUCKET_NAME
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
