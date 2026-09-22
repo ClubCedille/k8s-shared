@@ -17,7 +17,7 @@ metadata:
     kube-score/ignore: pod-networkpolicy, container-security-context-readonlyrootfilesystem, container-security-context-privileged, container-security-context-user-group-id, container-image-tag
 spec:
   serviceName: dci-outlinewiki-svc
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: dci-outlinewiki
