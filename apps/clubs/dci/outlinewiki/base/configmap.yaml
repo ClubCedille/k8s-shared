@@ -6,9 +6,12 @@ data:
   URL: https://wiki.dci.etsmtl.club
   REDIS_URL: redis://dci-redis-svc.dci-outlinewiki.svc.cluster.local:6379
   DEFAULT_LANGUAGE: fr_FR
-  FILE_STORAGE: local
-  FILE_STORAGE_LOCAL_ROOT_DIR: /var/lib/outline/data
+  FILE_STORAGE: s3
   FILE_STORAGE_UPLOAD_MAX_SIZE: "262144000"
+  AWS_REGION: "us-east-1"
+  AWS_S3_UPLOAD_BUCKET_URL: https://s3.dci.etsmtl.club
+  AWS_S3_FORCE_PATH_STYLE: "true"
+  AWS_S3_ACL: private
   OIDC_AUTH_URI: https://auth.etsmtl.club/application/o/authorize/
   OIDC_DISPLAY_NAME: OpenID Connect
   OIDC_LOGOUT_URI: https://auth.etsmtl.club/application/o/outlinewiki-dci/end-session/
