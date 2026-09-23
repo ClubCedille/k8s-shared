@@ -4,7 +4,7 @@ metadata:
   name: postgresql-authentik
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:16.9
-  instances: 2
+  instances: 3
   bootstrap:
     initdb:
       database: authentik
