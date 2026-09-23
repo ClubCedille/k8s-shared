@@ -28,6 +28,48 @@ on:
       - 'terraform/matomo/authentik-vault/**'
 
 jobs:
+  terraform_plan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v2
+
+      - name: Setup Kubeconfig
+        env:
+          KUBECONFIG_SECRET: ${{ secrets.KUBECONFIG }}
+        run: |
+          mkdir -p ~/.kube
+          echo "$KUBECONFIG_SECRET" > ~/.kube/config
+          chmod 600 ~/.kube/config
+      - name: Authenticate to Vault with GitHub OIDC
+        uses: hashicorp/vault-action@892a26828f195e65540a40b4768ae4571f51ebfc # v4.0.0
+        with:
+          url: https://vault.etsmtl.club
+          method: jwt
+          path: jwt/github-actions
+          role: k8s-shared-terraform
+          jwtGithubAudience: https://vault.etsmtl.club
+          exportToken: true
+
+      - name: Tofu Init & Apply Outline
+        if: steps.changes.outputs.outline == 'true'
+        env:
+          TF_IN_AUTOMATION: true
+          TF_VAR_AUTHENTIK_API_TOKEN: ${{ secrets.AUTHENTIK_TOKEN }}
+          TF_VAR_db_user: ${{ secrets.OUTLINE_DB_USER }}
+          TF_VAR_db_password: ${{ secrets.OUTLINE_DB_PASSWORD }}
+        run: |
+          cd terraform/
+          tofu init
+          tofu plan -out
+
   terraform_apply:
     runs-on: ubuntu-latest
     permissions:
