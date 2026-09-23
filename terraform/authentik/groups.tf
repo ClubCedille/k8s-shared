@@ -1,10 +1,10 @@
 resource "authentik_group" "authentik_admins" {
-  name = "authentik Admins"
+  name         = "authentik Admins"
   is_superuser = true
 }
 
 resource "authentik_group" "admin" {
-  name = "admin"
+  name         = "admin"
   is_superuser = false
 }
 
