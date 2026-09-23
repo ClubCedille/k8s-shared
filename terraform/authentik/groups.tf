@@ -5,7 +5,7 @@ resource "authentik_group" "authentik_admins" {
 
 resource "authentik_group" "admin" {
   name = "admin"
-  is_superuser = true
+  is_superuser = false
 }
 
 resource "authentik_group" "authentik_agent-users" {
