@@ -1,0 +1,79 @@
+name: LLM review (DeepSeek via Ollama)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: llm-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Les secrets ne sont pas disponibles sur les PRs de forks
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      OLLAMA_URL: ${{ secrets.OLLAMA_URL }}
+      OLLAMA_API_TOKEN: ${{ secrets.OLLAMA_API_TOKEN }}
+      MODEL: deepseek-coder:6.7b-instruct-q4_K_M
+      MAX_DIFF_CHARS: "20000"
+    steps:
+      - name: Get PR diff
+        run: |
+          gh pr diff "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            | awk '/^diff --git /{ skip = ($0 ~ /system\/argocd\/helm\/values\.yaml|\.lock |lock\.json /) } !skip' \
+            > full.diff
+          head -c "$MAX_DIFF_CHARS" full.diff > pr.diff
+          if [ "$(wc -c < full.diff)" -gt "$MAX_DIFF_CHARS" ]; then
+            echo "TRUNCATED=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Ask the model
+        id: review
+        continue-on-error: true
+        run: |
+          jq -n --arg model "$MODEL" --rawfile diff pr.diff '{
+            model: $model,
+            stream: false,
+            options: { temperature: 0.2 },
+            messages: [
+              { role: "system", content: "You are a senior reviewer for a GitOps repository (Kubernetes manifests, Kustomize, ArgoCD Applications, Helm values, GitHub Actions). Review the diff. Flag only real issues: security (secrets in plain text, privileged pods, exposed services), missing resource requests/limits, wrong selectors/labels/ports, broken references between resources, and risky ArgoCD sync settings. Be concise, use Markdown bullet points, cite the file. If nothing is wrong, say so in one line." },
+              { role: "user", content: ("Review this pull request diff:\n\n```diff\n" + $diff + "\n```") }
+            ]
+          }' > request.json
+
+          curl -sS --fail --max-time 300 \
+            -H "Authorization: Bearer $OLLAMA_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d @request.json \
+            "$OLLAMA_URL/api/chat" \
+            | jq -r '.message.content' > review.md
+
+      - name: Post comment
+        if: steps.review.outcome == 'success'
+        run: |
+          {
+            echo "### 🤖 LLM review (\`$MODEL\`)"
+            echo
+            if [ "${TRUNCATED:-}" = "true" ]; then
+              echo "> ⚠️ Diff tronqué à $MAX_DIFF_CHARS caractères."
+              echo
+            fi
+            cat review.md
+            echo
+            echo "<sub>Revue automatique indicative, générée par un modèle local. À valider par un humain.</sub>"
+          } > comment.md
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file comment.md --edit-last \
+            || gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file comment.md
+
+      - name: Warn if Ollama unreachable
+        if: steps.review.outcome != 'success'
+        run: echo "::warning::Ollama review failed or timed out; skipping comment."

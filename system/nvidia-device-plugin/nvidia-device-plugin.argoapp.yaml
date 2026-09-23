@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nvidia-device-plugin
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nvidia-device-plugin
+  project: k8s-shared
+  sources:
+    - chart: nvidia-device-plugin
+      helm:
+        releaseName: nvidia-device-plugin
+        valueFiles:
+          - $values/system/nvidia-device-plugin/helm/values.yaml
+      repoURL: https://nvidia.github.io/k8s-device-plugin
+      targetRevision: 0.20.1
+    - repoURL: "https://github.com/ClubCedille/k8s-shared.git"
+      targetRevision: HEAD
+      ref: values
+    - repoURL: "https://github.com/ClubCedille/k8s-shared.git"
+      path: system/nvidia-device-plugin/resources
+      targetRevision: HEAD
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+    # Talos applique PSA "baseline" par défaut ; le device plugin monte des hostPath.
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged

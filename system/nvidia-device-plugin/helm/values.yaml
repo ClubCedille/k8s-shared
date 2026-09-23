@@ -1,0 +1,11 @@
+# Prérequis sur le nœud GPU (Talos, via Omni) :
+#   - extensions siderolabs/nonfree-kmod-nvidia-production + nvidia-container-toolkit-production
+#   - modules noyau nvidia, nvidia_uvm, nvidia_drm, nvidia_modeset
+#   - label nvidia.com/gpu.present=true
+runtimeClassName: nvidia
+
+nodeSelector:
+  nvidia.com/gpu.present: "true"
+
+gfd:
+  enabled: false

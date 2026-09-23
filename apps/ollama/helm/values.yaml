@@ -1,0 +1,41 @@
+image:
+  tag: "0.34.3"
+
+ollama:
+  gpu:
+    enabled: true
+    type: nvidia
+    number: 1
+  models:
+    # ~4.1 Go en Q4 : déborde légèrement de la Quadro 4 Go sur le CPU.
+    # Alternative 100 % GPU mais plus faible : deepseek-coder:1.3b
+    pull:
+      - deepseek-coder:6.7b-instruct-q4_K_M
+
+runtimeClassName: nvidia
+
+nodeSelector:
+  nvidia.com/gpu.present: "true"
+
+extraEnv:
+  - name: OLLAMA_CONTEXT_LENGTH
+    value: "8192"
+  - name: OLLAMA_KEEP_ALIVE
+    value: "30m"
+  - name: OLLAMA_NUM_PARALLEL
+    value: "1"
+
+persistentVolume:
+  enabled: true
+  size: 20Gi
+  storageClass: ceph-rbd
+
+resources:
+  requests:
+    cpu: 1
+    memory: 4Gi
+  limits:
+    memory: 8Gi
+
+service:
+  type: ClusterIP
