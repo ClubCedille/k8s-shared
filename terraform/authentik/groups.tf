@@ -1,5 +1,6 @@
 resource "authentik_group" "authentik_admins" {
   name = "authentik Admins"
+  is_superuser = true
 }
 
 resource "authentik_group" "admin" {
@@ -9,7 +10,6 @@ resource "authentik_group" "admin" {
 
 resource "authentik_group" "authentik_agent-users" {
   name = "authentik Agent-Users"
-
   roles = [
     authentik_rbac_role.authentik_agent-users.id,
   ]
@@ -17,7 +17,6 @@ resource "authentik_group" "authentik_agent-users" {
 
 resource "authentik_group" "authentik_read-only" {
   name = "authentik Read-only"
-
   roles = [
     authentik_rbac_role.authentik_read-only.id,
   ]
