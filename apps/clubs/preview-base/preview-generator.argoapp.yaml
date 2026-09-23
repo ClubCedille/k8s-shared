@@ -24,6 +24,12 @@ spec:
                   basePath: apps/clubs/synapsets/website/base
                   image: ghcr.io/clubcedille/synapsets.etsmtl.ca
                   serviceName: synapsets-service
+                - appName: saveursdegenie
+                  repo: saveursdegenie.etsmtl.ca
+                  previewDomain: saveursdegenie
+                  basePath: apps/clubs/saveursdegenie/website/base
+                  image: ghcr.io/clubcedille/saveursdegenie.etsmtl.ca
+                  serviceName: saveursdegenie-service
           - pullRequest:
               github:
                 owner: ClubCedille
