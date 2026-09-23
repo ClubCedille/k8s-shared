@@ -302,3 +302,119 @@ import {
   to = module.authentik.authentik_group.test-terraform
   id = "ba3a01a2-7572-49fc-ab2e-1030e973fa48"
 }
+import {
+  to = module.authentik.authentik_rbac_role.outline_sync_service
+  id = "d3098693-22f6-492b-943c-8db9af01c817"
+}
+import {
+  to = module.authentik.authentik_rbac_role.ak-managed-role--user-2
+  id = "80febf08-92aa-409a-a95e-601d78624719"
+}
+import {
+  to = module.authentik.authentik_rbac_role.ak-managed-role--user-256
+  id = "d611161b-dc34-4014-9747-6c6ea193f227"
+}
+import {
+  to = module.authentik.authentik_rbac_role.ak-migrated-role--user-12
+  id = "6953c7dc-78d0-4b5a-89ce-07ad072c8792"
+}
+import {
+  to = module.authentik.authentik_rbac_role.ak-migrated-role--user-2
+  id = "5d584232-a87e-4d9a-9d42-77539260e7d6"
+}
+import {
+  to = module.authentik.authentik_rbac_role.ak-migrated-role--user-77
+  id = "f5009c89-3e4f-41e6-832f-dd48c2b34cd0"
+}
+import {
+  to = module.authentik.authentik_rbac_role.authentik_agent-users
+  id = "cc761bdd-30be-4d09-a410-a78173059d82"
+}
+import {
+  to = module.authentik.authentik_rbac_role.authentik_read-only
+  id = "eab01ff6-bc1b-45af-800b-bfb14413cfe1"
+}
+import {
+  to = module.authentik.authentik_rbac_role.club-eclipse
+  id = "22f46a86-3004-46e0-8784-f0a4d7e409f2"
+}
+import {
+  to = module.authentik.authentik_rbac_role.club-jdgets
+  id = "3fe7e99e-efbf-4e56-88d5-b390c0ab69e0"
+}
+import {
+  to = module.authentik.authentik_rbac_role.club-lanets
+  id = "d4385318-6cfa-4a34-8abc-67e159b1f90a"
+}
+import {
+  to = module.authentik.authentik_rbac_role.exec-algoets
+  id = "1c62a509-d0b5-47c2-a841-93f4ef0be929"
+}
+import {
+  to = module.authentik.authentik_rbac_role.exec-baja
+  id = "b18e05e7-e0c9-4e8f-9ade-9b943b6aa750"
+}
+import {
+  to = module.authentik.authentik_rbac_role.exec-canoe
+  id = "f8646f31-07d0-4078-b8b5-19de7f1cdd7a"
+}
+import {
+  to = module.authentik.authentik_rbac_role.exec-capra
+  id = "2e351c3d-8cdb-4a21-a51f-22a6c37f77d5"
+}
+import {
+  to = module.authentik.authentik_rbac_role.exec-cedille
+  id = "c28a4ef8-df36-469e-a29b-03a36363372e"
+}
+import {
+  to = module.authentik.authentik_rbac_role.exec-chinook
+  id = "ffcb19be-02de-4f6e-a8c3-40054f7d274e"
+}
+import {
+  to = module.authentik.authentik_rbac_role.exec-comets
+  id = "60a18e53-1a5d-44ff-bcce-7240aa8b738c"
+}
+import {
+  to = module.authentik.authentik_rbac_role.exec-conjure
+  id = "4c527282-e20f-4b2f-9fd2-977a050fb6dc"
+}
+import {
+  to = module.authentik.authentik_rbac_role.exec-eclipse
+  id = "04742b3c-9388-46d8-ab45-f505dc31b90a"
+}
+import {
+  to = module.authentik.authentik_rbac_role.exec-jdgets
+  id = "00670c37-f883-4a23-a97f-a9f90fd47e3d"
+}
+import {
+  to = module.authentik.authentik_rbac_role.exec-lanets
+  id = "f882b3b7-0191-410e-93d8-6acde991d594"
+}
+import {
+  to = module.authentik.authentik_rbac_role.exec-musiquets
+  id = "4f31da95-0dba-41d6-977b-4f3962ebfd0a"
+}
+import {
+  to = module.authentik.authentik_rbac_role.exec-pontacier
+  id = "73381392-99e9-462f-9742-24fcd33c5ceb"
+}
+import {
+  to = module.authentik.authentik_rbac_role.exec-raconteursdangle
+  id = "17a65f8f-8a91-4e2a-b7ce-0f0f0a8b60bd"
+}
+import {
+  to = module.authentik.authentik_rbac_role.exec-synapse
+  id = "f7cb9036-a73e-43ea-bac2-b5e136fa0e97"
+}
+import {
+  to = module.authentik.authentik_rbac_role.exec-test
+  id = "334570f1-a619-4562-8cc4-51d56ed20914"
+}
+import {
+  to = module.authentik.authentik_rbac_role.exec-veloom
+  id = "7662e4b8-0830-48b1-9da0-8fd3afdb02a4"
+}
+import {
+  to = module.authentik.authentik_rbac_role.mcp
+  id = "12db1516-4e1f-41fb-b2b8-e09571d906ee"
+}
