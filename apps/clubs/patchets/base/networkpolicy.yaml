@@ -21,7 +21,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: postgresql
+      cnpg.io/cluster: cnpg
   policyTypes:
     - Ingress
     - Egress

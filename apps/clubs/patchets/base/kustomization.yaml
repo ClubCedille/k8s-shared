@@ -9,7 +9,7 @@ resources:
   - autoscaler.yaml
   - pdb.yaml
   - networkpolicy.yaml
-  - db/postgres.yaml
+  - db/cnpg.yaml
   # - seeder.yaml # TODO: Uncomment when seeding is needed.
 
 configMapGenerator:
