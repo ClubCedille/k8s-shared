@@ -16,6 +16,10 @@ on:
           - matomo
           - authentik
           - all
+  pull_request:
+    types:
+      - opened
+      - synchronize
   push:
     branches:
       - main
@@ -72,6 +76,7 @@ jobs:
 
   terraform_apply:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' }}
     permissions:
       contents: read
       id-token: write
