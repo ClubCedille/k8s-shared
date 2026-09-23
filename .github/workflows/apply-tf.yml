@@ -14,12 +14,14 @@ on:
           - outline
           - coder
           - matomo
+          - authentik
           - all
   push:
     branches:
       - main
     paths:
       - '.github/workflows/apply-tf.yml'
+      - 'terraform/authentik/**'
       - 'terraform/outline/authentik-vault/**'
       - 'terraform/nodered/authentik-vault/**'
       - 'terraform/coder/authentik-vault/**'
@@ -61,36 +63,49 @@ jobs:
                 echo "nodered=true" >> "$GITHUB_OUTPUT"
                 echo "coder=false" >> "$GITHUB_OUTPUT"
                 echo "matomo=false" >> "$GITHUB_OUTPUT"
+                echo "authentik=false" >> "$GITHUB_OUTPUT"
                 ;;
               outline)
                 echo "outline=true" >> "$GITHUB_OUTPUT"
                 echo "nodered=false" >> "$GITHUB_OUTPUT"
                 echo "coder=false" >> "$GITHUB_OUTPUT"
                 echo "matomo=false" >> "$GITHUB_OUTPUT"
+                echo "authentik=false" >> "$GITHUB_OUTPUT"
                 ;;
               coder)
                 echo "outline=false" >> "$GITHUB_OUTPUT"
                 echo "nodered=false" >> "$GITHUB_OUTPUT"
                 echo "coder=true" >> "$GITHUB_OUTPUT"
                 echo "matomo=false" >> "$GITHUB_OUTPUT"
+                echo "authentik=false" >> "$GITHUB_OUTPUT"
                 ;;
               matomo)
                 echo "outline=false" >> "$GITHUB_OUTPUT"
                 echo "nodered=false" >> "$GITHUB_OUTPUT"
                 echo "coder=false" >> "$GITHUB_OUTPUT"
                 echo "matomo=true" >> "$GITHUB_OUTPUT"
+                echo "authentik=false" >> "$GITHUB_OUTPUT"
+                ;;
+              authentik)
+                echo "outline=false" >> "$GITHUB_OUTPUT"
+                echo "nodered=false" >> "$GITHUB_OUTPUT"
+                echo "coder=false" >> "$GITHUB_OUTPUT"
+                echo "matomo=false" >> "$GITHUB_OUTPUT"
+                echo "authentik=true" >> "$GITHUB_OUTPUT"
                 ;;
               all)
                 echo "outline=true" >> "$GITHUB_OUTPUT"
                 echo "nodered=true" >> "$GITHUB_OUTPUT"
                 echo "coder=true" >> "$GITHUB_OUTPUT"
                 echo "matomo=true" >> "$GITHUB_OUTPUT"
+                echo "authentik=true" >> "$GITHUB_OUTPUT"
                 ;;
               auth-only)
                 echo "outline=false" >> "$GITHUB_OUTPUT"
                 echo "nodered=false" >> "$GITHUB_OUTPUT"
                 echo "coder=false" >> "$GITHUB_OUTPUT"
                 echo "matomo=false" >> "$GITHUB_OUTPUT"
+                echo "authentik=false >> "$GITHUB_OUTPUT"
                 ;;
               *)
                 echo "Unsupported module: $REQUESTED_MODULE" >&2
