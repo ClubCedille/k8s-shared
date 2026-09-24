@@ -15,7 +15,7 @@ spec:
     size: 10Gi
     storageClass: ceph-rbd
   walStorage:
-    size: 6Gi
+    size: 26Gi
     storageClass: ceph-rbd
   postgresql:
     parameters:
