@@ -18,8 +18,8 @@
 # grant wiring.
 #
 # Default run only prints a report and never modifies anything. Pass --apply
-# --yes to add the missing grants (idempotent, additive only). Extra/unknown
-# grants are never removed - if you want them trimmed, do it in the UI.
+# to add the missing grants (idempotent, additive only). Extra/unknown grants
+# are never removed - if you want them trimmed, do it in the UI.
 #
 # Requires AUTHENTIK_API_TOKEN (same as terraform.tfvars).
 # Optional: AUTHENTIK_URL (default https://auth.etsmtl.club).
@@ -32,22 +32,16 @@ API="$URL/api/v3"
 AUTH="Authorization: Bearer ${AUTHENTIK_API_TOKEN:?Set AUTHENTIK_API_TOKEN}"
 
 DO_APPLY=0
-CONFIRMED=0
 for arg in "$@"; do
   case "$arg" in
     --apply) DO_APPLY=1 ;;
-    --yes) CONFIRMED=1 ;;
     -h|--help)
-      echo "usage: $0 [--apply] [--yes]"
+      echo "usage: $0 [--apply]"
       echo "  (no flags)  print report of missing grants (dry run)"
-      echo "  --apply     add the missing grants (requires --yes)"
+      echo "  --apply     add the missing grants"
       exit 0 ;;
   esac
 done
-if [[ $DO_APPLY -eq 1 && $CONFIRMED -ne 1 ]]; then
-  echo "ERROR: --apply requires --yes" >&2
-  exit 2
-fi
 
 OBJECT_PERMS=("authentik_core.view_group" "authentik_core.add_user_to_group" "authentik_core.remove_user_from_group")
 GLOBAL_PERMS=("authentik_rbac.access_admin_interface" "authentik_core.view_group" "authentik_core.view_user")
@@ -160,7 +154,7 @@ if [[ $ok -eq 1 ]]; then
   echo "All exec-* roles have the expected grants."
   exit 0
 fi
-echo "Some grants are missing. Rerun with: --apply --yes"
+echo "Some grants are missing. Rerun with: --apply"
 [[ $DO_APPLY -eq 1 ]] || exit 0
 
 # --- apply -------------------------------------------------------------------
