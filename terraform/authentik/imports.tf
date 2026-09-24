@@ -424,10 +424,6 @@ import {
   id = "12db1516-4e1f-41fb-b2b8-e09571d906ee"
 }
 import {
-  to = authentik_brand.authentik-test
-  id = "7a569191-8105-4d2a-9793-54c26796606c"
-}
-import {
   to = authentik_property_mapping_provider_scope.email_verified
   id = "1b4d36ad-8fbe-433c-af27-ca29d579cfda"
 }
