@@ -207,13 +207,13 @@ nextcloud:
 
   extraVolumeMounts:
     - name: job-files
-      mountPath: /nextcloud-setup.bash
+      mountPath: /tmp/nextcloud-setup.bash
       subPath: nextcloud-setup.bash
     - name: job-files
-      mountPath: /nextcloud-external-sites.yaml
+      mountPath: /tmp/nextcloud-external-sites.yaml
       subPath: nextcloud-external-sites.yaml
     - name: job-files
-      mountPath: /clubs.yaml
+      mountPath: /tmp/clubs.yaml
       subPath: clubs.yaml
   extraVolumes:
     - name: job-files
