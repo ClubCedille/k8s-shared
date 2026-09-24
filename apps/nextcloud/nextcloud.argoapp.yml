@@ -17,7 +17,7 @@ spec:
       repoURL: https://github.com/ClubCedille/k8s-shared.git
       targetRevision: HEAD
       directory:
-        include: nextcloud-setup-job.yaml
+        include: resources/nextcloud-setup-job.yaml
   syncPolicy:
     automated:
       prune: true
