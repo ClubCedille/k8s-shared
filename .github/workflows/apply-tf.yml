@@ -141,6 +141,41 @@ jobs:
             ${{ matrix.dir }}/plan.tfplan
             ${{ matrix.dir }}/plan.txt
 
+      - name: Comment plan summary on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          MODULE: ${{ matrix.name }}
+          PLAN_PATH: ${{ matrix.dir }}/plan.txt
+        with:
+          script: |
+            const fs = require('fs')
+            const plan = fs.readFileSync(process.env.PLAN_PATH, 'utf8')
+            const m = plan.match(/Plan:\s*(?:(\d+) to import,\s*)?(\d+) to add,\s*(\d+) to change,\s*(\d+) to destroy\./)
+            const n = (i, s = '') => m && m[i] ? m[i] : s
+            const add = n(2, plan.includes('No changes') ? '0' : '?')
+            const chg = n(3, '0')
+            const del = n(4, '0')
+            const imp = m ? m[1] : null
+            const module = process.env.MODULE
+            const marker = `<!-- tfplan-${module} -->`
+            const body = `${marker}\n## Tofu plan: \`${module}\`\n` +
+              `- ${add} to add\n- ${chg} to change\n- ${del} to destroy` +
+              (imp ? `\n- ${imp} to import` : '')
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number,
+            })
+            const existing = comments.find(c => c.body.includes(marker))
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo, comment_id: existing.id, body,
+              })
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number, body,
+              })
+            }
+
   apply:
     needs: detect
     if: github.event_name != 'pull_request'
