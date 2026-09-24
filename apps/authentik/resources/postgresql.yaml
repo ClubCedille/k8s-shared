@@ -4,7 +4,7 @@ metadata:
   name: postgresql-authentik
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:16.9
-  instances: 1
+  instances: 3
   bootstrap:
     initdb:
       database: authentik
@@ -15,7 +15,7 @@ spec:
     size: 10Gi
     storageClass: ceph-rbd
   walStorage:
-    size: 6Gi
+    size: 26Gi
     storageClass: ceph-rbd
   postgresql:
     parameters:
