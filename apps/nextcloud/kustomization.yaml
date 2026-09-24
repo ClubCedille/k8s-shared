@@ -6,7 +6,7 @@ resources:
   - resources/certificate.yaml
   - resources/pvc.yaml
   - resources/cronjob.yaml
-  - resources/vault-secret.yaml
+  - resources/vault.yaml
 
 patches:
   - target:

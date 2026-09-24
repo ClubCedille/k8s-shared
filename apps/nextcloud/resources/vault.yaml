@@ -1,0 +1,30 @@
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: nextcloud-auth
+spec:
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    audiences:
+      - vault
+    role: secret-reader
+    serviceAccount: default
+---
+# Docker Hub credentials for image pulls, taken over from the redhatcop
+# VaultSecret (same Vault path as the other VSO apps).
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: dockerhub-pull-secret
+spec:
+  vaultAuthRef: nextcloud-auth
+  type: kv-v1
+  mount: kv-system
+  path: default_passwords/docker
+  destination:
+    name: dockerhub-pull
+    create: true
+    overwrite: true
+    type: kubernetes.io/dockerconfigjson

@@ -73,6 +73,23 @@ spec:
     name: redis-secret
     create: true
 ---
+# Docker Hub credentials for image pulls, taken over from the redhatcop
+# VaultSecret (same Vault path as the other VSO apps).
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: dockerhub-pull-secret
+spec:
+  vaultAuthRef: nextcloud-new-auth
+  type: kv-v1
+  mount: kv-system
+  path: default_passwords/docker
+  destination:
+    name: dockerhub-pull
+    create: true
+    overwrite: true
+    type: kubernetes.io/dockerconfigjson
+---
 # Collabora admin account.
 # vault write kv-system/default_passwords/nextcloud-new-collabora \
 #   username=admin password=<...>
