@@ -94,7 +94,7 @@ jobs:
     needs: detect
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJSON(needs.detect.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.detect.outputs.matrix || '{"include":[]}') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -154,7 +154,7 @@ jobs:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJSON(needs.detect.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.detect.outputs.matrix || '{"include":[]}') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
