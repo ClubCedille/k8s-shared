@@ -204,6 +204,22 @@ nextcloud:
           key: client_secret
     - name: AUTHENTIK_CONFIG_URL
       value: https://auth.etsmtl.club/application/o/nextcloud-oidc/.well-known/openid-configuration
+
+  extraVolumeMounts:
+    - name: job-files
+      mountPath: /tmp/nextcloud-setup.bash
+      subPath: nextcloud-setup.bash
+    - name: job-files
+      mountPath: /tmp/nextcloud-external-sites.yaml
+      subPath: nextcloud-external-sites.yaml
+    - name: job-files
+      mountPath: /tmp/clubs.yaml
+      subPath: clubs.yaml
+  extraVolumes:
+    - name: job-files
+      configMap:
+        name: nextcloud-setup-job
+
 internalDatabase:
   enabled: false
 ##

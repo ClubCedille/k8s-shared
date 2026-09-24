@@ -29,8 +29,10 @@
 - name: canoe
   quota: 1000
 - name: algoets
-  quote: 0
+  quota: 0
 - name: applets
-  quote: 0
+  quota: 0
 - name: jdgets
-  quote: 0
+  quota: 0
+- name: quantumets
+  quota: 100

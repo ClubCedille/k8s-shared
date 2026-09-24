@@ -88,6 +88,7 @@ jobs:
         with:
           plan-path: ${{ matrix.dir }}/plan.txt
           module: ${{ matrix.name }}
+          artifact-name: tfplan-${{ matrix.name }}
 
   apply:
     needs: plan
