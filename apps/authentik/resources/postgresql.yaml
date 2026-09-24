@@ -5,6 +5,7 @@ metadata:
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:16.9
   instances: 1
+  deleteDataOnScaleDown: true
   bootstrap:
     initdb:
       database: authentik
