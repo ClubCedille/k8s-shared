@@ -25,6 +25,8 @@ spec:
             - secretRef:
                 name: outline-secrets
           env:
+            - name: REDIS_COLLABORATION_URL
+              value: redis://jdgets-redis-svc.jdgets-outlinewiki.svc.cluster.local:6379
             - name: FILE_STORAGE
               value: s3
             - name: AWS_REGION

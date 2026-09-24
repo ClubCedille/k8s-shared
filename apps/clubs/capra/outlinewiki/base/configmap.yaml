@@ -5,6 +5,7 @@ metadata:
 data:
   URL: https://wiki.capra.etsmtl.club
   REDIS_URL: redis://capra-redis-svc.capra-outlinewiki.svc.cluster.local:6379
+  REDIS_COLLABORATION_URL: redis://capra-redis-svc.capra-outlinewiki.svc.cluster.local:6379
   DEFAULT_LANGUAGE: fr_FR
   FILE_STORAGE: local
   FILE_STORAGE_LOCAL_ROOT_DIR: /var/lib/outline/data

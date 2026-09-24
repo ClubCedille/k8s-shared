@@ -22,6 +22,8 @@ spec:
               value: https://cedille.etsmtl.club
             - name: REDIS_URL
               value: redis://redis-cedille.outline-cedille.svc.cluster.local:6379
+            - name: REDIS_COLLABORATION_URL
+              value: redis://redis-cedille.outline-cedille.svc.cluster.local:6379
             - name: FILE_STORAGE
               value: s3
             - name: AWS_REGION
