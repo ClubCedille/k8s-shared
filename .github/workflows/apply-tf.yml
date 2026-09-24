@@ -5,11 +5,13 @@ on:
   pull_request:
     paths:
       - 'terraform/**'
+      - 'data/**'
   push:
     branches:
       - main
     paths:
       - 'terraform/**'
+      - 'data/**'
 
 permissions:
   contents: read
