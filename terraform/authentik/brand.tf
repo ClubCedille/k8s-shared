@@ -1,10 +1,16 @@
 # Set Brand config
-resource "authentik_brand" "authentik-test" {
-  domain           = "authentik-2"
-  default          = false
-  branding_title   = "CEDILLE"
-  branding_favicon = "/static/dist/assets/icons/icon.png"
-  branding_logo    = "/media/custom/branding/Logo_text_white.png"
+resource "authentik_brand" "authentik-default" {
+  domain                           = "authentik-default"
+  default                          = true
+  branding_title                   = "CEDILLE"
+  branding_favicon                 = "/static/dist/assets/icons/icon_pride_lgbt.png"
+  branding_logo                    = "cedille-texte-blanc.png"
+  branding_default_flow_background = "/static/dist/assets/images/flow_background.jpg"
+
+  flow_authentication = "5f2f49e6-8319-417b-9493-33b3e66b96b5"
+  flow_invalidation   = "91f84c53-ef2d-45d1-9e10-d03ebd776916"
+  flow_user_settings  = "8b2f8a18-954f-45c9-ab42-14a1afb75f80"
+
   attributes = jsonencode({
     settings = {
       theme = {
@@ -13,16 +19,4 @@ resource "authentik_brand" "authentik-test" {
       locale = "fr_CA"
     }
   })
-
-  # flow_invalidation = "default-invalidation-flow" # (String)
-  # flow_authentication = "default-authentication-flow" # (String)
-  # flow_user_settings = "default-user-settings-flow" # (String)
-  # branding_default_flow_background = "" # (String) Defaults to /static/dist/assets/images/flow_background.jpg.
-  # branding_custom_css = "" # (String)
-  # client_certificates = "" # (List of String)
-  # default_application = "" # (String)
-  # flow_device_code = "" # (String)
-  # flow_recovery = "" # (String)
-  # flow_unenrollment = "" # (String)
-  # web_certificate = "" # (String)
 }
