@@ -1,4 +1,9 @@
 import {
+  to = authentik_brand.authentik-default
+  id = "4bd3dece-a0f5-4d59-b00d-690328c71f22"
+}
+
+import {
   to = authentik_rbac_role.club-cedille
   id = "0d0c72e3-5e0a-4088-b1d5-c9197f02afba"
 }
