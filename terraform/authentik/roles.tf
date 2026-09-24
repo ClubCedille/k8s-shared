@@ -30,91 +30,26 @@ resource "authentik_rbac_role" "authentik_read-only" {
   name = "authentik Read-only"
 }
 
+# club-{club} roles are pre-existing and kept as individual resources: they
+# only carry UI/API-managed object permissions (not expressible here).
 resource "authentik_rbac_role" "club-cedille" {
   name = "club-cedille"
-}
-
-resource "authentik_rbac_role" "club-eclipse" {
-  name = "club-eclipse"
-}
-
-resource "authentik_rbac_role" "club-jdgets" {
-  name = "club-jdgets"
 }
 
 resource "authentik_rbac_role" "club-lanets" {
   name = "club-lanets"
 }
 
-resource "authentik_rbac_role" "exec-algoets" {
-  name = "exec-algoets"
-}
-
-resource "authentik_rbac_role" "exec-baja" {
-  name = "exec-baja"
-}
-
-resource "authentik_rbac_role" "exec-canoe" {
-  name = "exec-canoe"
-}
-
-resource "authentik_rbac_role" "exec-capra" {
-  name = "exec-capra"
-}
-
-resource "authentik_rbac_role" "exec-cedille" {
-  name = "exec-cedille"
-}
-
-resource "authentik_rbac_role" "exec-chinook" {
-  name = "exec-chinook"
-}
-
-resource "authentik_rbac_role" "exec-comets" {
-  name = "exec-comets"
-}
-
-resource "authentik_rbac_role" "exec-conjure" {
-  name = "exec-conjure"
-}
-
-resource "authentik_rbac_role" "exec-eclipse" {
-  name = "exec-eclipse"
-}
-
-resource "authentik_rbac_role" "exec-jdgets" {
-  name = "exec-jdgets"
-}
-
-resource "authentik_rbac_role" "exec-lanets" {
-  name = "exec-lanets"
-}
-
-resource "authentik_rbac_role" "exec-musiquets" {
-  name = "exec-musiquets"
-}
-
-resource "authentik_rbac_role" "exec-pontacier" {
-  name = "exec-pontacier"
-}
-
-resource "authentik_rbac_role" "exec-raconteursdangle" {
-  name = "exec-raconteursdangle"
-}
-
-resource "authentik_rbac_role" "exec-synapse" {
-  name = "exec-synapse"
-}
-
-resource "authentik_rbac_role" "exec-test" {
-  name = "exec-test"
-}
-
-resource "authentik_rbac_role" "exec-veloom" {
-  name = "exec-veloom"
+# Per-club exec roles hold the object permissions for their club:
+# view/add_user/remove_user on the exec-{club} and club-{club} group objects.
+# Those grants only exist in the Authentik UI/API (not expressible in this
+# provider); scripts/reconcile-exec-perms.sh keeps them in sync. exec-applets
+# is materialized here because it has no upstream role yet.
+resource "authentik_rbac_role" "exec" {
+  for_each = toset(local.clubs)
+  name     = "exec-${each.key}"
 }
 
 resource "authentik_rbac_role" "mcp" {
   name = "mcp"
 }
-

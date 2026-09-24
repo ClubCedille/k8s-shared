@@ -72,31 +72,34 @@ yaml_names=$(yq -r '.[].name' "$YAML_FILE")
 json_api=$(php /var/www/html/occ groupfolders:list --output=json)
 json_mounts=$(echo "$json_api" | jq -r '.[].mount_point')
 
-# Compare
+# Compare club groups
 for name in $yaml_names; do
-  if ! grep -qx "club-$name" <<< "$groups_current"; then
-    echo "Creating groups for $name"
-    php /var/www/html/occ group:add club-$name
-    php /var/www/html/occ group:add exec-$name
-  fi
-  target_quota=$(yq ".[] | select(.name == \"$name\") | .quota" "$YAML_FILE")
-  target_quota=$((target_quota * 1024 * 1024 * 1024))
-  if ! grep -qx "$name" <<< "$json_mounts"; then
-    echo "Creating groupfolder for $name"
-    folder_id=$(php /var/www/html/occ groupfolders:create "${name}")
-    echo Folder ID: $folder_id
-    php /var/www/html/occ groupfolders:group  "${folder_id}" "club-${name}" read write share delete
-    php /var/www/html/occ groupfolders:group  "${folder_id}" "exec-${name}" read write share delete
-    php /var/www/html/occ groupfolders:permissions "${folder_id}" --enable
-    php /var/www/html/occ groupfolders:permissions "${folder_id}" -m -g exec-${name}
-    php /var/www/html/occ groupfolders:permissions "${folder_id}" -g club-cedille / +read +write +create +delete +share
-    php /var/www/html/occ groupfolders:permissions "${folder_id}" -g exec-cedille / +read +write +create +delete +share
-    php /var/www/html/occ groupfolders:quota  "${folder_id}" "${target_quota}"
-  elif  [[ $target_quota != $(echo "$json_api" | jq ".[] | select(.mount_point == \"$name\") | .quota") ]]; then
-    echo "Updating groupfolder quota for $name"
-    folder_id=$(echo "$json_api" | jq -r ".[] | select(.mount_point == \"$name\") | .id")
-    php /var/www/html/occ groupfolders:quota  "${folder_id}" "${target_quota}"
-  fi
+    if $(yq ".[] | select(.name == \"$name\") | .quota" "$YAML_FILE") == 0; then
+        continue
+    fi
+    if ! grep -qx "club-$name" <<< "$groups_current"; then
+        echo "Creating groups for $name"
+        php /var/www/html/occ group:add club-$name
+        php /var/www/html/occ group:add exec-$name
+    fi
+    target_quota=$(yq ".[] | select(.name == \"$name\") | .quota" "$YAML_FILE")
+    target_quota=$((target_quota * 1024 * 1024 * 1024))
+    if ! grep -qx "$name" <<< "$json_mounts"; then
+        echo "Creating groupfolder for $name"
+        folder_id=$(php /var/www/html/occ groupfolders:create "${name}")
+        echo Folder ID: $folder_id
+        php /var/www/html/occ groupfolders:group  "${folder_id}" "club-${name}" read write share delete
+        php /var/www/html/occ groupfolders:group  "${folder_id}" "exec-${name}" read write share delete
+        php /var/www/html/occ groupfolders:permissions "${folder_id}" --enable
+        php /var/www/html/occ groupfolders:permissions "${folder_id}" -m -g exec-${name}
+        php /var/www/html/occ groupfolders:permissions "${folder_id}" -g club-cedille / +read +write +create +delete +share
+        php /var/www/html/occ groupfolders:permissions "${folder_id}" -g exec-cedille / +read +write +create +delete +share
+        php /var/www/html/occ groupfolders:quota  "${folder_id}" "${target_quota}"
+    elif  [[ $target_quota != $(echo "$json_api" | jq ".[] | select(.mount_point == \"$name\") | .quota") ]]; then
+        echo "Updating groupfolder quota for $name"
+        folder_id=$(echo "$json_api" | jq -r ".[] | select(.mount_point == \"$name\") | .id")
+        php /var/www/html/occ groupfolders:quota  "${folder_id}" "${target_quota}"
+    fi
 done
 
 # External sites
@@ -108,19 +111,19 @@ EXTERNAL_SITES_JSON="{}"
 
 for id in $external_sites_ids; do
 
-  external_site_name=$(yq -r ".[] | select(.id == $id) | .name" "$EXTERNAL_SITES_YAML")
-  external_site_url=$(yq -r ".[] | select(.id == $id) | .url" "$EXTERNAL_SITES_YAML")
-  external_site_lang=$(yq -r ".[] | select(.id == $id) | .lang" "$EXTERNAL_SITES_YAML")
-  external_site_type=$(yq -r ".[] | select(.id == $id) | .type" "$EXTERNAL_SITES_YAML")
-  external_site_device=$(yq -r ".[] | select(.id == $id) | .device" "$EXTERNAL_SITES_YAML")
-  external_site_redirect=$(yq -r ".[] | select(.id == $id) | .redirect" "$EXTERNAL_SITES_YAML")
+    external_site_name=$(yq -r ".[] | select(.id == $id) | .name" "$EXTERNAL_SITES_YAML")
+    external_site_url=$(yq -r ".[] | select(.id == $id) | .url" "$EXTERNAL_SITES_YAML")
+    external_site_lang=$(yq -r ".[] | select(.id == $id) | .lang" "$EXTERNAL_SITES_YAML")
+    external_site_type=$(yq -r ".[] | select(.id == $id) | .type" "$EXTERNAL_SITES_YAML")
+    external_site_device=$(yq -r ".[] | select(.id == $id) | .device" "$EXTERNAL_SITES_YAML")
+    external_site_redirect=$(yq -r ".[] | select(.id == $id) | .redirect" "$EXTERNAL_SITES_YAML")
 
-  external_site_logo_url=$(yq -r ".[] | select(.id == $id) | .icon_url" "$EXTERNAL_SITES_YAML")
-  ext="${external_site_logo_url##*.}"
-  curl -o /var/www/html/data/$appdata/external/icons/$external_site_name.$ext "$external_site_logo_url"
+    external_site_logo_url=$(yq -r ".[] | select(.id == $id) | .icon_url" "$EXTERNAL_SITES_YAML")
+    ext="${external_site_logo_url##*.}"
+    curl -o /var/www/html/data/$appdata/external/icons/$external_site_name.$ext "$external_site_logo_url"
 
-  echo $external_site_name
-  EXTERNAL_SITES_JSON=$(echo "$EXTERNAL_SITES_JSON" | jq ".\"$id\" = {
+    echo $external_site_name
+    EXTERNAL_SITES_JSON=$(echo "$EXTERNAL_SITES_JSON" | jq ".\"$id\" = {
     \"id\": $id,
     \"name\": \"$external_site_name\",
     \"url\": \"$external_site_url\",
