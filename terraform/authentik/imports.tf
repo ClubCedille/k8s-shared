@@ -19,146 +19,6 @@ import {
   id = "aa70bee4-d46e-4735-b621-e52e0d2797c8"
 }
 import {
-  to = authentik_group.club-algoets
-  id = "66566fb2-b9c2-4cfb-b6e1-1a32f14719c0"
-}
-import {
-  to = authentik_group.club-applets
-  id = "2adcd665-54d9-413c-ac25-61519c6939d2"
-}
-import {
-  to = authentik_group.club-baja
-  id = "1e8242d6-4f3b-4fc1-a88d-ef46ee54bce9"
-}
-import {
-  to = authentik_group.club-canoe
-  id = "f4fedbf6-95de-43a6-b4ea-b8fdaffad560"
-}
-import {
-  to = authentik_group.club-capra
-  id = "3d1b0df6-6f91-45b5-914b-3eb01596884e"
-}
-import {
-  to = authentik_group.club-cedille
-  id = "6071e045-b7f0-428c-aed9-ea23ebd53d5d"
-}
-import {
-  to = authentik_group.club-chinook
-  id = "d311ca61-8d8d-4d85-bd6f-071d3ff00ba8"
-}
-import {
-  to = authentik_group.club-comets
-  id = "c7196e50-333b-4da8-b21b-6c62da88fc60"
-}
-import {
-  to = authentik_group.club-conjure
-  id = "a0316899-852d-4c3f-8644-08f12443bf4f"
-}
-import {
-  to = authentik_group.club-eclipse
-  id = "60814676-d070-4c84-a94b-9a049738c763"
-}
-import {
-  to = authentik_group.club-jdgets
-  id = "d93fb1bb-19c7-4a7a-a785-0c962fab32ee"
-}
-import {
-  to = authentik_group.club-lanets
-  id = "bf7f9141-9291-4b76-a9b4-79195f5bf2ca"
-}
-import {
-  to = authentik_group.club-musiquets
-  id = "db29450a-75fa-4315-bba5-3d1171198fdf"
-}
-import {
-  to = authentik_group.club-pontacier
-  id = "73a706d9-17f5-49b9-9944-791da7d4bb06"
-}
-import {
-  to = authentik_group.club-raconteursdangle
-  id = "71269b65-20fe-4b61-b91e-29a0c090abb9"
-}
-import {
-  to = authentik_group.club-synapse
-  id = "27080afd-0d3e-4f8b-afd6-cebf6c928e8e"
-}
-import {
-  to = authentik_group.club-veloom
-  id = "8f9d4890-d296-4be4-bc4e-a3746ca158ef"
-}
-import {
-  to = authentik_group.exec-algoets
-  id = "ddfec71b-9a8b-43bb-a3fa-b62c42a95516"
-}
-import {
-  to = authentik_group.exec-applets
-  id = "d099e140-f8c0-433c-bc65-7abd0bbc1685"
-}
-import {
-  to = authentik_group.exec-baja
-  id = "e1ee4e8b-5223-4f0d-9fd4-d5311d766693"
-}
-import {
-  to = authentik_group.exec-canoe
-  id = "bc12ebea-0746-4c78-b152-f3a361f6a605"
-}
-import {
-  to = authentik_group.exec-capra
-  id = "0ca7054d-b7b9-488b-91e0-628630aab099"
-}
-import {
-  to = authentik_group.exec-cedille
-  id = "947eca31-a25c-47bd-9804-d4b61de149a6"
-}
-import {
-  to = authentik_group.exec-chinook
-  id = "c402aa0c-b128-4834-ac74-9b4bd99a1698"
-}
-import {
-  to = authentik_group.exec-comets
-  id = "2dd489c4-40be-47fe-b188-f2b421a0f3bd"
-}
-import {
-  to = authentik_group.exec-conjure
-  id = "8886bba5-0971-4bc2-a5de-e8d99fd57d73"
-}
-import {
-  to = authentik_group.exec-eclipse
-  id = "7e4f9b74-6554-4f83-b28b-e6a6f711f17b"
-}
-import {
-  to = authentik_group.exec-jdgets
-  id = "0edec1a5-2cb3-4a2b-9368-ae887c493c12"
-}
-import {
-  to = authentik_group.exec-lanets
-  id = "5e572f48-9c69-4264-b81e-ab09fee394b2"
-}
-import {
-  to = authentik_group.exec-musiquets
-  id = "c19e1b8e-975f-420a-8cd1-aae6fc2e7316"
-}
-import {
-  to = authentik_group.exec-pontacier
-  id = "6c801016-2523-4a9a-8812-361d02775dcc"
-}
-import {
-  to = authentik_group.exec-raconteursdangle
-  id = "1c084766-0875-44c2-a301-ae7255d0e3e1"
-}
-import {
-  to = authentik_group.exec-synapse
-  id = "41361ece-dc6a-4a08-bde7-e5c0734007b8"
-}
-import {
-  to = authentik_group.exec-test
-  id = "392ef785-808c-42b5-bb2b-4789ba750a4b"
-}
-import {
-  to = authentik_group.exec-veloom
-  id = "f47268ed-e1c2-4593-975a-ac645cd8721e"
-}
-import {
   to = authentik_group.gcp-editors
   id = "0e899c63-477e-4aeb-b5bc-46bc0692fe3b"
 }
@@ -347,80 +207,20 @@ import {
   id = "d4385318-6cfa-4a34-8abc-67e159b1f90a"
 }
 import {
-  to = authentik_rbac_role.exec-algoets
-  id = "1c62a509-d0b5-47c2-a841-93f4ef0be929"
-}
-import {
-  to = authentik_rbac_role.exec-baja
-  id = "b18e05e7-e0c9-4e8f-9ade-9b943b6aa750"
-}
-import {
-  to = authentik_rbac_role.exec-canoe
-  id = "f8646f31-07d0-4078-b8b5-19de7f1cdd7a"
-}
-import {
-  to = authentik_rbac_role.exec-capra
-  id = "2e351c3d-8cdb-4a21-a51f-22a6c37f77d5"
-}
-import {
-  to = authentik_rbac_role.exec-cedille
-  id = "c28a4ef8-df36-469e-a29b-03a36363372e"
-}
-import {
-  to = authentik_rbac_role.exec-chinook
-  id = "ffcb19be-02de-4f6e-a8c3-40054f7d274e"
-}
-import {
-  to = authentik_rbac_role.exec-comets
-  id = "60a18e53-1a5d-44ff-bcce-7240aa8b738c"
-}
-import {
-  to = authentik_rbac_role.exec-conjure
-  id = "4c527282-e20f-4b2f-9fd2-977a050fb6dc"
-}
-import {
-  to = authentik_rbac_role.exec-eclipse
-  id = "04742b3c-9388-46d8-ab45-f505dc31b90a"
-}
-import {
-  to = authentik_rbac_role.exec-jdgets
-  id = "00670c37-f883-4a23-a97f-a9f90fd47e3d"
-}
-import {
-  to = authentik_rbac_role.exec-lanets
-  id = "f882b3b7-0191-410e-93d8-6acde991d594"
-}
-import {
-  to = authentik_rbac_role.exec-musiquets
-  id = "4f31da95-0dba-41d6-977b-4f3962ebfd0a"
-}
-import {
-  to = authentik_rbac_role.exec-pontacier
-  id = "73381392-99e9-462f-9742-24fcd33c5ceb"
-}
-import {
-  to = authentik_rbac_role.exec-raconteursdangle
-  id = "17a65f8f-8a91-4e2a-b7ce-0f0f0a8b60bd"
-}
-import {
-  to = authentik_rbac_role.exec-synapse
-  id = "f7cb9036-a73e-43ea-bac2-b5e136fa0e97"
-}
-import {
   to = authentik_rbac_role.exec-test
   id = "334570f1-a619-4562-8cc4-51d56ed20914"
 }
 import {
-  to = authentik_rbac_role.exec-veloom
-  id = "7662e4b8-0830-48b1-9da0-8fd3afdb02a4"
+  to = authentik_group.exec-test
+  id = "392ef785-808c-42b5-bb2b-4789ba750a4b"
 }
 import {
   to = authentik_rbac_role.mcp
   id = "12db1516-4e1f-41fb-b2b8-e09571d906ee"
 }
 import {
-  to = authentik_brand.authentik-test
-  id = "7a569191-8105-4d2a-9793-54c26796606c"
+  to = authentik_brand.authentik-default
+  id = "4bd3dece-a0f5-4d59-b00d-690328c71f22"
 }
 import {
   to = authentik_property_mapping_provider_scope.email_verified

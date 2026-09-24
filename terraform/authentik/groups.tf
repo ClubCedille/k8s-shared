@@ -9,226 +9,32 @@ resource "authentik_group" "admin" {
 }
 
 resource "authentik_group" "authentik_agent-users" {
-  name = "authentik Agent-Users"
-  roles = [
-    authentik_rbac_role.authentik_agent-users.id,
-  ]
+  name  = "authentik Agent-Users"
+  roles = [authentik_rbac_role.authentik_agent-users.id]
 }
 
 resource "authentik_group" "authentik_read-only" {
-  name = "authentik Read-only"
-  roles = [
-    authentik_rbac_role.authentik_read-only.id,
-  ]
+  name  = "authentik Read-only"
+  roles = [authentik_rbac_role.authentik_read-only.id]
 }
 
-resource "authentik_group" "club-algoets" {
-  name = "club-algoets"
-
-  roles = [
-    authentik_rbac_role.exec-algoets.id,
-  ]
-
+# club-*/exec-* groups are generated from data/clubs.yaml (see locals.tf).
+# Each exec group is bound to its exec-{club} role, which holds the object
+# permissions (view/add/remove users) on the exec-{club} and club-{club} groups.
+resource "authentik_group" "club" {
+  for_each = toset(local.clubs)
+  name     = "club-${each.key}"
 }
 
-resource "authentik_group" "club-applets" {
-  name = "club-applets"
+resource "authentik_group" "exec" {
+  for_each = toset(local.clubs)
+  name     = "exec-${each.key}"
+  roles    = [authentik_rbac_role.exec[each.key].id]
 }
 
-resource "authentik_group" "club-baja" {
-  name = "club-baja"
-}
-
-resource "authentik_group" "club-canoe" {
-  name = "club-canoe"
-}
-
-resource "authentik_group" "club-capra" {
-  name = "club-capra"
-}
-
-resource "authentik_group" "club-cedille" {
-  name = "club-cedille"
-
-  roles = [
-    authentik_rbac_role.club-cedille.id,
-  ]
-}
-
-resource "authentik_group" "club-chinook" {
-  name = "club-chinook"
-}
-
-resource "authentik_group" "club-comets" {
-  name = "club-comets"
-}
-
-resource "authentik_group" "club-conjure" {
-  name = "club-conjure"
-}
-
-resource "authentik_group" "club-eclipse" {
-  name = "club-eclipse"
-}
-
-resource "authentik_group" "club-jdgets" {
-  name = "club-jdgets"
-}
-
-resource "authentik_group" "club-lanets" {
-  name = "club-lanets"
-
-  roles = [
-    authentik_rbac_role.club-lanets.id,
-  ]
-}
-
-resource "authentik_group" "club-musiquets" {
-  name = "club-musiquets"
-}
-
-resource "authentik_group" "club-pontacier" {
-  name = "club-pontacier"
-}
-
-resource "authentik_group" "club-raconteursdangle" {
-  name = "club-raconteursdangle"
-}
-
-resource "authentik_group" "club-synapse" {
-  name = "club-synapse"
-}
-
-resource "authentik_group" "club-veloom" {
-  name = "club-veloom"
-}
-
-resource "authentik_group" "exec-algoets" {
-  name = "exec-algoets"
-
-  roles = [
-    authentik_rbac_role.exec-algoets.id,
-  ]
-}
-
-resource "authentik_group" "exec-applets" {
-  name = "exec-applets"
-}
-
-resource "authentik_group" "exec-baja" {
-  name = "exec-baja"
-
-  roles = [
-    authentik_rbac_role.exec-baja.id,
-  ]
-}
-
-resource "authentik_group" "exec-canoe" {
-  name = "exec-canoe"
-
-  roles = [
-    authentik_rbac_role.exec-canoe.id,
-  ]
-}
-
-resource "authentik_group" "exec-capra" {
-  name = "exec-capra"
-
-  roles = [
-    authentik_rbac_role.exec-capra.id,
-  ]
-}
-
-resource "authentik_group" "exec-cedille" {
-  name = "exec-cedille"
-
-  roles = [
-    authentik_rbac_role.exec-cedille.id,
-  ]
-}
-
-resource "authentik_group" "exec-chinook" {
-  name = "exec-chinook"
-
-  roles = [
-    authentik_rbac_role.exec-chinook.id,
-  ]
-}
-
-resource "authentik_group" "exec-comets" {
-  name = "exec-comets"
-
-  roles = [
-    authentik_rbac_role.exec-comets.id,
-  ]
-}
-
-resource "authentik_group" "exec-conjure" {
-  name = "exec-conjure"
-
-  roles = [
-    authentik_rbac_role.exec-conjure.id,
-  ]
-}
-
-resource "authentik_group" "exec-eclipse" {
-  name = "exec-eclipse"
-}
-
-resource "authentik_group" "exec-jdgets" {
-  name = "exec-jdgets"
-}
-
-resource "authentik_group" "exec-lanets" {
-  name = "exec-lanets"
-
-  roles = [
-    authentik_rbac_role.exec-lanets.id,
-  ]
-}
-
-resource "authentik_group" "exec-musiquets" {
-  name = "exec-musiquets"
-
-  roles = [
-    authentik_rbac_role.exec-musiquets.id,
-  ]
-}
-
-resource "authentik_group" "exec-pontacier" {
-  name = "exec-pontacier"
-
-  roles = [
-    authentik_rbac_role.exec-pontacier.id,
-  ]
-}
-
-resource "authentik_group" "exec-raconteursdangle" {
-  name = "exec-raconteursdangle"
-
-  roles = [
-    authentik_rbac_role.exec-raconteursdangle.id,
-  ]
-}
-
-resource "authentik_group" "exec-synapse" {
-  name = "exec-synapse"
-
-  roles = [
-    authentik_rbac_role.exec-synapse.id,
-  ]
-}
-
+# "exec-test" is not a club: kept as a standalone group without exec-base.
 resource "authentik_group" "exec-test" {
   name = "exec-test"
-}
-
-resource "authentik_group" "exec-veloom" {
-  name = "exec-veloom"
-
-  roles = [
-    authentik_rbac_role.exec-veloom.id,
-  ]
 }
 
 resource "authentik_group" "gcp-editors" {
