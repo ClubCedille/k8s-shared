@@ -150,7 +150,7 @@ jobs:
           module: ${{ matrix.name }}
 
   apply:
-    needs: detect
+    needs: plan
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     strategy:
