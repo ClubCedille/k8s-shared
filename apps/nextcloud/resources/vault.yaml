@@ -12,8 +12,6 @@ spec:
     role: secret-reader
     serviceAccount: default
 ---
-# Docker Hub credentials for image pulls, taken over from the redhatcop
-# VaultSecret (same Vault path as the other VSO apps).
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultStaticSecret
 metadata:
