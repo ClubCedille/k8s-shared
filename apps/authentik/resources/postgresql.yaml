@@ -4,19 +4,25 @@ metadata:
   name: postgresql-authentik
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:16.9
-  instances: 1
+  instances: 3
   bootstrap:
-    initdb:
+    recovery:
       database: authentik
       owner: authentik
-      secret:
-        name: authentik-cnpg-app
+      source: origin
   storage:
     size: 10Gi
     storageClass: ceph-rbd
   walStorage:
-    size: 30Gi
+    size: 5Gi
     storageClass: ceph-rbd
+  externalClusters:
+    - name: origin
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: cnpg-authentik-b2
+          serverName: postgresql-authentik
   postgresql:
     parameters:
       max_connections: "200"
@@ -24,7 +30,37 @@ spec:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
       parameters:
-        barmanObjectName: cnpg-authentik-b2
+        barmanObjectName: cnpg-authentik-b2-new
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: cnpg-authentik-b2-new
+spec:
+  configuration:
+    destinationPath: s3://k8s-shared-bucket/postgresql-authentik-new
+    endpointURL: https://s3.ca-east-006.backblazeb2.com
+    s3Credentials:
+      accessKeyId:
+        name: b2-creds
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: b2-creds
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+      encryption: AES256
+    data:
+      compression: gzip
+      encryption: AES256
+      jobs: 2
+  retentionPolicy: 30d
+  instanceSidecarConfiguration:
+    env:
+      - name: AWS_REQUEST_CHECKSUM_CALCULATION
+        value: when_required
+      - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+        value: when_required
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
