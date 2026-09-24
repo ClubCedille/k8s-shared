@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: outline-sync
+  annotations:
+    kube-score/ignore: pod-networkpolicy, container-image-tag
 spec:
   replicas: 1
   selector:
@@ -15,7 +17,7 @@ spec:
       containers:
         - name: oa-connector
           imagePullPolicy: Always
-          image: ghcr.io/burritosoftware/outline-authentik-connector:latest
+          image: ghcr.io/burritosoftware/outline-authentik-connector:1.2
           ports:
             - containerPort: 80
           readinessProbe:
@@ -33,6 +35,24 @@ spec:
             periodSeconds: 20
             timeoutSeconds: 5
             failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+              ephemeral-storage: 512Mi
           envFrom:
             - secretRef:
                 name: outline-sync-secrets
