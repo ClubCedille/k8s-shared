@@ -13,11 +13,6 @@ spec:
     - path: apps/nextcloud-new
       repoURL: https://github.com/ClubCedille/k8s-shared.git
       targetRevision: HEAD
-    - path: apps/nextcloud-new
-      repoURL: https://github.com/ClubCedille/k8s-shared.git
-      targetRevision: HEAD
-      directory:
-        include: nextcloud-setup-job.yaml
   syncPolicy:
     automated:
       prune: true
