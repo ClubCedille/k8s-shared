@@ -4,7 +4,7 @@ metadata:
   name: outline-cedille
   annotations:
     argocd.argoproj.io/sync-options: Replace=true
-    kube-score/ignore: pod-networkpolicy, pod-probes, container-security-context-readonlyrootfilesystem, container-security-context-privileged, container-security-context-user-group-id, container-image-tag
+    kube-score/ignore: pod-networkpolicy, container-security-context-readonlyrootfilesystem, container-security-context-privileged, container-security-context-user-group-id, container-image-tag
 spec:
   serviceName: outline-cedille
   replicas: 2
@@ -21,6 +21,8 @@ spec:
             - name: URL
               value: https://cedille.etsmtl.club
             - name: REDIS_URL
+              value: redis://redis-cedille.outline-cedille.svc.cluster.local:6379
+            - name: REDIS_COLLABORATION_URL
               value: redis://redis-cedille.outline-cedille.svc.cluster.local:6379
             - name: FILE_STORAGE
               value: s3
@@ -71,6 +73,21 @@ spec:
               cpu: 1000m
               memory: 1Gi
               ephemeral-storage: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /_health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
       imagePullSecrets:
         - name: dockerhub-pull
       restartPolicy: Always
