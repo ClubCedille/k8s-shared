@@ -3,7 +3,7 @@ kind: StatefulSet
 metadata:
   name: outline
   annotations:
-    kube-score/ignore: pod-networkpolicy, pod-probes, container-security-context-readonlyrootfilesystem, container-security-context-privileged, container-security-context-user-group-id, container-image-tag
+    kube-score/ignore: pod-networkpolicy, container-security-context-readonlyrootfilesystem, container-security-context-privileged, container-security-context-user-group-id, container-image-tag
 spec:
   serviceName: outline
   replicas: 2
@@ -68,6 +68,21 @@ spec:
               cpu: 1000m
               memory: 1Gi
               ephemeral-storage: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /_health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
       imagePullSecrets:
         - name: dockerhub-pull
       restartPolicy: Always
