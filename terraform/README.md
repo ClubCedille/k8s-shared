@@ -1,8 +1,16 @@
 # Automatisation Terraform
 
-Le workflow `.github/workflows/apply-tf.yml` applique les modules
-Authentik/Vault d'Outline et de Node-RED lorsque des changements sont intégrés
-à `main`.
+Chaque dossier sous `terraform/` est un **root Terraform indépendant**
+(`tofu init`/`plan`/`apply` depuis son propre dossier), avec un backend
+Kubernetes partagé via `~/.kube/config`:
+
+- `authentik/` — groupes, rôles et config de marque Authentik (`state-authentik`);
+- `outline/authentik-vault/`, `nodered/authentik-vault/`, `coder/authentik-vault/`,
+  `matomo/authentik-vault/` — applications OIDC + secrets Vault.
+
+Le workflow `.github/workflows/apply-tf.yml` détecte les changements et
+applique les modules concernés lorsqu'un changement est intégré à `main`.
+Sur `pull_request`, il ne fait que planifier.
 
 ## Authentification à Vault
 
@@ -20,14 +28,7 @@ changement du workflow. Le Token Vault créé :
 
 - est valide pendant au plus 30 minutes;
 - est limité à ce dépôt, à `main` et à ce workflow;
-- peut uniquement gérer les chemins Vault utilisés par les modules Node-RED et
-  Outline.
+- ne peut gérer que les chemins Vault utilisés par les modules.
 
-L'intégration d'un changement au workflow déclenche une exécution qui vérifie
-uniquement l'authentification. Après sa réussite, lancer manuellement le
-workflow avec `nodered`, `outline` ou `all` pour valider une véritable
-application Terraform. L'option par défaut `auth-only` vérifie uniquement
-l'échange OIDC.
-
-Après la réussite d'une application Terraform, supprimer l'ancien secret
-`VAULT_TOKEN` dans les paramètres du dépôt `ClubCedille/k8s-shared`.
+`workflow_dispatch` permet de choisir manuellement un ou tous les modules
+(`auth-only` ne fait que vérifier l'authentification).

@@ -1,36 +1,100 @@
-name: Apply Terraform for Authentik and Vault
+name: Terraform Plan & Apply
 
 on:
   workflow_dispatch:
     inputs:
       module:
-        description: Terraform module to apply
+        description: Module(s) to plan/apply
         required: true
         default: auth-only
         type: choice
         options:
           - auth-only
-          - nodered
+          - authentik
           - outline
+          - nodered
           - coder
           - matomo
           - all
+  pull_request:
   push:
     branches:
       - main
-    paths:
-      - '.github/workflows/apply-tf.yml'
-      - 'terraform/outline/authentik-vault/**'
-      - 'terraform/nodered/authentik-vault/**'
-      - 'terraform/coder/authentik-vault/**'
-      - 'terraform/matomo/authentik-vault/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
 
 jobs:
-  terraform_apply:
+  detect:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            authentik:
+              - '.github/workflows/apply-tf.yml'
+              - 'terraform/authentik/**'
+            outline:
+              - 'terraform/outline/authentik-vault/**'
+            nodered:
+              - 'terraform/nodered/authentik-vault/**'
+            coder:
+              - 'terraform/coder/authentik-vault/**'
+            matomo:
+              - 'terraform/matomo/authentik-vault/**'
+
+      - name: Compute target matrix
+        id: matrix
+        env:
+          REQUEST: ${{ inputs.module }}
+          AUTHENTIK: ${{ steps.filter.outputs.authentik }}
+          OUTLINE: ${{ steps.filter.outputs.outline }}
+          NODERED: ${{ steps.filter.outputs.nodered }}
+          CODER: ${{ steps.filter.outputs.coder }}
+          MATOMO: ${{ steps.filter.outputs.matomo }}
+        run: |
+          case "$REQUEST" in
+            authentik)           AUTHENTIK=true ;;
+            outline)             OUTLINE=true ;;
+            nodered)             NODERED=true ;;
+            coder)               CODER=true ;;
+            matomo)              MATOMO=true ;;
+            all)                 AUTHENTIK=true; OUTLINE=true; NODERED=true; CODER=true; MATOMO=true ;;
+            auth-only|"")        ;;
+            *)                   echo "unsupported module: $REQUEST" >&2; exit 1 ;;
+          esac
+
+          targets=()
+          for m in authentik outline nodered coder matomo; do
+            case "$m" in
+              authentik) b=$AUTHENTIK ;; outline) b=$OUTLINE ;; nodered) b=$NODERED ;; coder) b=$CODER ;; matomo) b=$MATOMO ;;
+            esac
+            [ "$b" = true ] && targets+=("$m")
+          done
+
+          matrix='[]'
+          for t in "${targets[@]}"; do
+            [ "$t" = authentik ] && dir="terraform/authentik" || dir="terraform/$t/authentik-vault"
+            matrix=$(jq -c --arg n "$t" --arg d "$dir" '. + [{name: $n, dir: $d}]' <<<"$matrix")
+          done
+          echo "matrix={\"include\":$matrix}" >> "$GITHUB_OUTPUT"
+
+  plan:
+    needs: detect
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJSON(needs.detect.outputs.matrix) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,88 +112,65 @@ jobs:
           echo "$KUBECONFIG_SECRET" > ~/.kube/config
           chmod 600 ~/.kube/config
 
-      - name: Detect Terraform modules to apply
-        id: changes
+      - name: Authenticate to Vault with GitHub OIDC
+        uses: hashicorp/vault-action@892a26828f195e65540a40b4768ae4571f51ebfc # v4.0.0
+        with:
+          url: https://vault.etsmtl.club
+          method: jwt
+          path: jwt/github-actions
+          role: k8s-shared-terraform
+          jwtGithubAudience: https://vault.etsmtl.club
+          exportToken: true
+
+      - name: Tofu Plan
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          REQUESTED_MODULE: ${{ inputs.module }}
+          TF_IN_AUTOMATION: "true"
+          TF_VAR_AUTHENTIK_API_TOKEN: ${{ secrets.AUTHENTIK_TOKEN }}
+          TF_VAR_db_user: ${{ secrets.OUTLINE_DB_USER }}
+          TF_VAR_db_password: ${{ secrets.OUTLINE_DB_PASSWORD }}
         run: |
-          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            case "$REQUESTED_MODULE" in
-              nodered)
-                echo "outline=false" >> "$GITHUB_OUTPUT"
-                echo "nodered=true" >> "$GITHUB_OUTPUT"
-                echo "coder=false" >> "$GITHUB_OUTPUT"
-                echo "matomo=false" >> "$GITHUB_OUTPUT"
-                ;;
-              outline)
-                echo "outline=true" >> "$GITHUB_OUTPUT"
-                echo "nodered=false" >> "$GITHUB_OUTPUT"
-                echo "coder=false" >> "$GITHUB_OUTPUT"
-                echo "matomo=false" >> "$GITHUB_OUTPUT"
-                ;;
-              coder)
-                echo "outline=false" >> "$GITHUB_OUTPUT"
-                echo "nodered=false" >> "$GITHUB_OUTPUT"
-                echo "coder=true" >> "$GITHUB_OUTPUT"
-                echo "matomo=false" >> "$GITHUB_OUTPUT"
-                ;;
-              matomo)
-                echo "outline=false" >> "$GITHUB_OUTPUT"
-                echo "nodered=false" >> "$GITHUB_OUTPUT"
-                echo "coder=false" >> "$GITHUB_OUTPUT"
-                echo "matomo=true" >> "$GITHUB_OUTPUT"
-                ;;
-              all)
-                echo "outline=true" >> "$GITHUB_OUTPUT"
-                echo "nodered=true" >> "$GITHUB_OUTPUT"
-                echo "coder=true" >> "$GITHUB_OUTPUT"
-                echo "matomo=true" >> "$GITHUB_OUTPUT"
-                ;;
-              auth-only)
-                echo "outline=false" >> "$GITHUB_OUTPUT"
-                echo "nodered=false" >> "$GITHUB_OUTPUT"
-                echo "coder=false" >> "$GITHUB_OUTPUT"
-                echo "matomo=false" >> "$GITHUB_OUTPUT"
-                ;;
-              *)
-                echo "Unsupported module: $REQUESTED_MODULE" >&2
-                exit 1
-                ;;
-            esac
-            exit 0
-          fi
+          cd "${{ matrix.dir }}"
+          tofu init
+          tofu plan -no-color -out=plan.tfplan
+          tofu show -no-color plan.tfplan > plan.txt
 
-          base_sha="${{ github.event.before }}"
-          if [ "$base_sha" = "0000000000000000000000000000000000000000" ]; then
-            base_sha="$(git rev-list --max-parents=0 HEAD)"
-          fi
+      - name: Upload plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ matrix.name }}
+          path: |
+            ${{ matrix.dir }}/plan.tfplan
+            ${{ matrix.dir }}/plan.txt
 
-          git diff --name-only "$base_sha" "${{ github.sha }}" > /tmp/changed-files
+      - name: Comment plan summary on PR
+        if: github.event_name == 'pull_request'
+        uses: clubcedille/cedille-workflows/.github/actions/tofu-plan-comment@master
+        with:
+          plan-path: ${{ matrix.dir }}/plan.txt
+          module: ${{ matrix.name }}
 
-          if grep -q '^terraform/outline/authentik-vault/' /tmp/changed-files; then
-            echo "outline=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "outline=false" >> "$GITHUB_OUTPUT"
-          fi
+  apply:
+    needs: detect
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJSON(needs.detect.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-          if grep -q '^terraform/nodered/authentik-vault/' /tmp/changed-files; then
-            echo "nodered=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "nodered=false" >> "$GITHUB_OUTPUT"
-          fi
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v2
 
-          if grep -q '^terraform/coder/authentik-vault/' /tmp/changed-files; then
-            echo "coder=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "coder=false" >> "$GITHUB_OUTPUT"
-          fi
-
-          if grep -q '^terraform/matomo/authentik-vault/' /tmp/changed-files; then
-            echo "matomo=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "matomo=false" >> "$GITHUB_OUTPUT"
-          fi
+      - name: Setup Kubeconfig
+        env:
+          KUBECONFIG_SECRET: ${{ secrets.KUBECONFIG }}
+        run: |
+          mkdir -p ~/.kube
+          echo "$KUBECONFIG_SECRET" > ~/.kube/config
+          chmod 600 ~/.kube/config
 
       - name: Authenticate to Vault with GitHub OIDC
         uses: hashicorp/vault-action@892a26828f195e65540a40b4768ae4571f51ebfc # v4.0.0
@@ -141,48 +182,13 @@ jobs:
           jwtGithubAudience: https://vault.etsmtl.club
           exportToken: true
 
-      - name: Tofu Init & Apply Outline
-        if: steps.changes.outputs.outline == 'true'
+      - name: Tofu Apply
         env:
-          TF_IN_AUTOMATION: true
+          TF_IN_AUTOMATION: "true"
           TF_VAR_AUTHENTIK_API_TOKEN: ${{ secrets.AUTHENTIK_TOKEN }}
           TF_VAR_db_user: ${{ secrets.OUTLINE_DB_USER }}
           TF_VAR_db_password: ${{ secrets.OUTLINE_DB_PASSWORD }}
         run: |
-          cd terraform/outline/authentik-vault
-
-          tofu init
-          tofu apply -auto-approve
-
-      - name: Tofu Init & Apply Node-RED
-        if: steps.changes.outputs.nodered == 'true'
-        env:
-          TF_IN_AUTOMATION: true
-          TF_VAR_AUTHENTIK_API_TOKEN: ${{ secrets.AUTHENTIK_TOKEN }}
-        run: |
-          cd terraform/nodered/authentik-vault
-
-          tofu init
-          tofu apply -auto-approve
-
-      - name: Tofu Init & Apply Coder
-        if: steps.changes.outputs.coder == 'true'
-        env:
-          TF_IN_AUTOMATION: true
-          TF_VAR_AUTHENTIK_API_TOKEN: ${{ secrets.AUTHENTIK_TOKEN }}
-        run: |
-          cd terraform/coder/authentik-vault
-
-          tofu init
-          tofu apply -auto-approve
-
-      - name: Tofu Init & Apply Matomo
-        if: steps.changes.outputs.matomo == 'true'
-        env:
-          TF_IN_AUTOMATION: true
-          TF_VAR_AUTHENTIK_API_TOKEN: ${{ secrets.AUTHENTIK_TOKEN }}
-        run: |
-          cd terraform/matomo/authentik-vault
-
+          cd "${{ matrix.dir }}"
           tofu init
           tofu apply -auto-approve
