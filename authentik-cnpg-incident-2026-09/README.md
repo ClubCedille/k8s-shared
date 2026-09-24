@@ -34,6 +34,14 @@ Downstream effect: `auth.etsmtl.club` intermittently unavailable / 503; ArgoCD A
    ("unknown plugin"): le pod plugin `barman-cloud` (port 9090) retombait pendant la
    fenêtre de démarrage, et la découverte du plugin se fait via le Service `barman-cloud`
    (`cnpg.io/pluginName`, ns `cnpg-system`).
+5. **Archive barman contaminée (fork timeline 18).**
+   Pendant l'incident, un fork orphelin **timeline 18** (à LSN `6F/490A7320`) a été
+   archivé dans B2. Chaque nouvelle réplique (basebackup sur timeline 17) replaît le WAL
+   de l'archive, tombe sur le segment/timeline 18 et échoue :
+   `requested timeline 18 is not a child of this server's history` → CrashLoopBackOff en
+   boucle. Les logs "Checking for free disk space for WALs..." ne sont PAS un manque
+   d'espace : c'est le garde-fou CNPG exécuté à chaque start/stop (volume 30Gi, ~560 MiB
+   utilisés) ; le vrai blocage est le replay de ce fork mort.
 
 ## Résolution
 
@@ -86,28 +94,43 @@ OK, authentik accessible).
 > Le pod primaire `-1` est ensuite bref `Terminating` / `Init` : c'est l'opérateur qui
 > applique la croissance du PVC wal 26Gi → 30Gi (restart sans switchover). Normal.
 
-### 5. Restaurer la HA — PR #560 (ouverte)
-`instances: 3` : les nouvelles répliques `-2`/`-3` se (re)seedent depuis le backup frais
-(backup base + WAL, même timeline 17) et rejoignent proprement le quorum.
+### 5. Purger le fork timeline 18 de l'archive barman
+L'archive (B2, endpoint `https://s3.ca-east-006.backblazeb2.com`, path `s3://k8s-shared-bucket/postgresql-authentik`, chart barman: `wals/<tli><lsn>/<fichier>.gz`) contenait 2 objets timeline 18 (`0x12`) :
+```text
+postgresql-authentik/postgresql-authentik/wals/00000012.history.gz
+postgresql-authentik/postgresql-authentik/wals/000000120000006F00000049.gz
+postgresql-authentik/postgresql-authentik/wals/000000120000006F/000000120000006F00000049.gz  # doublon dossier
+```
+Supprimés via un pod jetable (`ghcr.io/cloudnative-pg/plugin-barman-cloud-sidecar:v0.5.0`, boto3, creds du secret `b2-creds`). Nettoyage ensuite du pod et des PVC de la réplique bloquée (`-4` puis `-5`), cf. note POD Security : le webhook du namespace retire `env`/`envFrom` → injecter les identifiants en dur dans le script du pod jetable.
+
+### 6. Restaurer la HA — PR #560 (merged)
+`instances: 3`. Avec l'archive propre, les nouvelles répliques (basebackup du primaire,
+timeline 17, replay depuis l'archive) rejoignent le quorum. État final : 3/3 instances
+Ready, `Ready=True`, `ContinuousArchiving=True`, ArgoCD `Healthy`, lag de réplication 0.
 
 ## Enseignements / Action à retenir
 
 - **CNPG ne peut PAS rétrécir le stockage.** Toute baisse d'`walStorage` nécessite de
   reconstruire les PVC : soit failover + suppression du PVC du primaire puis changement de
   spec, soit scale à `instances: 0` / restore-migration. À mettre au backlog (30Gi → 6Gi).
+  Coût réel mesuré : `pg_wal` ~560 MiB, production ~26 Mo/jour → 2Gi serait confortable.
 - **Backups** : la méthode sélectionnée est `plugin` (pas `barmanObjectStore`); garder
-  `ScheduledBackup` / les éventuels `Backup` manuels cohérents.
+  `ScheduledBackup` / les éventuels `Backup` manuels cohérents. Layout barman: `base/` +
+  `wals/<tli><lsn>/`. La purge d'un fork mort se fait par `delete_object` (B2/S3) sur les
+  `.history.gz` et segments du timeline concerné.
 - **Redémarrer l'opérateur CNPG** : vérifier d'abord que tous les pods plugins sont
   `Running`, sinon on se retrouve dans le wedge "unknown plugin".
-- **HA non testée en réel** : #560 doit être validé en observant l'état des répliques et
-  un failover éventuel avant de le considérer acquis.
+- **"insufficient / free disk space for WALs"** = garde-fou CNPG (start/stop), pas un
+  manque d'espace : regarder la timeline du replay plutôt que l'espace disque.
+- **HA restaurée + testée** : 3/3 ready, lag 0, ArgoCD Healthy. Un failover réel reste à
+  tester un de ces jours.
 - **CI (bruit pré-existant)** : `kube-score` (kubernetes-repo-standards) échoue sur `main`
   indépendamment de ces PRs; `kubeconform` utilise un schéma datree obsolète qui rejette
   `deleteDataOnScaleDown` (raison de la clôture de #559). Voir à corriger les schémas.
 
 ## Références
 
-- PRs : #558 (wal 30Gi, merged), #559 (deleteDataOnScaleDown, closed), #560 (HA, ouvert).
+- PRs : #558 (wal 30Gi, merged), #559 (deleteDataOnScaleDown, closed), #560 (HA 3 instances, merged), #561 (ce post-mortem).
 - Backup valide : `postgresql-authentik-manual-20260924b` (ns `authentik`, `method: plugin`).
 - Objets k8s : `apps/authentik/resources/postgresql.yaml`, `deploy/cloudnative-pg`
   + `deploy/barman-cloud` + `svc/barman-cloud` (ns `cnpg-system`).
