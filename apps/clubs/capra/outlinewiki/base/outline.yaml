@@ -27,7 +27,7 @@ spec:
         app: capra-outlinewiki
     spec:
       containers:
-        - image: outlinewiki/outline:1.7.0
+        - image: outlinewiki/outline:1.10.1
           name: outline
           imagePullPolicy: Always
           envFrom:
