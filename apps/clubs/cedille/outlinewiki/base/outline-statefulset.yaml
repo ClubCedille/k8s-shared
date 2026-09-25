@@ -24,6 +24,8 @@ spec:
               value: redis://redis-cedille.outline-cedille.svc.cluster.local:6379
             - name: REDIS_COLLABORATION_URL
               value: redis://redis-cedille.outline-cedille.svc.cluster.local:6379
+            - name: WEB_CONCURRENCY
+              value: "1"
             - name: FILE_STORAGE
               value: s3
             - name: AWS_REGION
