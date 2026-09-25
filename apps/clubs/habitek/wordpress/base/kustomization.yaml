@@ -6,5 +6,6 @@ resources:
   - service.yaml
   - db/statefulset.yaml
   - db/service.yaml
+  - mysql-data-rbd.yaml
 
 namespace: habitek
