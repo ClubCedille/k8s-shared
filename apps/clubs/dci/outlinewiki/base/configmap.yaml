@@ -5,6 +5,7 @@ metadata:
 data:
   URL: https://wiki.dci.etsmtl.club
   REDIS_URL: redis://dci-redis-svc.dci-outlinewiki.svc.cluster.local:6379
+  REDIS_COLLABORATION_URL: redis://dci-redis-svc.dci-outlinewiki.svc.cluster.local:6379
   DEFAULT_LANGUAGE: fr_FR
   OIDC_AUTH_URI: https://auth.etsmtl.club/application/o/authorize/
   OIDC_DISPLAY_NAME: OpenID Connect
