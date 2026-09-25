@@ -263,6 +263,13 @@ redis:
   master:
     persistence:
       enabled: false
+    resources:
+      requests:
+        cpu: 500m
+        memory: 128Mi
+      limits:
+        cpu: 1000m
+        memory: 256Mi
     containerSecurityContext:
       enabled: true
       runAsUser: 10000
@@ -270,6 +277,13 @@ redis:
   replica:
     persistence:
       enabled: false
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 150m
+        memory: 256Mi
     containerSecurityContext:
       enabled: true
       runAsUser: 10000
@@ -279,6 +293,11 @@ redis:
    appendonly no
    # Disable RDB persistence, AOF persistence already enabled.
    save ""
+   # Redis is single-threaded and on a shared core NC every-request latency
+   # rises with queuing. Guard against OOM via eviction now that CPU is real:
+   # container memory limit is 256Mi, keep 32Mi of RSS headroom.
+   maxmemory 224mb
+   maxmemory-policy allkeys-lru
 ## Cronjob to execute Nextcloud background tasks
 ## ref: https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/background_jobs_configuration.html#cron
 ##
