@@ -6,6 +6,7 @@ data:
   URL: https://wiki.{{ nom_club }}.etsmtl.club
   REDIS_URL: redis://{{ nom_club }}-redis-svc.{{ nom_club }}-outlinewiki.svc.cluster.local:6379
   DEFAULT_LANGUAGE: fr_FR
+  WEB_CONCURRENCY: "1"
   FILE_STORAGE: s3
   FILE_STORAGE_UPLOAD_MAX_SIZE: "262144000"
   AWS_REGION: "us-east-1"

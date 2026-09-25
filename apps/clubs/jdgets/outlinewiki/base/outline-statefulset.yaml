@@ -27,6 +27,8 @@ spec:
           env:
             - name: REDIS_COLLABORATION_URL
               value: redis://jdgets-redis-svc.jdgets-outlinewiki.svc.cluster.local:6379
+            - name: WEB_CONCURRENCY
+              value: "1"
             - name: FILE_STORAGE
               value: s3
             - name: AWS_REGION
