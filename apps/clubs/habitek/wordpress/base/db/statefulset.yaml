@@ -3,6 +3,7 @@ kind: StatefulSet
 metadata:
   name: mysql
   annotations:
+    argocd.argoproj.io/sync-options: Replace=true
     kube-score/ignore: >-
       container-image-tag,
       pod-networkpolicy,
@@ -11,7 +12,7 @@ metadata:
       container-security-context-user-group-id
 spec:
   serviceName: mysql
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: mysql
@@ -62,22 +63,16 @@ spec:
           resources:
             requests:
               cpu: 300m
-              memory: 512Mi
+              memory: 1Gi
             limits:
               cpu: 500m
-              memory: 1Gi
+              memory: 2Gi
           securityContext:
             runAsUser: 999
             runAsGroup: 999
             readOnlyRootFilesystem: false
             allowPrivilegeEscalation: false
-  volumeClaimTemplates:
-    - metadata:
-        name: mysql-pv-claim
-      spec:
-        storageClassName: cephfs
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 10Gi
+      volumes:
+        - name: mysql-pv-claim
+          persistentVolumeClaim:
+            claimName: mysql-data-rbd
