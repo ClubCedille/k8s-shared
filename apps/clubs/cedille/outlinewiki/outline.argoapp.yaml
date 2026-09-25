@@ -9,7 +9,7 @@ spec:
     server: https://kubernetes.default.svc
   project: k8s-shared
   source:
-    path: apps/outline-cedille/prod
+    path: apps/clubs/cedille/outlinewiki/prod
     repoURL: https://github.com/ClubCedille/k8s-shared.git
     targetRevision: HEAD
   syncPolicy:
