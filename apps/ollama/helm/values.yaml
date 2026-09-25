@@ -7,10 +7,11 @@ ollama:
     type: nvidia
     number: 1
   models:
-    # ~4.1 Go en Q4 : déborde légèrement de la Quadro 4 Go sur le CPU.
-    # Alternative 100 % GPU mais plus faible : deepseek-coder:1.3b
+    # Apache 2.0, ~3.4 Go téléchargés ; prévoir aussi la mémoire du contexte.
+    # Avec 4 Go de VRAM, une partie peut être exécutée sur CPU/RAM.
+    # Repli manuel si trop lent : qwen3.5:2b-q4_K_M (~1.9 Go, Apache 2.0).
     pull:
-      - deepseek-coder:6.7b-instruct-q4_K_M
+      - qwen3.5:4b-q4_K_M
 
 runtimeClassName: nvidia
 
@@ -19,7 +20,7 @@ nodeSelector:
 
 extraEnv:
   - name: OLLAMA_CONTEXT_LENGTH
-    value: "8192"
+    value: "4096"
   - name: OLLAMA_KEEP_ALIVE
     value: "30m"
   - name: OLLAMA_NUM_PARALLEL
