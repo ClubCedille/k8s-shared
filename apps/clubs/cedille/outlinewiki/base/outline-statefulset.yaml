@@ -31,7 +31,7 @@ spec:
             - name: AWS_REGION
               value: "us-east-1"
             - name: AWS_S3_UPLOAD_BUCKET_URL
-              value: "http://10.0.21.59:7480"
+              value: "https://s3.etsmtl.club"
             - name: AWS_S3_FORCE_PATH_STYLE
               value: "true"
             - name: AWS_S3_ACL

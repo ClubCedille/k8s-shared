@@ -1,0 +1,66 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: outline-cedille-s3-tls
+spec:
+  secretName: outline-cedille-s3-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: s3.etsmtl.club
+  dnsNames:
+    - s3.etsmtl.club
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: outline-cedille-s3
+spec:
+  ports:
+    - name: http
+      port: 7480
+      targetPort: 7480
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: outline-cedille-s3
+  labels:
+    kubernetes.io/service-name: outline-cedille-s3
+addressType: IPv4
+ports:
+  - name: http
+    protocol: TCP
+    port: 7480
+endpoints:
+  - addresses:
+      - 10.0.21.59
+    conditions:
+      ready: true
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: outline-cedille-s3-httpproxy
+spec:
+  virtualhost:
+    fqdn: s3.etsmtl.club
+    tls:
+      secretName: outline-cedille-s3-tls
+      minimumProtocolVersion: "1.3"
+    corsPolicy:
+      allowOrigin:
+        - https://cedille.etsmtl.club
+      allowMethods:
+        - "*"
+      allowHeaders:
+        - "*"
+  routes:
+    - conditions:
+        - prefix: /
+      services:
+        - name: outline-cedille-s3
+          port: 7480
+      timeoutPolicy:
+        idle: 600s
+        response: 600s

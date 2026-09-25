@@ -3,5 +3,6 @@ kind: Kustomization
 resources:
   - certificate.yaml
   - httpproxy.yaml
+  - s3-proxy.yaml
   - postgres.yaml
   - ../base
