@@ -10,3 +10,16 @@ spec:
   commonName: auth.etsmtl.club
   dnsNames:
     - auth.etsmtl.club
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: authentik-external-tls
+spec:
+  secretName: authentik-external-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: external.auth.etsmtl.club
+  dnsNames:
+    - external.auth.etsmtl.club
