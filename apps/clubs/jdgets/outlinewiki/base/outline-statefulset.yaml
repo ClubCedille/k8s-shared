@@ -17,7 +17,7 @@ spec:
         app: jdgets-outlinewiki
     spec:
       containers:
-        - image: outlinewiki/outline:1.6.1
+        - image: outlinewiki/outline:1.10.1
           name: outline
           imagePullPolicy: Always
           # https://github.com/outline/outline/blob/main/.env.sample
