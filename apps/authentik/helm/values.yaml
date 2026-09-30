@@ -95,7 +95,7 @@ global:
     - name: AUTHENTIK_POSTGRESQL__PASSWORD
       valueFrom:
         secretKeyRef:
-          name: postgres-authentik-app
+          name: postgresql-authentik-app
           key: password
 
 postgresql:
