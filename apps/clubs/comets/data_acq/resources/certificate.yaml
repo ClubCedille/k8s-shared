@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: grafana-tls
+spec:
+  secretName: grafana-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: grafana.prodv2.cedille.club
+  dnsNames:
+    - grafana.prodv2.cedille.club
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: influxdb2-tls
+spec:
+  secretName: influxdb2-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: influxdb.prodv2.cedille.club
+  dnsNames:
+    - influxdb.prodv2.cedille.club

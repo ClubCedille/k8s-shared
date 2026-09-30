@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: planifets-staging-tls
+spec:
+  secretName: planifets-staging-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: planifets.staging.cedille.club
+  dnsNames:
+    - planifets.staging.cedille.club

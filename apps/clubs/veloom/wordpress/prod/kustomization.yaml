@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - ../base
   - ingress.yaml
-  - staging-ingress.yaml
+  - httpproxy.yaml
+  - certificate.yaml
 
 namespace: veloom

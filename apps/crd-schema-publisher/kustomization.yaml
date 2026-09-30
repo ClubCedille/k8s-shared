@@ -4,6 +4,7 @@ metadata:
   name: crd-schema
   namespace: crd-schema
 resources:
+  - resources/certificate.yaml
   - resources/httpproxy.yaml
 
 helmCharts:

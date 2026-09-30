@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cedille-cert-tls
+spec:
+  secretName: cedille-cert-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: cedille.etsmtl.ca
+  dnsNames:
+    - cedille.etsmtl.ca
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cedille-cert-tls-prod
+spec:
+  secretName: cedille-cert-tls-prod
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: cedille.prodv2.cedille.club
+  dnsNames:
+    - cedille.prodv2.cedille.club

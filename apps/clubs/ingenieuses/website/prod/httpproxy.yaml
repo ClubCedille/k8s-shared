@@ -1,0 +1,35 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: ingenieuses-ingenieuses-ca
+spec:
+  virtualhost:
+    fqdn: ingenieuses.ca
+    tls:
+      secretName: ingenieuses-tls
+      minimumProtocolVersion: "1.3"
+  routes:
+    - conditions:
+        - prefix: /
+      enableWebsockets: true
+      services:
+        - name: ingenieuses-svc
+          port: 80
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: ingenieuses-www-ingenieuses-ca
+spec:
+  virtualhost:
+    fqdn: www.ingenieuses.ca
+    tls:
+      secretName: ingenieuses-tls
+      minimumProtocolVersion: "1.3"
+  routes:
+    - conditions:
+        - prefix: /
+      enableWebsockets: true
+      services:
+        - name: ingenieuses-svc
+          port: 80

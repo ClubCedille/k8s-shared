@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: planifets-dev-tls
+spec:
+  secretName: planifets-dev-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: planifets.dev.cedille.club
+  dnsNames:
+    - planifets.dev.cedille.club

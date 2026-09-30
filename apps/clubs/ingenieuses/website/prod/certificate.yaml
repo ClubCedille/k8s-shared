@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ingenieuses-tls
+spec:
+  secretName: ingenieuses-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: ingenieuses.ca
+  dnsNames:
+    - ingenieuses.ca
+    - www.ingenieuses.ca

@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - ../base/
-  - ingress.yaml
+  - httpproxy.yaml
+  - certificate.yaml
   - vault-secret.yaml
   - configmap.yaml

@@ -1,0 +1,17 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: synapsets
+spec:
+  virtualhost:
+    fqdn: synapsets.etsmtl.ca
+    tls:
+      secretName: synapsets-tls
+      minimumProtocolVersion: "1.3"
+  routes:
+    - conditions:
+        - prefix: /
+      enableWebsockets: true
+      services:
+        - name: synapsets-service
+          port: 80

@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: calidum-rotae-service-tls
+spec:
+  secretName: calidum-rotae-service-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: calidum-rotae.prodv2.cedille.club
+  dnsNames:
+    - calidum-rotae.prodv2.cedille.club

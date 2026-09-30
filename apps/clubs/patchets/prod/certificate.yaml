@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: commande-cert-tls
+spec:
+  secretName: commande-cert-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: commande.fraternitedupiranha.com
+  dnsNames:
+    - commande.fraternitedupiranha.com

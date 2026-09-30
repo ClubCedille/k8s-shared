@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: etshub-tls
+spec:
+  secretName: etshub-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: etshub.prodv2.cedille.club
+  dnsNames:
+    - etshub.prodv2.cedille.club

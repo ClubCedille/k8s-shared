@@ -4,5 +4,6 @@ kind: Kustomization
 namespace: patchets
 
 resources:
-  - ingress.yaml
+  - httpproxy.yaml
+  - certificate.yaml
   - ../base
