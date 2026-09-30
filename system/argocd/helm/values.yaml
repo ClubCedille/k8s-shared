@@ -349,21 +349,18 @@ configs:
     # @default -- `''` (See [values.yaml])
     policy.csv: |
       #  g, subject, inherited-subject
+      #  p, subject, resource, action, object, effect
       g, authentik Admins, role:admin
       g, authentik Read-only, role:readonly
+
+      # CEDILLE
       g, exec-cedille, role:admin
       g, club-cedille, role:readonly
-      g, club-applets, role:readonly
-      g, exec-applets, role:applets
-      g, club-algoets, role:algoets-readonly
-      g, exec-algoets, role:algoets
-      g, club-lanets, role:lanets-readonly
-      g, exec-lanets, role:lanets
-      g, club-conjure, role:conjure-readonly
-      g, exec-conjure, role:conjure
 
-      #  p, subject, resource, action, object, effect
       # applets
+      g, club-applets, role:applets-readonly
+      g, exec-applets, role:applets
+      ## ---
       p, role:applets-readonly, projects, get, applets, allow
       p, role:applets-readonly, applications, get, applets/*, allow
       p, role:applets-readonly, logs, get, applets/*, allow
@@ -372,7 +369,11 @@ configs:
       p, role:applets, applications, *, applets/*, allow
       p, role:applets, logs, *, applets/*, allow
       p, role:applets, certificates, *, applets/*, allow
+
       # algoets
+      g, club-algoets, role:algoets-readonly
+      g, exec-algoets, role:algoets
+      ## ---
       p, role:algoets-readonly, projects, get, algoets, allow
       p, role:algoets-readonly, applications, get, algoets/*, allow
       p, role:algoets-readonly, logs, get, algoets/*, allow
@@ -381,7 +382,11 @@ configs:
       p, role:algoets, applications, *, algoets/*, allow
       p, role:algoets, logs, *, algoets/*, allow
       p, role:algoets, certificates, *, algoets/*, allow
+
       # lanets
+      g, club-lanets, role:lanets-readonly
+      g, exec-lanets, role:lanets
+      ## ---
       p, role:lanets-readonly, projects, get, lanets, allow
       p, role:lanets-readonly, applications, get, lanets/*, allow
       p, role:lanets-readonly, logs, get, lanets/*, allow
@@ -390,7 +395,11 @@ configs:
       p, role:lanets, applications, *, lanets/*, allow
       p, role:lanets, logs, *, lanets/*, allow
       p, role:lanets, certificates, *, lanets/*, allow
+
       # conjure
+      g, club-conjure, role:conjure-readonly
+      g, exec-conjure, role:conjure
+      ## ---
       p, role:conjure-readonly, projects, get, conjure, allow
       p, role:conjure-readonly, applications, get, conjure/*, allow
       p, role:conjure-readonly, logs, get, conjure/*, allow
