@@ -5,7 +5,7 @@ metadata:
 spec:
   secretName: penpot-cert-tls
   issuerRef:
-    name: letsencrypt-prod
+    name: letsencrypt-http
     kind: ClusterIssuer
   commonName: penpot.prodv2.cedille.club
   dnsNames:

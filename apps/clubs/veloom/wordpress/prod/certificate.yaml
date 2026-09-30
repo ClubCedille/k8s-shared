@@ -5,7 +5,7 @@ metadata:
 spec:
   secretName: veloom-staging-tls
   issuerRef:
-    name: letsencrypt-staging
+    name: letsencrypt-http
     kind: ClusterIssuer
   commonName: evovelo.prodv2.cedille.club
   dnsNames:
