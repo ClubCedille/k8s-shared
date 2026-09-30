@@ -19,7 +19,7 @@ spec:
     namespace: markets
   source:
     repoURL: https://github.com/ClubCedille/k8s-shared
-    path: apps/clubs/markets/prod
+    path: apps/clubs/algoets/markets/prod
     targetRevision: HEAD
   syncPolicy:
     syncOptions:
@@ -49,7 +49,7 @@ spec:
     namespace: markets-dev
   source:
     repoURL: https://github.com/ClubCedille/k8s-shared
-    path: apps/clubs/markets/dev
+    path: apps/clubs/algoets/markets/dev
     targetRevision: HEAD
   syncPolicy:
     syncOptions:
