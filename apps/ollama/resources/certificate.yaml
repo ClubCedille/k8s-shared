@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ollama-tls
+  namespace: ollama
+spec:
+  secretName: ollama-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: ollama.etsmtl.club
+  dnsNames:
+    - ollama.etsmtl.club
