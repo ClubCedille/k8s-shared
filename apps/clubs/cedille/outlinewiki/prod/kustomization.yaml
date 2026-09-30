@@ -4,5 +4,6 @@ resources:
   - certificate.yaml
   - httpproxy.yaml
   - s3-proxy.yaml
+  - wiki-proxy.yaml
   - postgres.yaml
   - ../base

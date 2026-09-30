@@ -51,6 +51,7 @@ spec:
     corsPolicy:
       allowOrigin:
         - https://cedille.etsmtl.club
+        - https://wiki.cedille.club
       allowMethods:
         - "*"
       allowHeaders:
