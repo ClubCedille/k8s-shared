@@ -1,0 +1,83 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: markets-algoets-ingress
+spec:
+  virtualhost:
+    fqdn: markets.algoets.ca
+    tls:
+      secretName: markets-algoets-tls
+      minimumProtocolVersion: "1.3"
+  routes:
+    - conditions:
+        - prefix: /verification
+      enableWebsockets: true
+      services:
+        - name: markets-backend-service
+          port: 80
+    - conditions:
+        - prefix: /static
+      enableWebsockets: true
+      services:
+        - name: markets-backend-service
+          port: 80
+    - conditions:
+        - prefix: /admin
+      enableWebsockets: true
+      services:
+        - name: markets-backend-service
+          port: 80
+    - conditions:
+        - prefix: /api
+      enableWebsockets: true
+      services:
+        - name: markets-backend-service
+          port: 80
+    - conditions:
+        - prefix: /
+      enableWebsockets: true
+      services:
+        - name: markets-frontend-service
+          port: 80
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: markets-ingress
+spec:
+  virtualhost:
+    fqdn: markets.prodv2.cedille.club
+    tls:
+      secretName: markets-tls
+      minimumProtocolVersion: "1.3"
+  routes:
+    - conditions:
+        - prefix: /verification
+      enableWebsockets: true
+      services:
+        - name: markets-backend-service
+          port: 80
+    - conditions:
+        - prefix: /static
+      enableWebsockets: true
+      services:
+        - name: markets-backend-service
+          port: 80
+    - conditions:
+        - prefix: /admin
+      enableWebsockets: true
+      services:
+        - name: markets-backend-service
+          port: 80
+    - conditions:
+        - prefix: /api
+      enableWebsockets: true
+      services:
+        - name: markets-backend-service
+          port: 80
+    - conditions:
+        - prefix: /
+      enableWebsockets: true
+      services:
+        - name: markets-frontend-service
+          port: 80

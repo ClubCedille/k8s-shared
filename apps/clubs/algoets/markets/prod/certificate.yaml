@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: markets-algoets-tls
+spec:
+  secretName: markets-algoets-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: markets.algoets.ca
+  dnsNames:
+    - markets.algoets.ca
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: markets-tls
+spec:
+  secretName: markets-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: markets.prodv2.cedille.club
+  dnsNames:
+    - markets.prodv2.cedille.club

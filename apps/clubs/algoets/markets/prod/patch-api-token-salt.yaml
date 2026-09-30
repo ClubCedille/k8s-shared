@@ -11,7 +11,7 @@ spec:
             - name: API_TOKEN_SALT
               valueFrom:
                 secretKeyRef:
-                  name: markets-api-token-salt
+                  name: markets-env-secret
                   key: API_TOKEN_SALT
 ---
 apiVersion: apps/v1
@@ -27,5 +27,5 @@ spec:
             - name: API_TOKEN_SALT
               valueFrom:
                 secretKeyRef:
-                  name: markets-api-token-salt
+                  name: markets-env-secret
                   key: API_TOKEN_SALT
