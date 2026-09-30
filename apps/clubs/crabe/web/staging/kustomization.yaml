@@ -3,7 +3,8 @@ kind: Kustomization
 
 resources:
   - ../base/
-  - ingress.yaml
+  - httpproxy.yaml
+  - certificate.yaml
   - vault-secret.yaml
   - configmap.yaml
 
@@ -37,9 +38,9 @@ patches:
         path: /spec/ports/0/port
         value: 8000
   - target:
-      kind: Ingress
+      kind: HTTPProxy
       name: staging-crabe-ingress
     patch: |
       - op: replace
-        path: /spec/rules/0/http/paths/0/backend/service/port/number
+        path: /spec/routes/0/services/0/port
         value: 8000

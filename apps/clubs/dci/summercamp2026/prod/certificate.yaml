@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: dci-summercamp2026
+spec:
+  secretName: dci-summercamp2026
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: summercamp2026.etsmtl.club
+  dnsNames:
+    - summercamp2026.etsmtl.club
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: dci-summercamp2026-dciets-tls
+spec:
+  secretName: dci-summercamp2026-dciets-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: summercamp.dciets.com
+  dnsNames:
+    - summercamp.dciets.com

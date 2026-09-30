@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: habitek-prod-tls
+spec:
+  secretName: habitek-prod-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: habitek.ca
+  dnsNames:
+    - habitek.ca
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: habitek-staging-tls
+spec:
+  secretName: habitek-staging-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: habitek.prodv2.cedille.club
+  dnsNames:
+    - habitek.prodv2.cedille.club

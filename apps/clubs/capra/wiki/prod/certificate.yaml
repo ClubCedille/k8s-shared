@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: capra-wikijs-tls
+spec:
+  secretName: capra-wikijs-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: wiki.capra.etsmtl.ca
+  dnsNames:
+    - wiki.capra.etsmtl.ca

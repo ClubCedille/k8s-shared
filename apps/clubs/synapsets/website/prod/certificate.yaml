@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: synapsets-tls
+spec:
+  secretName: synapsets-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: synapsets.etsmtl.ca
+  dnsNames:
+    - synapsets.etsmtl.ca

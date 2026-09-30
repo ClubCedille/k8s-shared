@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: forom-tls-prod
+spec:
+  secretName: forom-tls-prod
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: forom.etsmtl.ca
+  dnsNames:
+    - forom.etsmtl.ca
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: forom-tls
+spec:
+  secretName: forom-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: forom.prodv2.cedille.club
+  dnsNames:
+    - forom.prodv2.cedille.club

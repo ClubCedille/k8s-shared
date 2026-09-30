@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: exutoire
+spec:
+  secretName: exutoire
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: exutoire.etsmtl.club
+  dnsNames:
+    - exutoire.etsmtl.club
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: exutoire-ca-tls
+spec:
+  secretName: exutoire-ca-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: exutoire.ca
+  dnsNames:
+    - exutoire.ca

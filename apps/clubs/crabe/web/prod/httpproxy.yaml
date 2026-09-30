@@ -1,0 +1,35 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: crabe-ingress-atelier-crabe-prodv2-cedille-club
+spec:
+  virtualhost:
+    fqdn: atelier.crabe.prodv2.cedille.club
+    tls:
+      secretName: crabe-tls
+      minimumProtocolVersion: "1.3"
+  routes:
+    - conditions:
+        - prefix: /
+      enableWebsockets: true
+      services:
+        - name: crabe-svc
+          port: 8000
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: crabe-ingress-atelier-crabe-etsmtl-club
+spec:
+  virtualhost:
+    fqdn: atelier.crabe.etsmtl.club
+    tls:
+      secretName: crabe-etsmtl-tls
+      minimumProtocolVersion: "1.3"
+  routes:
+    - conditions:
+        - prefix: /
+      enableWebsockets: true
+      services:
+        - name: crabe-svc
+          port: 8000

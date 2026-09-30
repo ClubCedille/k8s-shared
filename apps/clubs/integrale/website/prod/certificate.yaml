@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: integrale-website-tls
+spec:
+  secretName: integrale-website-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: integrale.etsmtl.ca
+  dnsNames:
+    - integrale.etsmtl.ca

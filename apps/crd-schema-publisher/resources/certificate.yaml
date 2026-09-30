@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: crd-tls-secret
+spec:
+  secretName: crd-tls-secret
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: schema.k8s.etsmtl.club
+  dnsNames:
+    - schema.k8s.etsmtl.club

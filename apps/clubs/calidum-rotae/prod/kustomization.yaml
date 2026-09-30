@@ -6,4 +6,5 @@ resources:
   - ../base/calidum-rotae-service
   - ../base/email-provider
   - ../base/shell-provider
-  - ingress.yaml
+  - httpproxy.yaml
+  - certificate.yaml

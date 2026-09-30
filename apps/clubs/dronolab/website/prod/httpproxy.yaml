@@ -1,0 +1,17 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: dronolab-webapp-ingress
+spec:
+  virtualhost:
+    fqdn: dronolab.etsmtl.ca
+    tls:
+      secretName: webapp-dronolab-tls
+      minimumProtocolVersion: "1.3"
+  routes:
+    - conditions:
+        - prefix: /
+      enableWebsockets: true
+      services:
+        - name: svc-webapp-dronolab
+          port: 3000

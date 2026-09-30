@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: byzantium-helm
+spec:
+  secretName: byzantium-helm
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: helm.byzantium.etsmtl.club
+  dnsNames:
+    - helm.byzantium.etsmtl.club

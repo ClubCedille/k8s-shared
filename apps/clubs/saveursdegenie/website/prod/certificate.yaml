@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: saveursdegenie-cert-tls
+spec:
+  secretName: saveursdegenie-cert-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: saveursdegenie.etsmtl.ca
+  dnsNames:
+    - saveursdegenie.etsmtl.ca

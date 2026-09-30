@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: esports-tls
+spec:
+  secretName: esports-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: esports.prodv2.cedille.club
+  dnsNames:
+    - esports.prodv2.cedille.club

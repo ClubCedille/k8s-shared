@@ -4,5 +4,6 @@ kind: Kustomization
 resources:
   - ../base/frontend
   - ../base/backend
-  - ingress.yaml
+  - httpproxy.yaml
+  - certificate.yaml
   - vault-secret.yaml

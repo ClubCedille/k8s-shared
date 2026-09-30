@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: conjure-cert-tls
+spec:
+  secretName: conjure-cert-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: conjure.etsmtl.ca
+  dnsNames:
+    - conjure.etsmtl.ca

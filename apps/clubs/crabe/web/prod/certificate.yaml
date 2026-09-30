@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: crabe-tls
+spec:
+  secretName: crabe-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: atelier.crabe.prodv2.cedille.club
+  dnsNames:
+    - atelier.crabe.prodv2.cedille.club
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: crabe-etsmtl-tls
+spec:
+  secretName: crabe-etsmtl-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: atelier.crabe.etsmtl.club
+  dnsNames:
+    - atelier.crabe.etsmtl.club

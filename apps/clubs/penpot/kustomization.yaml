@@ -4,8 +4,9 @@ metadata:
   name: penpot
   namespace: penpot
 resources:
+  - prod/certificate.yaml
   - prod/cnpg.yaml
-  - prod/ingress.yaml
+  - prod/httpproxy.yaml
 helmCharts:
   - name: penpot
     version: "0.29.0"

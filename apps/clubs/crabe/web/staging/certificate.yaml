@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: staging-crabe-tls
+spec:
+  secretName: staging-crabe-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: staging.atelier.crabe.etsmtl.club
+  dnsNames:
+    - staging.atelier.crabe.etsmtl.club
