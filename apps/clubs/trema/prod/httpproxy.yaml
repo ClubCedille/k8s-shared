@@ -16,4 +16,4 @@ spec:
       enableWebsockets: true
       services:
         - name: trema
-          port: http
+          port: 80

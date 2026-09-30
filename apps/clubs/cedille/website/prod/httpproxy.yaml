@@ -14,7 +14,7 @@ spec:
       enableWebsockets: true
       services:
         - name: cedille-service
-          port: http
+          port: 80
 ---
 apiVersion: projectcontour.io/v1
 kind: HTTPProxy
@@ -32,4 +32,4 @@ spec:
       enableWebsockets: true
       services:
         - name: cedille-service
-          port: http
+          port: 80

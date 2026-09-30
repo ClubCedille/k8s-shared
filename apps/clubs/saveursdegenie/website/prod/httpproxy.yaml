@@ -14,4 +14,4 @@ spec:
       enableWebsockets: true
       services:
         - name: saveursdegenie-service
-          port: http
+          port: 80

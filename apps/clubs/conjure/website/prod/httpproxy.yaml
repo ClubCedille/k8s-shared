@@ -14,4 +14,4 @@ spec:
       enableWebsockets: true
       services:
         - name: conjure-service
-          port: http
+          port: 3000

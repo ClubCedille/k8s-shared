@@ -14,4 +14,4 @@ spec:
       enableWebsockets: true
       services:
         - name: synapsets-service
-          port: http
+          port: 80
