@@ -1,0 +1,25 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: penpot-auth
+spec:
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    audiences:
+      - vault
+    role: secret-reader
+    serviceAccount: default
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: penpot-oidc-secret
+spec:
+  vaultAuthRef: penpot-auth
+  type: kv-v1
+  mount: kv
+  path: data/penpot/default/penpot-oidc-secret
+  destination:
+    name: penpot-oidc-secret
+    create: true
