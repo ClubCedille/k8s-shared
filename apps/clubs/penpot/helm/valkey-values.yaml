@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/valkey-io/valkey-helm/main/valkey/values.schema.json
+# Standalone Valkey used by Penpot for its cache/session store.
+# Penpot chart >= 1.0.0 no longer ships the Bitnami Valkey subchart, so it is
+# deployed separately (same pattern as apps/forgejo/base).
+dataStorage:
+  enabled: true
+  requestedSize: "5Gi"
+  className: "ceph-rbd"
+  accessModes:
+    - ReadWriteOnce
+  keepPvc: true
