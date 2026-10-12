@@ -30,10 +30,10 @@ config:
   # -- The public domain to serve Penpot on.
   # **IMPORTANT:** Set `disable-secure-session-cookies` in the flags if you plan on serving it on a non HTTPS domain.
   # @section -- Configuration parameters
-  publicUri: "http://penpot.prodv2.cedille.club"
+  publicUri: "https://penpot.prodv2.cedille.club"
   # -- The feature flags to enable. Check [the official docs](https://help.penpot.app/technical-guide/configuration/) for more info.
   # @section -- Configuration parameters
-  flags: "enable-registration enable-login-with-password disable-email-verification enable-smtp"
+  flags: "enable-registration enable-login-with-password disable-email-verification enable-smtp enable-login-with-oidc enable-oidc-registration"
   # @section -- Configuration parameters
   # -- The name of an existing secret.
   # @section -- Configuration parameters
@@ -117,10 +117,10 @@ config:
     oidc:
       # -- Whether to enable OIDC configuration. To enable OpenID Connect auth, also add `enable-login-with-oidc` to the flags.
       # @section -- Configuration parameters
-      enabled: false
-      # -- The OpenID Connect base URI to use.
+      enabled: true
+      # -- The OpenID Connect base URI to use. Authentik issuer (auto-discovery).
       # @section -- Configuration parameters
-      baseURI: ""
+      baseURI: "https://auth.etsmtl.club/application/o/penpot/"
       # -- The OpenID Connect client ID to use.
       # @section -- Configuration parameters
       clientID: ""
@@ -138,13 +138,13 @@ config:
       userURI: ""
       # -- Optional OpenID Connect roles to use. If no role is provided, role checking is  disabled (default role values are set below, to disable role verification, send an empty string).
       # @section -- Configuration parameters
-      roles: "designer developer"
+      roles: ""
       # -- Optional OpenID Connect roles attribute to use. If not provided, the role checking will be disabled.
       # @section -- Configuration parameters
       rolesAttribute: ""
       # -- Optional OpenID Connect scopes to use. These settings allow overwriting the required scopes, use with caution because penpot requires at least `name` and `email` attrs found on the user info. Optional, defaults to `openid profile`.
       # @section -- Configuration parameters
-      scopes: "scope1 scope2"
+      scopes: "openid profile email"
       # -- Optional OpenID Connect name attribute to use. If not provided, the `name` prop will be used.
       # @section -- Configuration parameters
       nameAttribute: ""
@@ -193,7 +193,7 @@ config:
       attributesPhoto: "jpegPhoto"
     # -- The name of an existing secret to use.
     # @section -- Configuration parameters
-    existingSecret: ""
+    existingSecret: "penpot-oidc-secret"
     secretKeys:
       # -- The Google client ID key to use from an existing secret.
       # @section -- Configuration parameters
@@ -215,10 +215,10 @@ config:
       gitlabClientSecretKey: ""
       # -- The OpenID Connect client ID key to use from an existing secret.
       # @section -- Configuration parameters
-      oidcClientIDKey: ""
+      oidcClientIDKey: "OIDC_CLIENT_ID"
       # -- The OpenID Connect client secret key to use from an existing secret.
       # @section -- Configuration parameters
-      oidcClientSecretKey: ""
+      oidcClientSecretKey: "OIDC_CLIENT_SECRET"
       # -- The LDAP admin bind password to use from an exsiting secret
       # @section -- Configuration parameters
       ldapBindPasswordKey: ""

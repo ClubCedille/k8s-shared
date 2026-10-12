@@ -6,7 +6,7 @@ Kubernetes partagé via `~/.kube/config`:
 
 - `authentik/` — groupes, rôles et config de marque Authentik (`state-authentik`);
 - `outline/authentik-vault/`, `nodered/authentik-vault/`, `coder/authentik-vault/`,
-  `matomo/authentik-vault/` — applications OIDC + secrets Vault.
+  `matomo/authentik-vault/`, `penpot/authentik-vault/` — applications OIDC + secrets Vault.
 
 Le workflow `.github/workflows/apply-tf.yml` détecte les changements et
 applique les modules concernés lorsqu'un changement est intégré à `main`.
