@@ -1,0 +1,53 @@
+# Ce fichier seul ne constitue pas un déploiement complet.
+fullnameOverride: inventree
+replicaCount: 1
+
+global:
+  # Adresse provisoire pour le rendu local ; remplacer par le domaine validé.
+  siteUrl: http://inventree.local
+  # Secret à créer via le mécanisme Vault du club avant déploiement.
+  adminSecret: inventree-admin
+  dbSecrets:
+    - name: INVENTREE_DB_ENGINE
+      value: postgresql
+    - name: INVENTREE_DB_HOST
+      valueFrom:
+        secretKeyRef:
+          name: postgresql-inventree-app
+          key: host
+    - name: INVENTREE_DB_PORT
+      valueFrom:
+        secretKeyRef:
+          name: postgresql-inventree-app
+          key: port
+    - name: INVENTREE_DB_NAME
+      valueFrom:
+        secretKeyRef:
+          name: postgresql-inventree-app
+          key: dbname
+    - name: INVENTREE_DB_USER
+      valueFrom:
+        secretKeyRef:
+          name: postgresql-inventree-app
+          key: username
+    - name: INVENTREE_DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: postgresql-inventree-app
+          key: password
+
+image:
+  tag: "1.5.7"
+
+persistence:
+  enabled: true
+  storageClass: cephfs
+  accessMode: ReadWriteMany
+  size: 2Gi
+
+ingress: {}
+httpRoute:
+  enabled: false
+
+serviceAccount:
+  automount: false
