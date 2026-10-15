@@ -1,0 +1,23 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgresql-inventree
+  namespace: comets-inventree
+spec:
+  instances: 3
+  bootstrap:
+    initdb:
+      database: inventree
+      owner: inventree
+      # Sans secret préexistant, CNPG génère postgresql-inventree-app.
+  storage:
+    storageClass: ceph-rbd
+    # Capacité par instance : 3 x 5 Gi, hors réplication interne de Ceph.
+    size: 5Gi
+  # Point de départ repris de NetBox ; à ajuster selon l'utilisation.
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
