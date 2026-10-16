@@ -12,6 +12,9 @@ spec:
     - conditions:
         - prefix: /
       enableWebsockets: true
+      timeoutPolicy:
+        idle: 600s
+        response: 600s
       services:
         - name: commandes
           port: 3000
