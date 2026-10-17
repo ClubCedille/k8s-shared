@@ -274,6 +274,20 @@ redis:
       enabled: true
       runAsUser: 10000
       runAsGroup: 10000
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 20
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 5
+      successThreshold: 1
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 20
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 5
+      successThreshold: 1
   replica:
     persistence:
       enabled: false
@@ -288,6 +302,20 @@ redis:
       enabled: true
       runAsUser: 10000
       runAsGroup: 10000
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 20
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 5
+      successThreshold: 1
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 20
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 5
+      successThreshold: 1
   commonConfiguration: |-
    # Enable AOF https://redis.io/topics/persistence#append-only-file
    appendonly no
