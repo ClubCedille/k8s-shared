@@ -36,3 +36,5 @@
   quota: 0
 - name: quantumets
   quota: 100
+- name: algoets
+  quota: 300
