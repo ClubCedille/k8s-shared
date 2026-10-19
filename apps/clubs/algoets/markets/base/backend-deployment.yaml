@@ -42,7 +42,7 @@ spec:
               cpu: "400m"
               memory: "512Mi"
             limits:
-              cpu: "800m"
+              cpu: "1600m"
               memory: "2Gi"
               ephemeral-storage: 1Gi
           readinessProbe:
