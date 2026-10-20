@@ -16,3 +16,10 @@ spec:
         scheme: https
         hostname: www.zeffy.com
         path: /fr-CA/ticketing/botte-et-houblon-fraternite-du-piranha
+    - conditions:
+        - exact: /external
+      requestRedirectPolicy:
+        statusCode: 301
+        scheme: https
+        hostname: auth.etsmtl.club
+        path: /if/flow/custom-local-authentication/?next=%2Fif%2Fadmin%2F%23%23%2Fflow%2Fflows%2Fcustom-local-authentication
