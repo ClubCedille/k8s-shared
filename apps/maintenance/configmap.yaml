@@ -5,6 +5,7 @@ metadata:
 data:
   index.html: |
     <!doctype html>
+    <meta charset="utf-8">
     <title>Site Maintenance</title>
     <style>
       body { text-align: center; padding: 150px; }
@@ -27,6 +28,7 @@ data:
     server {
       listen 8080;
       server_name _;
+      charset utf-8;
       root /usr/share/nginx/html;
       index index.html;
 
