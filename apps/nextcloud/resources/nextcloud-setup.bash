@@ -40,6 +40,9 @@ php /var/www/html/occ config:app:set richdocuments wopi_allowlist --value 10.244
 php /var/www/html/occ config:app:set richdocuments doc_format --value ooxml
 php /var/www/html/occ richdocuments:activate-config
 
+# Prevent Collabora from processing previews, which delay the UI as it waits
+php /var/www/html/occ config:app:set richdocuments preview_generation --value=0 --type=boolean
+
 # Set maintenance window from 1 am to 5 am
 php /var/www/html/occ config:system:set maintenance_window_start --value="1" --type=integer
 
