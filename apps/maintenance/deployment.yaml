@@ -83,6 +83,8 @@ spec:
             items:
               - key: index.html
                 path: index.html
+              - key: cedille-patch-512.webp
+                path: images/cedille-patch-512.webp
         - name: cache
           emptyDir: {}
         - name: run
