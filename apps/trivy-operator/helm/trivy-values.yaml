@@ -48,12 +48,12 @@ fullnameOverride: ""
 
 operator:
   # -- namespace to install the operator, defaults to the .Release.Namespace
-  namespace: ""
+  namespace: "trivy-operator"
   # -- replicas the number of replicas of the operator's pod
-  replicas: 1
+  replicas: 3
 
   # -- number of old history to retain to allow rollback (if not set, default Kubernetes value is set to 10)
-  revisionHistoryLimit: ~
+  revisionHistoryLimit: 10
 
   # -- additional annotations for the operator deployment
   annotations: {}
@@ -84,7 +84,7 @@ operator:
   scanJobsConcurrentLimit: 10
 
   # -- scanNodeCollectorLimit the maximum number of node collector jobs create by the operator
-  scanNodeCollectorLimit: 1
+  scanNodeCollectorLimit: 0
 
   # -- scanJobsRetryDelay the duration to wait before retrying a failed scan job
   scanJobsRetryDelay: 30s
@@ -94,11 +94,11 @@ operator:
   # -- the flag to enable sbom generation, required for enabling ClusterVulnerabilityReports
   sbomGenerationEnabled: true
   # -- the flag to enable cluster sbom cache generation
-  clusterSbomCacheEnabled: false
+  clusterSbomCacheEnabled: true
   # -- scannerReportTTL the flag to set how long a report should exist. "" means that the ScannerReportTTL feature is disabled
-  scannerReportTTL: "24h"
+  scannerReportTTL: "48h"
   # -- cacheReportTTL the flag to set how long a cluster sbom report should exist. "" means that the cacheReportTTL feature is disabled
-  cacheReportTTL: "120h"
+  cacheReportTTL: "240h"
   # -- configAuditScannerEnabled the flag to enable configuration audit scanner
   configAuditScannerEnabled: true
   # -- rbacAssessmentScannerEnabled the flag to enable rbac assessment scanner
@@ -119,7 +119,7 @@ operator:
   accessGlobalSecretsAndServiceAccount: true
   # -- builtInTrivyServer The flag enables the usage of built-in trivy server in cluster. It also overrides the following trivy params with built-in values
   # trivy.mode = ClientServer and serverURL = http://<serverServiceName>.<trivy operator namespace>:4975
-  builtInTrivyServer: false
+  builtInTrivyServer: true
   # -- builtInServerRegistryInsecure is the flag to enable insecure connection from the built-in Trivy server to the registry.
   builtInServerRegistryInsecure: false
   # -- controllerCacheSyncTimeout the duration to wait for controller resources cache sync (default: 5m).
@@ -207,7 +207,8 @@ image:
   repository: "aquasec/trivy-operator"
   # -- tag is an override of the image tag, which is by default set by the
   # appVersion field in Chart.yaml.
-  tag: ""
+  # tag: "0.35.0"
+  digest: sha256:4cdb11af98ff409cfa7af980098203a841a5fe957cc6a0bbb0df7668065eb5fa
   # -- pullPolicy set the operator pullPolicy
   pullPolicy: IfNotPresent
   # -- pullSecrets set the operator pullSecrets
@@ -234,7 +235,7 @@ service:
 # produce an error.
 serviceMonitor:
   # -- enabled determines whether a serviceMonitor should be deployed
-  enabled: false
+  enabled: true
   # -- The namespace where Prometheus expects to find service monitors
   namespace: ~
   # -- Interval at which metrics should be scraped. If not specified Prometheus’ global scrape interval is used.
@@ -360,7 +361,8 @@ trivy:
     # -- repository of the Trivy image
     repository: aquasec/trivy
     # -- tag version of the Trivy image
-    tag: 0.75.0
+    # tag: 0.76.1
+    digest: sha256:2e6c00d711ab4ae41d8a30c2c1fd3bd3b62704c177bb120f95012e939edfb3df
     # -- imagePullSecret is the secret name to be used when pulling trivy image from private registries example : reg-secret
     # It is the user responsibility to create the secret for the private registry in `trivy-operator` namespace
     imagePullSecret: ~
@@ -370,10 +372,10 @@ trivy:
 
   # -- mode is the Trivy client mode. Either Standalone or ClientServer. Depending
   # on the active mode other settings might be applicable or required.
-  mode: Standalone
+  mode: ClientServer
 
   # -- sbomSources trivy will try to retrieve SBOM from the specified sources (oci,rekor)
-  sbomSources: ""
+  sbomSources: "oci"
 
   # -- includeDevDeps include development dependencies in the report (supported: npm, yarn) (default: false)
   # note: this flag is only applicable when trivy.command is set to filesystem
@@ -383,10 +385,10 @@ trivy:
   storageClassEnabled: true
 
   # -- storageClassName is the name of the storage class to be used for trivy server PVC. If empty, tries to find default storage class
-  storageClassName: ""
+  storageClassName: "ceph-rbd"
 
   # -- storageSize is the size of the trivy server PVC
-  storageSize: "5Gi"
+  storageSize: "25Gi"
 
   # -- labels is the extra labels to be used for trivy server statefulset
   labels: {}
@@ -450,7 +452,7 @@ trivy:
   offlineScan: false
 
   # -- timeout is the duration to wait for scan completion.
-  timeout: "5m0s"
+  timeout: "15m0s"
 
   # -- ignoreFile can be used to tell Trivy to ignore vulnerabilities by ID (one per line)
   ignoreFile: ~
@@ -504,12 +506,12 @@ trivy:
   # -- resources resource requests and limits for scan job containers
   resources:
     requests:
-      cpu: 100m
-      memory: 100M
+      cpu: 250m
+      memory: 250M
       # ephemeralStorage: "2Gi"
     limits:
-      cpu: 500m
-      memory: 500M
+      cpu: 2
+      memory: 2500M
       # ephemeralStorage: "2Gi"
 
   # -- githubToken is the GitHub access token used by Trivy to download the vulnerabilities
@@ -608,11 +610,11 @@ trivy:
       requests:
         cpu: 200m
         memory: 512Mi
-        # ephemeral-storage: "2Gi"
+        ephemeral-storage: "2Gi"
       limits:
-        cpu: 1
-        memory: 1Gi
-        # ephemeral-storage: "2Gi"
+        cpu: 2
+        memory: 2Gi
+        ephemeral-storage: "4Gi"
 
     # -- podSecurityContext set trivy-server podSecurityContext
     podSecurityContext:
@@ -626,7 +628,7 @@ trivy:
       readOnlyRootFilesystem: true
 
     # -- the number of replicas of the trivy-server
-    replicas: 1
+    replicas: 3
 
     # -- volumes set trivy-server volumes
     extraServerVolumes:
@@ -710,12 +712,12 @@ resources: {}
 # choice for the user. This also increases chances charts run on environments with little
 # resources, such as Minikube. If you do want to specify resources, uncomment the following
 # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-# limits:
-#   cpu: 100m
-#   memory: 128Mi
-# requests:
-#   cpu: 100m
-#   memory: 128Mi
+limits:
+  cpu: 250m
+  memory: 512Mi
+requests:
+  cpu: 1
+  memory: 1024Mi
 
 # -- nodeSelector set the operator nodeSelector
 nodeSelector: {}
@@ -738,7 +740,8 @@ policiesBundle:
   # -- repository of the policies bundle
   repository: aquasec/trivy-checks
   # -- tag version of the policies bundle
-  tag: 1
+  # tag: 2.3.0
+  digest: sha256:2a540ca498daa278b14a77e8e5cd02594d16d131e5032afa65c279d0005826f2
   # -- registryUser is the user for the registry
   registryUser: ~
   # -- registryPassword is the password for the registry
@@ -828,12 +831,12 @@ nodeCollector:
         path: /etc/cni/net.d/
 # -- alternateReportStorage is the flag to enable alternate storage for all trivy reports (crds) in the form json files inside of a persistent volume
 alternateReportStorage:
-  enabled: false
+  enabled: true
   mountPath: "/mnt/data/trivy-operator"
   volumeName: "trivy-operator-pvc"
-  storage: "10Gi"
+  storage: "15Gi"
   # -- storageClassName for the PVC (optional, uses cluster default if not specified)
-  storageClassName: ""
+  storageClassName: "ceph-rbd"
   podSecurityContext:
     runAsUser: 10000
     fsGroup: 10000

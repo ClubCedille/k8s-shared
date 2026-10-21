@@ -1,7 +1,5 @@
 ---
 namespace: trivy-operator
-resources:
-  - ./helm/trivy-values.yaml
 
 helmCharts:
   - name: trivy-operator
@@ -9,4 +7,4 @@ helmCharts:
     version: 0.35.0
     releaseName: trivy-operator
     namespace: trivy-operator
-    valuesFile: ./helm/trivy-operator-values.yaml
+    valuesFile: ./helm/trivy-values.yaml
