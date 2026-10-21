@@ -8,7 +8,7 @@ data:
     <meta charset="utf-8">
     <title>Site Maintenance</title>
     <style>
-      body { text-align: center; padding: 150px; }
+      body { text-align: center; padding: 150px; background-color: whitesmoke}
       h1 { font-size: 50px; }
       body { font: 20px Helvetica, sans-serif; color: #333; }
       article { display: block; text-align: left; width: 650px; margin: 0 auto; }
@@ -24,7 +24,7 @@ data:
         <h1>Ce site est en maintenance</h1>
         <div>
           <p>Une <a href="https://watchtowr.com/intelligence/php-cve-2026-109618-faq/">CVE majeure</a> concernant les sites PHP a été publiée et nous oblige à mettre les sites affectés hors ligne. Si vous avez d'autres questions, n'hésitez pas à <a href="mailto:cedille@ens.etsmtl.ca">nous contacter</a>.</p>
-          <p> Autrement, les services seront rétablis sous peu!</p>
+          <p> Autrement, les services seront rétablis dès que possible!</p>
             <p>&mdash; Équipe CEDILLE</p>
         </div>
     </article>
