@@ -1,0 +1,21 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: trivy-operator-crds
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  destination:
+    namespace: trivy-operator
+    server: https://kubernetes.default.svc
+  project: k8s-shared
+  source:
+    path: ./crds/trivy-operator
+    repoURL: https://github.com/ClubCedille/k8s-shared.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: false # Maintenir les CRDs pour trivy.argoapp.yml
+      selfHeal: true

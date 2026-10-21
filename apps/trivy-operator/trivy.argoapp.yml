@@ -4,6 +4,8 @@ kind: Application
 metadata:
   name: trivy-operator
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   destination:
     namespace: trivy-operator
