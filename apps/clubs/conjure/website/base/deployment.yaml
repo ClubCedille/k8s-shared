@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: conjure-service
-  annotations:
-    kube-score/ignore: pod-probes
 spec:
   replicas: 1
   selector:
@@ -14,6 +12,8 @@ spec:
       labels:
         app: conjure-service
     spec:
+      securityContext:
+        fsGroup: 10001
       containers:
         - name: conjure-service
           image: ghcr.io/conjureets/conjure-site:latest
@@ -34,18 +34,52 @@ spec:
               mountPath: /var/cache/nginx
             - name: run-dir
               mountPath: /run
+            # Next.js image optimizer / ISR writes here. The root filesystem is
+            # read-only, so without this emptyDir it fails with
+            # "ENOENT: mkdir '/app/.next/cache'" and keeps restarting.
+            - name: next-cache
+              mountPath: /app/.next/cache
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: 100m
-              memory: 128Mi
+              memory: 256Mi
             limits:
               cpu: 500m
-              memory: 256Mi
+              memory: 1Gi
               ephemeral-storage: 1Gi
           ports:
             - containerPort: 3000
+          startupProbe:
+            httpGet:
+              path: /
+              port: 3000
+            failureThreshold: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
       volumes:
         - name: nginx-cache
           emptyDir: {}
         - name: run-dir
+          emptyDir: {}
+        - name: next-cache
+          emptyDir: {}
+        - name: tmp
           emptyDir: {}
