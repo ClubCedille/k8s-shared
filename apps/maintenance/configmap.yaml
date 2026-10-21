@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: maintenance-page
+data:
+  index.html: |
+    <!doctype html>
+    <title>Site Maintenance</title>
+    <style>
+      body { text-align: center; padding: 150px; }
+      h1 { font-size: 50px; }
+      body { font: 20px Helvetica, sans-serif; color: #333; }
+      article { display: block; text-align: left; width: 650px; margin: 0 auto; }
+      a { color: #dc8100; text-decoration: none; }
+      a:hover { color: #333; text-decoration: none; }
+    </style>
+
+    <article>
+        <h1>Ce site est en maintenance</h1>
+        <div>
+          <p>Une <a href="https://watchtowr.com/intelligence/php-cve-2026-109618-faq/">CVE majeure</a> concernant les sites PHP a été publiée et nous oblige à mettre les sites affectés hors ligne. Si vous avez d'autres questions, n'hésitez pas à <a href="mailto:cedille@ens.etsmtl.ca">nous contacter</a>.</p>
+          <p> Autrement, les services seront rétablis sous peu!</p>
+            <p>&mdash; Équipe CEDILLE</p>
+        </div>
+    </article>
+  default.conf: |
+    server {
+      listen 8080;
+      server_name _;
+      root /usr/share/nginx/html;
+      index index.html;
+
+      add_header Cache-Control "no-store" always;
+
+      location / {
+        try_files $uri /index.html;
+      }
+    }
