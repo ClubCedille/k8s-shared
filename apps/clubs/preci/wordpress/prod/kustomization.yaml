@@ -6,3 +6,26 @@ resources:
   - ingress.yaml
 
 namespace: preci
+
+patches:
+  # Security maintenance: redirect the site and stop the PHP app.
+  - target:
+      kind: HTTPProxy
+      name: wordpress
+    patch: |-
+      - op: replace
+        path: /spec/routes
+        value:
+          - conditions:
+              - prefix: /
+            requestRedirectPolicy:
+              hostname: maintenance.etsmtl.club
+              scheme: https
+              statusCode: 302
+  - target:
+      kind: Deployment
+      name: preci-wordpress
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 0

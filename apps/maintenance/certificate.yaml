@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: maintenance-tls
+spec:
+  secretName: maintenance-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: maintenance.etsmtl.club
+  dnsNames:
+    - maintenance.etsmtl.club

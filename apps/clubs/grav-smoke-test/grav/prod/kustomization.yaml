@@ -44,3 +44,24 @@ patches:
       - op: replace
         path: /spec/path
         value: kv/data/grav-smoke-test-grav/default/grav
+  # Security maintenance: redirect the site to the static page and stop PHP.
+  - target:
+      kind: HTTPProxy
+      name: grav-ingress
+    patch: |-
+      - op: replace
+        path: /spec/routes
+        value:
+          - conditions:
+              - prefix: /
+            requestRedirectPolicy:
+              hostname: maintenance.etsmtl.club
+              scheme: https
+              statusCode: 302
+  - target:
+      kind: Deployment
+      name: grav
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 0

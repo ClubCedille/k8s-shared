@@ -7,3 +7,39 @@ resources:
   - certificate.yaml
   - vault-secret.yaml
   - configmap.yaml
+
+patches:
+  # Security maintenance: redirect both hosts and stop the PHP app.
+  - target:
+      kind: HTTPProxy
+      name: crabe-ingress-atelier-crabe-prodv2-cedille-club
+    patch: |-
+      - op: replace
+        path: /spec/routes
+        value:
+          - conditions:
+              - prefix: /
+            requestRedirectPolicy:
+              hostname: maintenance.etsmtl.club
+              scheme: https
+              statusCode: 302
+  - target:
+      kind: HTTPProxy
+      name: crabe-ingress-atelier-crabe-etsmtl-club
+    patch: |-
+      - op: replace
+        path: /spec/routes
+        value:
+          - conditions:
+              - prefix: /
+            requestRedirectPolicy:
+              hostname: maintenance.etsmtl.club
+              scheme: https
+              statusCode: 302
+  - target:
+      kind: Deployment
+      name: webapp-crabe
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 0

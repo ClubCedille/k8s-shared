@@ -11,3 +11,62 @@ helmCharts:
     releaseName: matomo
     namespace: matomo
     valuesFile: ./helm/values.yaml
+
+patches:
+  # Security maintenance: redirect the site and stop every PHP deployment.
+  - target:
+      kind: HTTPProxy
+      name: matomo
+    patch: |-
+      - op: replace
+        path: /spec/routes
+        value:
+          - conditions:
+              - prefix: /
+            requestRedirectPolicy:
+              hostname: maintenance.etsmtl.club
+              scheme: https
+              statusCode: 302
+  - target:
+      kind: Deployment
+      name: matomo-dashboard
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 0
+  - target:
+      kind: Deployment
+      name: matomo-tracker
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 0
+  - target:
+      kind: Deployment
+      name: matomo-cli
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 0
+  - target:
+      kind: Deployment
+      name: matomo-queuedtracking-monitor
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 0
+  # Matomo archiving/queued-tracking cron jobs also run PHP.
+  - target:
+      kind: CronJob
+      name: matomo-jobs-corearchive
+    patch: |-
+      - op: add
+        path: /spec/suspend
+        value: true
+  - target:
+      kind: CronJob
+      name: matomo-jobs-scheduled-tasks
+    patch: |-
+      - op: add
+        path: /spec/suspend
+        value: true

@@ -68,3 +68,24 @@ patches:
           periodSeconds: 30
           timeoutSeconds: 30
           failureThreshold: 6
+  # Security maintenance: redirect the site to the static page and stop PHP.
+  - target:
+      kind: HTTPProxy
+      name: grav-ingress
+    patch: |-
+      - op: replace
+        path: /spec/routes
+        value:
+          - conditions:
+              - prefix: /
+            requestRedirectPolicy:
+              hostname: maintenance.etsmtl.club
+              scheme: https
+              statusCode: 302
+  - target:
+      kind: Deployment
+      name: grav
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 0
