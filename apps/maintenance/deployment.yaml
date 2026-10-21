@@ -85,8 +85,6 @@ spec:
                 path: index.html
               - key: cedille-patch-512.webp
                 path: images/cedille-patch-512.webp
-              - key: cedille-patch-512.png
-                path: images/cedille-patch-512.png
         - name: cache
           emptyDir: {}
         - name: run
