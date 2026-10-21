@@ -25,6 +25,53 @@ patches:
               app.kubernetes.io/backup: velero
             annotations:
               backup.velero.io/backup-volumes: nextcloud-main
+  # kube-score: use distinct handlers for readiness/liveness.
+  - target:
+      kind: Deployment
+      name: nextcloud
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/livenessProbe/httpGet/path
+        value: /
+  - target:
+      kind: Deployment
+      name: collabora-collabora-online
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/livenessProbe
+        value:
+          tcpSocket:
+            port: 9980
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 4
+          successThreshold: 1
+  - target:
+      kind: Deployment
+      name: nextcloud-metrics
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/readinessProbe
+        value:
+          httpGet:
+            path: /metrics
+            port: 9205
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+      - op: add
+        path: /spec/template/spec/containers/0/livenessProbe
+        value:
+          tcpSocket:
+            port: 9205
+          initialDelaySeconds: 10
+          periodSeconds: 20
+          timeoutSeconds: 3
+          failureThreshold: 3
+          successThreshold: 1
 
 helmCharts:
   - name: nextcloud
