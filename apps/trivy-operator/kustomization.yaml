@@ -1,0 +1,12 @@
+---
+namespace: trivy-operator
+resources:
+  - ./helm/trivy-values.yaml
+
+helmCharts:
+  - name: trivy-operator
+    repo: https://aquasecurity.github.io/trivy-operator
+    version: 0.35.0
+    releaseName: trivy-operator
+    namespace: trivy-operator
+    valuesFile: ./helm/trivy-operator-values.yaml
