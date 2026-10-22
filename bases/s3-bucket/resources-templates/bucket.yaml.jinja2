@@ -1,0 +1,32 @@
+---
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: {{ nom_club }}-s3-bucket
+spec:
+  generateBucketName: {{ nom_club }}-s3-bucket
+  storageClassName: ceph-bucket
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ nom_club }}-s3-tls
+spec:
+  secretName: {{ nom_club }}-s3-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: s3.{{ nom_club }}.etsmtl.club
+  dnsNames:
+    - s3.{{ nom_club }}.etsmtl.club
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ nom_club }}-s3-svc
+spec:
+  ports:
+    - name: http
+      port: 7480
+      targetPort: 7480
+---
