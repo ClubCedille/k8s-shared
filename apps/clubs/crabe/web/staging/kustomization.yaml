@@ -44,24 +44,3 @@ patches:
       - op: replace
         path: /spec/routes/0/services/0/port
         value: 8000
-  # Security maintenance: redirect the staging host and stop the PHP app.
-  - target:
-      kind: HTTPProxy
-      name: staging-crabe-ingress
-    patch: |-
-      - op: replace
-        path: /spec/routes
-        value:
-          - conditions:
-              - prefix: /
-            requestRedirectPolicy:
-              hostname: maintenance.etsmtl.club
-              scheme: https
-              statusCode: 302
-  - target:
-      kind: Deployment
-      name: webapp-crabe
-    patch: |-
-      - op: add
-        path: /spec/replicas
-        value: 0
