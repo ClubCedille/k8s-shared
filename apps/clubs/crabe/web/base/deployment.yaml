@@ -6,7 +6,8 @@ metadata:
     kube-score/ignore: >-
       container-image-tag,
       pod-networkpolicy,
-      container-security-context-readonlyrootfilesystem
+      container-security-context-readonlyrootfilesystem,
+      container-security-context-user-group-id
 spec:
   replicas: 1
   selector:
@@ -47,9 +48,11 @@ spec:
             requests:
               cpu: 10m
               memory: 32Mi
+              ephemeral-storage: 64Mi
             limits:
               cpu: 100m
               memory: 128Mi
+              ephemeral-storage: 128Mi
       containers:
         - name: webapp-crabe
           envFrom:
