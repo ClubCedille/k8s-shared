@@ -26,7 +26,7 @@ matomo:
   # -- Image pull secrets for Matomo.
   imagePullSecrets: []
   # -- Which image to use for Matomo deployment.
-  image: digitalist/matomo:5.7.1
+  image: digitalist/matomo:5.14.1
   # -- run container as user id.
   runAsUser: 82
   # -- Install command. If already installed, it just creates the needed config.
@@ -35,7 +35,7 @@ matomo:
   postInstallSleepTime: 5
   postInstallCommand: ""
   preUpgradeSleepTime: 5
-  preUpgradeCommand: ""
+  preUpgradeCommand: ./console core:update --yes
   extralabels: {}
   readinessProbe: {}
   livenessProbe: {}
@@ -106,7 +106,7 @@ matomo:
     enabled: true
     replicas: 1
     loadbalancer: false
-    hostname: my.host
+    hostname: matomo.etsmtl.club
     tls: false
     firstuser:
       username: admin
@@ -158,7 +158,7 @@ matomo:
   tracker:
     enabled: true
     replicas: 1
-    hostname: my.host
+    hostname: matomo.etsmtl.club
     tls: false
     loadbalancer: false
     nginx:
