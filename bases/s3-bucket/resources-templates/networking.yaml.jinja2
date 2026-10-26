@@ -24,11 +24,11 @@ spec:
   virtualhost:
     fqdn: s3.{{ nom_club }}.etsmtl.club
     tls:
-      secretName: s3-tls
+      secretName: {{ nom_club }}-s3-tls
       minimumProtocolVersion: "1.3"
     corsPolicy:
       allowOrigin:
-        - {{ domaine }}
+        - https://{{ domaine }}
       allowMethods:
         - "*"
       allowHeaders:

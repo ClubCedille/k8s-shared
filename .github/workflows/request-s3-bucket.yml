@@ -25,20 +25,23 @@ jobs:
       TEMPLATE_RESOURCE_DIR: bases/s3-bucket/resources-templates
       j2_vars: |
         nom_club=${{ inputs.nom_club }}
-        domaine=${{ inputs.domaine }}
+        domaine=${{ inputs.domaine || format('{0}.etsmtl.club', inputs.nom_club) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Verify inputs
+        env:
+          NOM_CLUB: ${{ inputs.nom_club }}
+          DOMAINE: ${{ inputs.domaine || format('{0}.etsmtl.club', inputs.nom_club) }}
         run: |
-          if [[ ! "${{ inputs.nom_club }}" =~ ^[a-z0-9-]+$ ]]; then
-            echo "::error::ERREUR: Le nom du club '${{ inputs.nom_club }}' est invalide."
+          if [[ ! "$NOM_CLUB" =~ ^[a-z0-9-]+$ ]]; then
+            echo "::error::ERREUR: Le nom du club '$NOM_CLUB' est invalide."
             echo "::error::Il ne doit contenir que des lettres minuscules, des chiffres et des tirets (-)."
             exit 1
           fi
-          if [[ ! "${{ inputs.domaine }}" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]]; then
-            echo "::error::ERREUR: Le nom du domaine '${{ inputs.domaine }}' est invalide."
+          if [[ ! "$DOMAINE" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]]; then
+            echo "::error::ERREUR: Le nom du domaine '$DOMAINE' est invalide."
             exit 1
           fi
 
@@ -50,8 +53,8 @@ jobs:
       - name: Create Bucket Manifest
         uses: cuchi/jinja2-action@v1.3.0
         with:
-          template: ${{ env.TEMPLATE_BASE_DIR }}/bucket.yaml.jinja2
-          output_file: ${{ env.RESOURCES_DIR }}/bucket.yaml
+          template: ${{ env.TEMPLATE_RESOURCE_DIR }}/bucket.yaml.jinja2
+          output_file: ${{ env.RESOURCE_DIR }}/bucket.yaml
           strict: true
           variables: ${{ env.j2_vars }}
 
@@ -66,8 +69,8 @@ jobs:
       - name: Create Base Kustomize
         uses: cuchi/jinja2-action@v1.3.0
         with:
-          template: ${{ env.TEMPLATE_RESOURCES_DIR }}/kustomization.yaml.jinja2
-          output_file: ${{ env.RESOURCSE_DIR }}/kustomization.yaml
+          template: ${{ env.TEMPLATE_RESOURCE_DIR }}/kustomization.yaml.jinja2
+          output_file: ${{ env.RESOURCE_DIR }}/kustomization.yaml
           strict: true
           variables: ${{ env.j2_vars }}
 
