@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: comets-inventree
+  namespace: argocd
+spec:
+  project: k8s-shared
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: comets-inventree
+
+  sources:
+    - repoURL: https://inventree.github.io/helm-charts
+      chart: inventree
+      targetRevision: 0.4.36
+      helm:
+        releaseName: inventree
+        valueFiles:
+          - $values/apps/clubs/comets/inventree/helm/values.yaml
+
+    - repoURL: https://github.com/ClubCedille/k8s-shared.git
+      targetRevision: feat/583-inventree-comets
+      ref: values
+
+    - repoURL: https://github.com/ClubCedille/k8s-shared.git
+      targetRevision: feat/583-inventree-comets
+      path: apps/clubs/comets/inventree/prod
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
