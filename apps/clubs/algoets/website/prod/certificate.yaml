@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: algoets-website-tls
+spec:
+  secretName: algoets-website-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: algoets.prodv2.cedille.club
+  dnsNames:
+    - algoets.prodv2.cedille.club
