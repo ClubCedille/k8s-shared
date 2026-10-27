@@ -1,0 +1,103 @@
+name: Demande pour un Bucket S3
+
+on:
+  workflow_dispatch:
+    inputs:
+      nom_club:
+        type: string
+        required: true
+        description: "Nom du club (lettres minuscules, chiffres et tirets '-' seulement, e.g: mon-super-club) Le domaine sera configuré selon ce nom (e.g wiki.mon-super-club.etsmtl.club)"
+      domaine:
+        type: string
+        required: false
+        description: "Nom du domaine qui accède le bucket (par défaut: {nom_club}.etsmtl.club)"
+jobs:
+  create_pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      CLUB: ${{ inputs.nom_club }}
+      ROOT_DIR: apps/clubs/${{ inputs.nom_club }}/s3-bucket
+      RESOURCE_DIR: apps/clubs/${{ inputs.nom_club }}/s3-bucket/resources
+      TEMPLATE_ROOT_DIR: bases/s3-bucket
+      TEMPLATE_RESOURCE_DIR: bases/s3-bucket/resources-templates
+      j2_vars: |
+        nom_club=${{ inputs.nom_club }}
+        domaine=${{ inputs.domaine || format('{0}.etsmtl.club', inputs.nom_club) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify inputs
+        env:
+          NOM_CLUB: ${{ inputs.nom_club }}
+          DOMAINE: ${{ inputs.domaine || format('{0}.etsmtl.club', inputs.nom_club) }}
+        run: |
+          if [[ ! "$NOM_CLUB" =~ ^[a-z0-9-]+$ ]]; then
+            echo "::error::ERREUR: Le nom du club '$NOM_CLUB' est invalide."
+            echo "::error::Il ne doit contenir que des lettres minuscules, des chiffres et des tirets (-)."
+            exit 1
+          fi
+          if [[ ! "$DOMAINE" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]]; then
+            echo "::error::ERREUR: Le nom du domaine '$DOMAINE' est invalide."
+            exit 1
+          fi
+
+      - name: Create k8s folder
+        run: |
+          mkdir -p "${{ env.RESOURCE_DIR }}"
+
+      # -- RESOURCES --
+      - name: Create Bucket Manifest
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: ${{ env.TEMPLATE_RESOURCE_DIR }}/bucket.yaml.jinja2
+          output_file: ${{ env.RESOURCE_DIR }}/bucket.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+
+      - name: Create Network Manifest
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: ${{ env.TEMPLATE_RESOURCE_DIR }}/networking.yaml.jinja2
+          output_file: ${{ env.RESOURCE_DIR }}/networking.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+
+      - name: Create Base Kustomize
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: ${{ env.TEMPLATE_RESOURCE_DIR }}/kustomization.yaml.jinja2
+          output_file: ${{ env.RESOURCE_DIR }}/kustomization.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+
+      # -- ARGO --
+      - name: Create Argo Manifest
+        uses: cuchi/jinja2-action@v1.3.0
+        with:
+          template: ${{ env.TEMPLATE_ROOT_DIR }}/argoapp.yaml.jinja2
+          output_file: ${{ env.ROOT_DIR }}/${{ env.CLUB }}-s3-bucket.argoapp.yaml
+          strict: true
+          variables: ${{ env.j2_vars }}
+
+      # -- PR --
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          branch: s3-bucket/${{ env.CLUB }}
+          # team-reviewers: |
+          #   deploiement
+          labels: |
+            automated
+            s3-bucket
+            ${{ env.CLUB }}
+          title: "Créer un S3 Bucket pour ${{ env.CLUB }}"
+          body: |
+            PR automatisée pour la création d'un S3 Bucket..
+            Nom du club: `${{ env.CLUB }}`
+
+            **Changements inclus:**
+            - Génération des manifestes K8s via Jinja2.
