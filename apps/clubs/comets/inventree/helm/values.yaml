@@ -1,11 +1,9 @@
-# Ce fichier seul ne constitue pas un déploiement complet.
 fullnameOverride: inventree
 replicaCount: 1
 
 global:
-  # Adresse provisoire pour le rendu local ; remplacer par le domaine validé.
+  # TODO: remove this when the app is updated to use the new env vars.
   siteUrl: http://inventree.local
-  # Secret à créer via le mécanisme Vault du club avant déploiement.
   adminSecret: inventree-admin
   # Valkey partage les données temporaires entre le serveur et le worker.
   cacheSecrets:

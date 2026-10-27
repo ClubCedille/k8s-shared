@@ -9,12 +9,9 @@ spec:
     initdb:
       database: inventree
       owner: inventree
-      # Sans secret préexistant, CNPG génère postgresql-inventree-app.
   storage:
     storageClass: ceph-rbd
-    # Capacité par instance : 3 x 5 Gi, hors réplication interne de Ceph.
     size: 5Gi
-  # Point de départ repris de NetBox ; à ajuster selon l'utilisation.
   resources:
     requests:
       cpu: 100m
