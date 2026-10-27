@@ -1,0 +1,32 @@
+---
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: algoets-s3-bucket
+spec:
+  generateBucketName: algoets-s3-bucket
+  storageClassName: ceph-bucket
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: algoets-s3-tls
+spec:
+  secretName: algoets-s3-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: s3.algoets.etsmtl.club
+  dnsNames:
+    - s3.algoets.etsmtl.club
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: algoets-s3-svc
+spec:
+  ports:
+    - name: http
+      port: 7480
+      targetPort: 7480
+---
