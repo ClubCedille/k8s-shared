@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: algoets-website
+  annotations:
+    # nginx-unprivileged runs as UID/GID 101; kube-score flags the low ID.
+    kube-score/ignore: container-image-pull-policy,container-image-tag,pod-networkpolicy,container-security-context-user-group-id
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: algoets-website
+  template:
+    metadata:
+      labels:
+        app: algoets-website
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      imagePullSecrets:
+        - name: ghcr-clubcedille-secret
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: algoets-website
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: nginx
+          image: ghcr.io/clubcedille/algoets-website:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+              ephemeral-storage: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+              ephemeral-storage: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 3
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: algoets-website
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: algoets-website
