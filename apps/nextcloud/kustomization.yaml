@@ -26,6 +26,8 @@ patches:
             annotations:
               backup.velero.io/backup-volumes: nextcloud-main
 
+  - path: patches/probes.yaml
+
 helmCharts:
   - name: nextcloud
     repo: https://nextcloud.github.io/helm

@@ -1,0 +1,60 @@
+# kube-score: use distinct handlers for readiness/liveness.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud
+spec:
+  template:
+    spec:
+      containers:
+        - name: nextcloud
+          livenessProbe:
+            httpGet:
+              path: /
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collabora-collabora-online
+spec:
+  template:
+    spec:
+      containers:
+        - name: collabora-online
+          livenessProbe:
+            $patch: replace
+            tcpSocket:
+              port: 9980
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 4
+            successThreshold: 1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud-metrics
+spec:
+  template:
+    spec:
+      containers:
+        - name: metrics-exporter
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 9205
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          livenessProbe:
+            tcpSocket:
+              port: 9205
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+            successThreshold: 1
