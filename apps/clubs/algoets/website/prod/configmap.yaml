@@ -9,3 +9,10 @@ data:
   APP_ORIGIN: https://algoets.etsmtl.club
   STORAGE_DRIVER: s3
   MAX_UPLOAD_BYTES: "10485760"
+  # Contact form relay. These are non-secret; SMTP_USER/SMTP_PASS come from
+  # the algoets-website-secrets VaultSecret.
+  MAIL_TO: algoets@ens.etsmtl.ca
+  SMTP_HOST: smtp.office365.com
+  SMTP_PORT: "587"
+  SMTP_SECURE: "false"
+  SMTP_FROM: AlgoÉTS <algoets@ens.etsmtl.ca>
