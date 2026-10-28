@@ -73,6 +73,18 @@ spec:
               value: "true"
             - name: MEDIA_BASE_URL
               value: https://s3.algoets.etsmtl.club/$(BUCKET_NAME)
+            # Explicit refs (in addition to envFrom) so adding the SMTP keys
+            # rolls the pods and the app starts with the relay configured.
+            - name: SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: algoets-website-secrets
+                  key: SMTP_USER
+            - name: SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: algoets-website-secrets
+                  key: SMTP_PASS
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
