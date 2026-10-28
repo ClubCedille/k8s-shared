@@ -35,7 +35,10 @@ matomo:
   postInstallSleepTime: 5
   postInstallCommand: ""
   preUpgradeSleepTime: 5
-  preUpgradeCommand: ./console core:update --yes
+  # Chart >= 12 runs core:update from the warmup init container. The chart's
+  # pre-upgrade Job is still broken (it mounts configmaps that are not always
+  # rendered), so leave it disabled and let the warmup handle the DB upgrade.
+  preUpgradeCommand: ""
   extralabels: {}
   readinessProbe: {}
   livenessProbe: {}
