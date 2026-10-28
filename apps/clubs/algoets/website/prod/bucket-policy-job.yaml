@@ -1,0 +1,77 @@
+# The OBC-created bucket is private by default. Media objects are served
+# anonymously through the s3.algoets.etsmtl.club HTTPProxy, so grant read-only
+# access to media/*. Content documents and contact messages stay private.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: algoets-website-bucket-policy
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,HookFailed
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: algoets-website-bucket-policy
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: bucket-policy
+          image: amazon/aws-cli:2.24.11
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          envFrom:
+            - configMapRef:
+                name: algoets-s3-bucket
+            - secretRef:
+                name: algoets-s3-bucket
+          env:
+            - name: AWS_DEFAULT_REGION
+              value: us-east-1
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              cat > /tmp/policy.json <<EOF
+              {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": "*",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::${BUCKET_NAME}/media/*"
+                  }
+                ]
+              }
+              EOF
+              aws --endpoint-url "http://${BUCKET_HOST}:${BUCKET_PORT}" \
+                s3api put-bucket-policy --bucket "${BUCKET_NAME}" --policy file:///tmp/policy.json
+      volumes:
+        - name: tmp
+          emptyDir: {}
