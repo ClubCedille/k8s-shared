@@ -30,7 +30,28 @@ matomo:
   # -- run container as user id.
   runAsUser: 82
   # -- Install command. If already installed, it just creates the needed config.
-  installCommand: ./console plugin:activate ExtraTools && ./console matomo:install --install-file=/tmp/matomo/install.json --force --do-not-drop-db
+  # LoginOIDC is not bundled in the digitalist image and /var/www/html is an
+  # emptyDir that is re-synced on every pod start, so fetch the pinned plugin
+  # during init instead of keeping its zip in this repo. The SHA-256 below is
+  # for the unmodified upstream 5.0.0 marketplace zip; the perl one-liner then
+  # drops the plugin's foreign key, which MariaDB 11 rejects because core and
+  # plugin tables use different collations.
+  #
+  # OIDC policy: allowSignup=1 lets any Authentik user create a Matomo account
+  # (with no site access by default); autoLinking=1 links an existing Matomo
+  # user when their Authentik username matches their Matomo login. Set both to
+  # 0 to require an administrator to create/link accounts instead.
+  installCommand: >-
+    curl -fsSL --retry 3 --retry-delay 2 -o /tmp/LoginOIDC.zip https://plugins.matomo.org/api/2.0/plugins/LoginOIDC/download/5.0.0 &&
+    echo "36a87b7361547b8910a5a6f76cf434b07667ed8af0b266e38d45e107d541ab4f  /tmp/LoginOIDC.zip" | sha256sum -c - &&
+    unzip -q -o /tmp/LoginOIDC.zip -d /var/www/html/plugins/ &&
+    perl -0pi -e "s/,\s*\n\s*FOREIGN KEY.*?ON DELETE CASCADE//s" /var/www/html/plugins/LoginOIDC/LoginOIDC.php &&
+    ./console plugin:activate ExtraTools &&
+    ./console matomo:install --install-file=/tmp/matomo/install.json --force --do-not-drop-db &&
+    ./console plugin:activate LoginOIDC &&
+    ./console config:set "LoginOIDC.authenticationName=\"Authentik\"" "LoginOIDC.authorizeUrl=\"https://auth.etsmtl.club/application/o/authorize/\"" "LoginOIDC.tokenUrl=\"https://auth.etsmtl.club/application/o/token/\"" "LoginOIDC.userinfoUrl=\"https://auth.etsmtl.club/application/o/userinfo/\"" "LoginOIDC.userinfoId=\"preferred_username\"" "LoginOIDC.scope=\"openid email profile\"" "LoginOIDC.allowSignup=1" "LoginOIDC.autoLinking=1" "LoginOIDC.disablePasswordConfirmation=1" -q &&
+    ./console config:set --section=LoginOIDC --key=clientId --value="$(cat /opt/matomo-oidc-secret/OIDC_CLIENT_ID)" -q &&
+    ./console config:set --section=LoginOIDC --key=clientSecret --value="$(cat /opt/matomo-oidc-secret/OIDC_CLIENT_SECRET)" -q
   # Post install for helm chart. Starts a post-install-job.
   postInstallSleepTime: 5
   postInstallCommand: ""
