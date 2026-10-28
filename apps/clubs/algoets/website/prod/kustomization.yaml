@@ -7,3 +7,6 @@ resources:
   - httpproxy.yaml
   - certificate.yaml
   - vault-secret.yaml
+  - bucket-policy-job.yaml
+  - seed-job.yaml
+  - job-networkpolicies.yaml
