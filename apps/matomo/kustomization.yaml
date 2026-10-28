@@ -11,3 +11,55 @@ helmCharts:
     releaseName: matomo
     namespace: matomo
     valuesFile: ./helm/values.yaml
+
+patches:
+  # matomo-init is always the first init container on Deployments and CronJobs.
+  # Mount the Vault-synced OIDC credentials there so matomo.installCommand can
+  # write the LoginOIDC client id/secret. The plugin itself is downloaded from
+  # the pinned marketplace URL during init (see matomo.installCommand).
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: add
+        path: /spec/template/spec/volumes/-
+        value:
+          name: matomo-oidc-secret
+          secret:
+            secretName: matomo-oidc-secret
+      - op: add
+        path: /spec/template/spec/initContainers/0/volumeMounts/-
+        value:
+          name: matomo-oidc-secret
+          mountPath: /opt/matomo-oidc-secret
+          readOnly: true
+  - target:
+      kind: CronJob
+    patch: |-
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/volumes/-
+        value:
+          name: matomo-oidc-secret
+          secret:
+            secretName: matomo-oidc-secret
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/initContainers/0/volumeMounts/-
+        value:
+          name: matomo-oidc-secret
+          mountPath: /opt/matomo-oidc-secret
+          readOnly: true
+  # The pre/post helm hook Jobs prepend wait-for-db, so matomo-init is index 1.
+  - target:
+      kind: Job
+    patch: |-
+      - op: add
+        path: /spec/template/spec/volumes/-
+        value:
+          name: matomo-oidc-secret
+          secret:
+            secretName: matomo-oidc-secret
+      - op: add
+        path: /spec/template/spec/initContainers/1/volumeMounts/-
+        value:
+          name: matomo-oidc-secret
+          mountPath: /opt/matomo-oidc-secret
+          readOnly: true
