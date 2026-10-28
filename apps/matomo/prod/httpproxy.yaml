@@ -9,6 +9,60 @@ spec:
       secretName: matomo-tls
       minimumProtocolVersion: "1.3"
   routes:
+    # The dashboard nginx deliberately rejects matomo.php/piwik.php (403),
+    # so tracking endpoints must be routed to the tracker deployment.
+    - conditions:
+        - exact: /matomo.php
+      services:
+        - name: matomo-tracker
+          port: 8080
+    - conditions:
+        - exact: /piwik.php
+      services:
+        - name: matomo-tracker
+          port: 8080
+    - conditions:
+        - exact: /matomo.js
+      services:
+        - name: matomo-tracker
+          port: 8080
+    - conditions:
+        - exact: /piwik.js
+      services:
+        - name: matomo-tracker
+          port: 8080
+    # Static assets served by the tracker (heatmaps, overlay, UserFeedback).
+    - conditions:
+        - prefix: /js
+      services:
+        - name: matomo-tracker
+          port: 8080
+    - conditions:
+        - prefix: /plugins/HeatmapSessionRecording
+      services:
+        - name: matomo-tracker
+          port: 8080
+    - conditions:
+        - prefix: /plugins/Overlay/client
+      services:
+        - name: matomo-tracker
+          port: 8080
+    - conditions:
+        - prefix: /plugins/UserFeedback/lib
+      services:
+        - name: matomo-tracker
+          port: 8080
+    - conditions:
+        - prefix: /plugins/UserFeedback/css
+      services:
+        - name: matomo-tracker
+          port: 8080
+    - conditions:
+        - prefix: /node_modules/jquery/dist
+      services:
+        - name: matomo-tracker
+          port: 8080
+    # Everything else (dashboard UI) goes to the dashboard.
     - conditions:
         - prefix: /
       enableWebsockets: true
