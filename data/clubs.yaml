@@ -28,12 +28,10 @@
   quota: 8000
 - name: canoe
   quota: 1000
-- name: algoets
-  quota: 0
 - name: applets
-  quota: 0
+  quota: 10
 - name: jdgets
-  quota: 0
+  quota: 10
 - name: quantumets
   quota: 100
 - name: algoets
