@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - ../base
+  - configmap.yaml
   - httpproxy.yaml
   - certificate.yaml
   - vault-secret.yaml
