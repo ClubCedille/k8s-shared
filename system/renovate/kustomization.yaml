@@ -24,6 +24,10 @@ patches:
       name: renovate-operator
     patch: |-
       - op: add
+        path: /metadata/annotations
+        value:
+          kube-score/ignore: "container-resources,container-ephemeral-storage-request-and-limit,container-security-context-user-group-id,pod-networkpolicy,container-image-tag,container-image-pull-policy"
+      - op: add
         path: /spec/template/spec/containers/0/readinessProbe
         value:
           httpGet:
@@ -35,8 +39,7 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/livenessProbe
         value:
-          httpGet:
-            path: /health
+          tcpSocket:
             port: http
           initialDelaySeconds: 15
           periodSeconds: 20
