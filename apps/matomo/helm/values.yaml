@@ -213,7 +213,7 @@ matomo:
       annotations:
         digitalist.cloud/instance: "matomo"
 nginx:
-  image: digitalist/nginx:1.21.6
+  image: digitalist/nginx:1.31.6
   imagePullSecrets: []
   runAsUser: 100
 db:
