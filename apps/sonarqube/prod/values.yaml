@@ -56,7 +56,7 @@ extraVolumeMounts:
     mountPath: /opt/sonarqube/web
 extraInitContainers:
   - name: download-webapp
-    image: busybox:1.37
+    image: busybox:1.38
     volumeMounts:
       - name: webapp
         mountPath: /web
