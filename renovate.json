@@ -1,0 +1,40 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":dependencyDashboard", ":semanticCommits"],
+  "onboarding": false,
+  "requireConfig": "required",
+  "enabledManagers": [
+    "argocd",
+    "github-actions",
+    "helm-values",
+    "kubernetes",
+    "kustomize"
+  ],
+  "ignorePaths": ["**/charts/**"],
+  "packageRules": [
+    {
+      "description": "Club app images stay on Argo CD Image Updater",
+      "matchFileNames": ["apps/clubs/**"],
+      "matchManagers": ["argocd", "helm-values", "kubernetes"],
+      "enabled": false
+    },
+    {
+      "description": "Do not let Renovate rewrite image tags in club Kustomizations; HelmChart updates stay enabled",
+      "matchFileNames": ["apps/clubs/**"],
+      "matchManagers": ["kustomize"],
+      "matchDepTypes": ["Kustomization", "Component"],
+      "enabled": false
+    },
+    {
+      "description": "Group Helm chart bumps so one PR updates related charts",
+      "matchManagers": ["kustomize"],
+      "matchDepTypes": ["HelmChart"],
+      "groupName": "Helm chart versions"
+    },
+    {
+      "description": "Major updates need explicit approval from the dependency dashboard",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ]
+}

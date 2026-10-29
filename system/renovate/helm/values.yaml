@@ -1,0 +1,49 @@
+# renovate-operator values
+#
+# The operator is deployed in its own namespace and only watches RenovateJob
+# resources there (rbac.ownNamespaceOnly). The actual Renovate runs are created
+# as Jobs by the operator and configured by renovate-job.yaml.
+
+fullnameOverride: renovate-operator
+
+crd:
+  # Install the CRDs as regular manifests so Argo CD applies them in the same
+  # sync (Argo CD orders CRDs before custom resources).
+  install: true
+  mode: template
+
+rbac:
+  ownNamespaceOnly: true
+
+# Keep the operator's policy engine on: it restricts which hosts a RenovateJob
+# may talk to and which images it may run. The defaults cover GitHub and the
+# official Renovate images.
+policy:
+  enabled: true
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+config:
+  defaultJobBackoffLimit: 1
+  defaultJobActiveDeadlineSeconds: 3600
+  jobTTLSecondsAfterFinished: 86400
+  deleteSuccessfulJobs: false
+
+logging:
+  level: info
+  format: json
+
+# The UI is only exposed inside the cluster by default. Use:
+#   kubectl -n renovate-operator port-forward svc/renovate-operator 8081:8081
+# or enable route/ingress here if a public UI is wanted.
+route:
+  enabled: false
+
+metrics:
+  enabled: false
