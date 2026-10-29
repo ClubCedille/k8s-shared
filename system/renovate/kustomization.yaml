@@ -1,0 +1,46 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: renovate-operator
+
+resources:
+  - vault-secret.yaml
+  - renovate-config.yaml
+  - renovate-job.yaml
+
+helmCharts:
+  - name: renovate-operator
+    repo: oci://ghcr.io/mogenius/helm-charts
+    version: 6.7.0
+    releaseName: renovate-operator
+    namespace: renovate-operator
+    valuesFile: ./helm/values.yaml
+
+patches:
+  # The upstream chart does not define probes. /health is the operator's
+  # readiness endpoint on the UI port (8081).
+  - target:
+      kind: Deployment
+      name: renovate-operator
+    patch: |-
+      - op: add
+        path: /metadata/annotations
+        value:
+          kube-score/ignore: "container-resources,container-ephemeral-storage-request-and-limit,container-security-context-user-group-id,pod-networkpolicy,container-image-tag,container-image-pull-policy"
+      - op: add
+        path: /spec/template/spec/containers/0/readinessProbe
+        value:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+      - op: add
+        path: /spec/template/spec/containers/0/livenessProbe
+        value:
+          tcpSocket:
+            port: http
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          timeoutSeconds: 3

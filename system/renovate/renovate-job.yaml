@@ -1,0 +1,34 @@
+apiVersion: renovate-operator.mogenius.com/v1alpha1
+kind: RenovateJob
+metadata:
+  name: k8s-shared
+spec:
+  schedule: "CRON_TZ=America/Toronto 0 3 * * *"
+  secretRef: renovate-secret
+  provider:
+    name: github
+  image: renovate/renovate:44
+  parallelism: 1
+  discoveryFilters:
+    - "ClubCedille/k8s-shared"
+  # The CRD in the datree CRDs catalog predates spec.renovateConfig, so mount
+  # the config ourselves instead of using the newer field. This also works with
+  # the current operator CRD.
+  extraVolumes:
+    - name: renovate-config
+      configMap:
+        name: renovate-config
+  extraVolumeMounts:
+    - name: renovate-config
+      mountPath: /etc/renovate
+      readOnly: true
+  extraEnv:
+    - name: RENOVATE_CONFIG_FILE
+      value: /etc/renovate/config.js
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
