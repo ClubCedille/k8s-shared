@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventree
+spec:
+  template:
+    spec:
+      containers:
+        - name: inventree
+          env:
+            - name: INVENTREE_TRUSTED_ORIGINS
+              value: "https://inventree.prodv2.cedille.club"
+            - name: INVENTREE_USE_X_FORWARDED_HOST
+              value: "True"
+            - name: INVENTREE_USE_X_FORWARDED_PROTO
+              value: "True"
