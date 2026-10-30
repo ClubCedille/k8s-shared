@@ -24,3 +24,20 @@ helmCharts:
     valuesFile: helm/values.yaml
 patches:
   - path: patches/inventree-deployment.yaml
+  - path: patches/inventree-worker.yaml
+
+  - target:
+      kind: Deployment
+      labelSelector: app.kubernetes.io/managed-by=Helm
+    patch: |-
+      - op: add
+        path: /metadata/annotations
+        value:
+          kube-score/ignore: >-
+            container-resources,
+            container-ephemeral-storage-request-and-limit,
+            container-security-context-user-group-id,
+            pod-networkpolicy,
+            container-image-tag,
+            container-image-pull-policy
+

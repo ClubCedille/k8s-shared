@@ -46,6 +46,29 @@ global:
 image:
   tag: "1.6.3"
 
+serviceProxy:
+  image: nginx
+  tag: "1.30.6@sha256:51047bea59fed88fbd1f52565d2f5fabcb82d311cf6c9e507a10ce74bb3bc3f0"
+
+securityContext:
+  readOnlyRootFilesystem: true
+
+volumes:
+  - name: runtime-tmp
+    emptyDir: {}
+  - name: nginx-cache
+    emptyDir: {}
+  - name: nginx-run
+    emptyDir: {}
+
+volumeMounts:
+  - name: runtime-tmp
+    mountPath: /tmp
+  - name: nginx-cache
+    mountPath: /var/cache/nginx
+  - name: nginx-run
+    mountPath: /var/run
+
 resources:
   requests:
     cpu: 100m
@@ -59,6 +82,17 @@ resources:
 worker:
   # Le chart 0.4.31 ne fournit pas de valeur par défaut pour replicaCount.
   replicaCount: 1
+  securityContext:
+    readOnlyRootFilesystem: true
+
+  volumes:
+    - name: worker-tmp
+      emptyDir: {}
+
+  volumeMounts:
+    - name: worker-tmp
+      mountPath: /tmp
+
   resources:
     requests:
       cpu: 100m

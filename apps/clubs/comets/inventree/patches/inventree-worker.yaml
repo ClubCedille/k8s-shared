@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventree-worker
+spec:
+  template:
+    spec:
+      containers:
+        - name: inventree
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - test -d /home/inventree/data
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - kill -0 1
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
