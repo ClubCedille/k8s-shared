@@ -4,6 +4,10 @@ replicaCount: 1
 global:
   siteUrl: https://inventree.prodv2.cedille.club
   adminSecret: inventree-admin
+  ssoConfig:
+    backends:
+      - allauth.socialaccount.providers.openid_connect
+    providerSecretName: inventree-sso
   # Valkey partage les données temporaires entre le serveur et le worker.
   cacheSecrets:
     - name: INVENTREE_CACHE_HOST

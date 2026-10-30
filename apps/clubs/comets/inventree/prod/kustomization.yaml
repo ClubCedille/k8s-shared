@@ -6,3 +6,4 @@ resources:
   - postgresql.yaml
   - certificate.yaml
   - httpproxy.yaml
+  - vault.yaml
