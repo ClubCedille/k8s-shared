@@ -7,6 +7,12 @@ global:
   siteUrl: http://inventree.local
   # Secret à créer via le mécanisme Vault du club avant déploiement.
   adminSecret: inventree-admin
+  # Valkey partage les données temporaires entre le serveur et le worker.
+  cacheSecrets:
+    - name: INVENTREE_CACHE_HOST
+      value: inventree-cache-valkey
+    - name: INVENTREE_CACHE_PORT
+      value: "6379"
   dbSecrets:
     - name: INVENTREE_DB_ENGINE
       value: postgresql
@@ -38,6 +44,29 @@ global:
 
 image:
   tag: "1.5.7"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+    ephemeral-storage: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+    ephemeral-storage: 1Gi
+
+worker:
+  # Le chart 0.4.31 ne fournit pas de valeur par défaut pour replicaCount.
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+      ephemeral-storage: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+      ephemeral-storage: 1Gi
 
 persistence:
   enabled: true
