@@ -2,8 +2,7 @@ fullnameOverride: inventree
 replicaCount: 1
 
 global:
-  # TODO: remove this when the app is updated to use the new env vars.
-  siteUrl: http://inventree.local
+  siteUrl: https://inventree.prodv2.cedille.club
   adminSecret: inventree-admin
   # Valkey partage les données temporaires entre le serveur et le worker.
   cacheSecrets:
