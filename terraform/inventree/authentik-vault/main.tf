@@ -67,7 +67,6 @@ resource "vault_kv_secret" "inventree_admin" {
     INVENTREE_ADMIN_EMAIL    = var.INVENTREE_ADMIN_EMAIL
   })
 }
-
 data "authentik_flow" "default_authorization_flow" {
   slug = "default-provider-authorization-explicit-consent"
 }

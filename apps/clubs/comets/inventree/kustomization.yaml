@@ -40,4 +40,3 @@ patches:
             pod-networkpolicy,
             container-image-tag,
             container-image-pull-policy
-
