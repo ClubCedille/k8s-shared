@@ -1,0 +1,109 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: cool-club-outlinewiki-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: cool-club-outlinewiki
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cool-club-outlinewiki
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+    kube-score/ignore: pod-networkpolicy, container-security-context-readonlyrootfilesystem, container-security-context-privileged, container-security-context-user-group-id, container-image-tag
+spec:
+  serviceName: cool-club-outlinewiki-svc
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cool-club-outlinewiki
+  template:
+    metadata:
+      labels:
+        app: cool-club-outlinewiki
+    spec:
+      containers:
+        - image: outlinewiki/outline:1.10.1
+          name: outline
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: outline-secrets
+            - configMapRef:
+                name: outline-config
+          env:
+            - name: AWS_S3_UPLOAD_BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: cool-club-outlinewiki-attachments
+                  key: BUCKET_NAME
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: cool-club-outlinewiki-attachments
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: cool-club-outlinewiki-attachments
+                  key: AWS_SECRET_ACCESS_KEY
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          securityContext:
+            runAsUser: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+          resources:
+            requests:
+              cpu: 250m
+              memory: 500Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 3Gi
+              ephemeral-storage: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /_health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+      imagePullSecrets:
+        - name: dockerhub-secret
+      restartPolicy: Always
+---
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: cool-club-outlinewiki-attachments
+spec:
+  generateBucketName: cool-club-outlinewiki-attachments
+  storageClassName: ceph-bucket
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cool-club-outlinewiki-svc
+spec:
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+  clusterIP: None
+  selector:
+    app: cool-club-outlinewiki

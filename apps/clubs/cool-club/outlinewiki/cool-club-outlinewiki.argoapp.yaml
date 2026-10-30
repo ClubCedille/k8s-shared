@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cool-club-outlinewiki
+  namespace: argocd
+spec:
+  destination:
+    namespace: cool-club-outlinewiki
+    server: https://kubernetes.default.svc
+  project: k8s-shared
+  source:
+    path: apps/clubs/cool-club/outlinewiki/prod
+    repoURL: https://github.com/ClubCedille/k8s-shared
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
