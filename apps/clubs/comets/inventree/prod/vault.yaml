@@ -36,3 +36,16 @@ spec:
   destination:
     name: inventree-admin
     create: true
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: b2-creds
+spec:
+  vaultAuthRef: inventree-auth
+  type: kv-v1
+  mount: kv-system
+  path: default_passwords/b2-creds
+  destination:
+    name: b2-creds
+    create: true
