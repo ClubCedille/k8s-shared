@@ -8,23 +8,10 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: comets-inventree
-
-  sources:
-    - repoURL: https://inventree.github.io/helm-charts
-      chart: inventree
-      targetRevision: 0.4.36
-      helm:
-        releaseName: inventree
-        valueFiles:
-          - $values/apps/clubs/comets/inventree/helm/values.yaml
-
-    - repoURL: https://github.com/ClubCedille/k8s-shared.git
-      targetRevision: feat/583-inventree-comets
-      ref: values
-
-    - repoURL: https://github.com/ClubCedille/k8s-shared.git
-      targetRevision: feat/583-inventree-comets
-      path: apps/clubs/comets/inventree/prod
+  source:
+    repoURL: https://github.com/ClubCedille/k8s-shared.git
+    targetRevision: HEAD
+    path: apps/clubs/comets/inventree
 
   syncPolicy:
     syncOptions:

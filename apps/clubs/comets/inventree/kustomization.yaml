@@ -7,7 +7,7 @@ metadata:
 namespace: comets-inventree
 
 resources:
-  - prod/postgresql.yaml
+  - prod
 
 helmCharts:
   - name: valkey
@@ -19,6 +19,6 @@ helmCharts:
   - name: inventree
     releaseName: inventree
     repo: https://inventree.github.io/helm-charts
-    version: 0.4.31
+    version: 0.4.36
     namespace: comets-inventree
     valuesFile: helm/values.yaml
