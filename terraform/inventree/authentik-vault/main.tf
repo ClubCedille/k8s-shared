@@ -149,7 +149,7 @@ resource "vault_kv_secret" "inventree_sso" {
             secret      = authentik_provider_oauth2.inventree.client_secret
 
             settings = {
-              server_url        = local.issuer_url
+              server_url         = local.issuer_url
               fetch_userinfo     = true
               oauth_pkce_enabled = true
             }
