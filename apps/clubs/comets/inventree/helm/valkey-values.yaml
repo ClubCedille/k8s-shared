@@ -1,0 +1,39 @@
+# Cache partagé par le serveur InvenTree et son worker.
+replicaCount: 1
+
+serviceAccount:
+  create: true
+  automount: false
+
+podSecurityContext:
+  fsGroup: 1000
+  runAsUser: 1000
+  runAsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 6379
+
+dataStorage:
+  enabled: true
+  requestedSize: 1Gi
+  className: ceph-rbd
+  accessModes:
+    - ReadWriteOnce
+  keepPvc: true
+
+# Le service est accessible uniquement dans le cluster. L'authentification
+# pourra être activée plus tard si la politique du namespace l'exige.
+auth:
+  enabled: false
+
+metrics:
+  enabled: true

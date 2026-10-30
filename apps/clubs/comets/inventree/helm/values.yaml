@@ -1,0 +1,117 @@
+fullnameOverride: inventree
+replicaCount: 1
+
+global:
+  siteUrl: https://inventree.prodv2.cedille.club
+  adminSecret: inventree-admin
+  ssoConfig:
+    backends:
+      - allauth.socialaccount.providers.openid_connect
+    providerSecretName: inventree-sso
+  # Valkey partage les données temporaires entre le serveur et le worker.
+  cacheSecrets:
+    - name: INVENTREE_CACHE_HOST
+      value: inventree-cache-valkey
+    - name: INVENTREE_CACHE_PORT
+      value: "6379"
+  dbSecrets:
+    - name: INVENTREE_DB_ENGINE
+      value: postgresql
+    - name: INVENTREE_DB_HOST
+      valueFrom:
+        secretKeyRef:
+          name: postgresql-inventree-app
+          key: host
+    - name: INVENTREE_DB_PORT
+      valueFrom:
+        secretKeyRef:
+          name: postgresql-inventree-app
+          key: port
+    - name: INVENTREE_DB_NAME
+      valueFrom:
+        secretKeyRef:
+          name: postgresql-inventree-app
+          key: dbname
+    - name: INVENTREE_DB_USER
+      valueFrom:
+        secretKeyRef:
+          name: postgresql-inventree-app
+          key: username
+    - name: INVENTREE_DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: postgresql-inventree-app
+          key: password
+
+image:
+  tag: "1.6.3"
+
+serviceProxy:
+  image: nginx
+  tag: "1.30.6@sha256:51047bea59fed88fbd1f52565d2f5fabcb82d311cf6c9e507a10ce74bb3bc3f0"
+
+securityContext:
+  readOnlyRootFilesystem: true
+
+volumes:
+  - name: runtime-tmp
+    emptyDir: {}
+  - name: nginx-cache
+    emptyDir: {}
+  - name: nginx-run
+    emptyDir: {}
+
+volumeMounts:
+  - name: runtime-tmp
+    mountPath: /tmp
+  - name: nginx-cache
+    mountPath: /var/cache/nginx
+  - name: nginx-run
+    mountPath: /var/run
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+    ephemeral-storage: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+    ephemeral-storage: 1Gi
+
+worker:
+  # Le chart 0.4.31 ne fournit pas de valeur par défaut pour replicaCount.
+  replicaCount: 1
+  securityContext:
+    readOnlyRootFilesystem: true
+
+  volumes:
+    - name: worker-tmp
+      emptyDir: {}
+
+  volumeMounts:
+    - name: worker-tmp
+      mountPath: /tmp
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+      ephemeral-storage: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+      ephemeral-storage: 1Gi
+
+persistence:
+  enabled: true
+  storageClass: cephfs
+  accessMode: ReadWriteMany
+  size: 2Gi
+
+ingress: {}
+httpRoute:
+  enabled: false
+
+serviceAccount:
+  automount: false
