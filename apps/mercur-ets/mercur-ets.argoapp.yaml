@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mercur-ets
+  namespace: argocd
+spec:
+  destination:
+    namespace: mercur-ets
+    server: https://kubernetes.default.svc
+  project: k8s-shared
+  source:
+    path: apps/mercur-ets/prod
+    repoURL: https://github.com/ClubCedille/k8s-shared.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
