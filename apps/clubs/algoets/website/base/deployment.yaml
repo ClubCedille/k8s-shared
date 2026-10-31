@@ -2,9 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: algoets-website
-  annotations:
-    # nginx-unprivileged runs as UID/GID 101; kube-score flags the low ID.
-    kube-score/ignore: container-image-pull-policy,container-image-tag,pod-networkpolicy,container-security-context-user-group-id
 spec:
   replicas: 2
   selector:
@@ -17,9 +14,9 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
-        runAsUser: 101
-        runAsGroup: 101
-        fsGroup: 101
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
         seccompProfile:
           type: RuntimeDefault
       imagePullSecrets:
@@ -34,12 +31,48 @@ spec:
                     app: algoets-website
                 topologyKey: kubernetes.io/hostname
       containers:
-        - name: nginx
-          image: ghcr.io/clubcedille/algoets-website:latest
+        - name: website
+          image: ghcr.io/clubcedille/algoets-website:main
           imagePullPolicy: Always
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: algoets-website-config
+            - secretRef:
+                name: algoets-website-secrets
+          env:
+            # The ObjectBucketClaim lives in this namespace so its generated
+            # ConfigMap/Secret can be consumed without copying credentials.
+            - name: BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: algoets-s3-bucket
+                  key: BUCKET_NAME
+            - name: S3_BUCKET
+              value: $(BUCKET_NAME)
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: algoets-s3-bucket
+                  key: BUCKET_REGION
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: algoets-s3-bucket
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: algoets-s3-bucket
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: S3_ENDPOINT
+              value: https://s3.algoets.etsmtl.club
+            - name: S3_FORCE_PATH_STYLE
+              value: "true"
+            - name: MEDIA_BASE_URL
+              value: https://s3.algoets.etsmtl.club/$(BUCKET_NAME)
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -48,24 +81,24 @@ spec:
                 - ALL
           resources:
             requests:
-              cpu: 10m
-              memory: 32Mi
-              ephemeral-storage: 32Mi
+              cpu: 250m
+              memory: 384Mi
+              ephemeral-storage: 128Mi
             limits:
-              cpu: 100m
-              memory: 64Mi
+              cpu: 250m
+              memory: 384Mi
               ephemeral-storage: 128Mi
           readinessProbe:
             httpGet:
-              path: /healthz
+              path: /api/health
               port: http
-            initialDelaySeconds: 2
+            initialDelaySeconds: 3
             periodSeconds: 10
             timeoutSeconds: 3
           livenessProbe:
             tcpSocket:
               port: http
-            initialDelaySeconds: 10
+            initialDelaySeconds: 15
             periodSeconds: 20
             timeoutSeconds: 3
           volumeMounts:

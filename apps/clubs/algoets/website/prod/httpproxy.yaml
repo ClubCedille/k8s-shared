@@ -4,7 +4,7 @@ metadata:
   name: algoets-website
 spec:
   virtualhost:
-    fqdn: algoets.prodv2.cedille.club
+    fqdn: algoets.etsmtl.club
     tls:
       secretName: algoets-website-tls
       minimumProtocolVersion: "1.3"
@@ -14,3 +14,10 @@ spec:
       services:
         - name: algoets-website
           port: 80
+      # Admin sessions live in the server process; keep each browser on the
+      # same pod for the lifetime of its session.
+      loadBalancerPolicy:
+        strategy: Cookie
+      timeoutPolicy:
+        idle: 60s
+        response: 60s
