@@ -9,7 +9,7 @@ resources:
   - resources/pvc.yaml
 helmCharts:
   - name: netbox
-    version: "8.1.6"
+    version: "8.3.98"
     repo: "https://charts.netbox.oss.netboxlabs.com/"
     releaseName: "netbox"
     namespace: netbox
