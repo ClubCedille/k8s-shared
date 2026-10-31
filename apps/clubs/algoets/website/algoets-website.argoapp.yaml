@@ -12,14 +12,32 @@ spec:
   project: k8s-shared
   destination:
     server: https://kubernetes.default.svc
-    namespace: algoets-s3-bucket
+    namespace: algoets-website
   source:
     repoURL: https://github.com/ClubCedille/k8s-shared
     path: apps/clubs/algoets/website/prod
     targetRevision: HEAD
+  # The OBC-generated Secret/ConfigMap cannot cross namespaces, so a sync job
+  # copies them into algoets-website. ArgoCD still owns the placeholder
+  # objects but must not revert the data written at runtime.
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: algoets-s3-bucket
+      namespace: algoets-website
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: ConfigMap
+      name: algoets-s3-bucket
+      namespace: algoets-website
+      jsonPointers:
+        - /data
+        - /binaryData
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
     automated:
       selfHeal: true
       prune: true

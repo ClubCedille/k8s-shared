@@ -7,3 +7,4 @@ resources:
   - httpproxy.yaml
   - certificate.yaml
   - vault-secret.yaml
+  - s3-credentials-sync.yaml
