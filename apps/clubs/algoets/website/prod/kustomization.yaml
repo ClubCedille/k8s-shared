@@ -8,3 +8,6 @@ resources:
   - certificate.yaml
   - vault-secret.yaml
   - s3-credentials-sync.yaml
+  - bucket-policy-job.yaml
+  - seed-job.yaml
+  - job-networkpolicies.yaml

@@ -1,0 +1,84 @@
+# seed:s3 is idempotent: it only writes content/site.json when the key is
+# absent, so this hook is safe to run on every sync and will not overwrite
+# admin edits. It relies on the image from the website backend PR.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: algoets-website-seed
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,HookFailed
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: algoets-website-seed
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      imagePullSecrets:
+        - name: ghcr-clubcedille-secret
+      containers:
+        - name: seed
+          image: ghcr.io/clubcedille/algoets-website:main
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 250m
+              memory: 384Mi
+              ephemeral-storage: 128Mi
+            limits:
+              cpu: 250m
+              memory: 384Mi
+              ephemeral-storage: 128Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          env:
+            - name: BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: algoets-s3-bucket
+                  key: BUCKET_NAME
+            - name: S3_BUCKET
+              value: $(BUCKET_NAME)
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: algoets-s3-bucket
+                  key: BUCKET_REGION
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: algoets-s3-bucket
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: algoets-s3-bucket
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: S3_ENDPOINT
+              value: https://s3.algoets.etsmtl.club
+            - name: S3_FORCE_PATH_STYLE
+              value: "true"
+            - name: MEDIA_BASE_URL
+              value: https://s3.algoets.etsmtl.club/$(BUCKET_NAME)
+          command:
+            - node
+            - scripts/seed-s3.mjs
+      volumes:
+        - name: tmp
+          emptyDir: {}

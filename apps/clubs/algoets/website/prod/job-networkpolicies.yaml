@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: algoets-website-bucket-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: algoets-website-bucket-policy
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - {}
+  egress:
+    - {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: algoets-website-seed
+spec:
+  podSelector:
+    matchLabels:
+      app: algoets-website-seed
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - {}
+  egress:
+    - {}
