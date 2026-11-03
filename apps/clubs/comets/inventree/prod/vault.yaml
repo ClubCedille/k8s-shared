@@ -1,0 +1,51 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: inventree-auth
+spec:
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    audiences:
+      - vault
+    role: secret-reader
+    serviceAccount: default
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: inventree-sso
+spec:
+  vaultAuthRef: inventree-auth
+  type: kv-v1
+  mount: kv
+  path: data/comets-inventree/default/inventree-sso
+  destination:
+    name: inventree-sso
+    create: true
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: inventree-admin
+spec:
+  vaultAuthRef: inventree-auth
+  type: kv-v1
+  mount: kv
+  path: data/comets-inventree/default/inventree-admin
+  destination:
+    name: inventree-admin
+    create: true
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: b2-creds
+spec:
+  vaultAuthRef: inventree-auth
+  type: kv-v1
+  mount: kv-system
+  path: default_passwords/b2-creds
+  destination:
+    name: b2-creds
+    create: true
