@@ -1,0 +1,63 @@
+matrix-synapse:
+  serverName: "matrix.etsmtl.club"
+  publicServerName: "matrix.etsmtl.club"
+
+  extraConfig:
+    public_baseurl: "https://matrix.etsmtl.club/"
+    suppress_key_server_warning: true
+    enable_registration_without_verification: true
+    serve_server_wellknown: true
+
+
+    oidc_providers:
+      - idp_id: authentik
+        idp_name: authentik
+        discover: true
+        issuer: "https://auth.etsmtl.club/application/o/matrix/"
+        client_id: "CHANGE_ME"
+        client_secret: "CHANGE_ME"
+        client_auth_method: "client_secret_post"
+        jwks_uri: "https://auth.etsmtl.club/application/o/matrix/jwks/"
+        scopes:
+          - "openid"
+          - "profile"
+          - "email"
+        user_mapping_provider:
+          config:
+            localpart_template: "{{ user.preferred_username | default(user.sub) }}"
+            display_name_template: "{{ user.name | default(user.preferred_username) }}"
+
+  extraSecretsConfigs:
+    - name: synapse-manual-secrets
+      keys:
+        - key: registration-shared-secret
+          path: registration_secret.yaml
+          template: |
+            registration_shared_secret: "{{ . }}"
+
+  extraCommands:
+    - pip install --no-cache-dir synapse-auto-accept-invites
+  
+  config:
+  # Permet d'injecter du YAML arbitraire dans homeserver.yaml
+    modules:
+      - module: "auto_accept_invites.AutoAcceptInvites"
+        config:
+          # ID interne du Space et des éventuels salons de base
+          auto_join_rooms:
+            - "!T1XqDXXaJ-vnZPOxSzIIvmoSt_BRJYjBBMmHa4Lnkss:matrix.etsmtl.club"
+            - "!6_vGl0C9zN3ZmIDNcmL9OSN8ZjtO22gMj8jhyqf1iJ8:matrix.etsmtl.club"
+          # Permet d'accepter aussi les invitations directes (DM) automatiquement si souhaité
+          accept_invites_only_for_direct: false
+
+
+
+  ingress:
+    enabled: false
+
+  service:
+    type: ClusterIP
+    port: 8008
+
+  synapse:
+    trustForwardedFor: true

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cinny-deployment
+  namespace: matrix
+  labels:
+    app: ciny-deployment
+spec:
+  type: ClusterIP
+  selector:
+    app: cinny-deployment
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80

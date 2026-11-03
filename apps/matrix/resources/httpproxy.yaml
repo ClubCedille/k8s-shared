@@ -1,0 +1,38 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: matrix-proxy
+  namespace: matrix
+spec:
+  virtualhost:
+    fqdn: matrix.etsmtl.club
+    tls:
+      secretName: matrix-tls
+  routes:
+    # 1. API Synapse (Matrix endpoints)
+    - conditions:
+        - prefix: /.well-known/matrix
+      services:
+        - name: matrix-stack-matrix-synapse
+          port: 8008
+    - conditions:
+        - prefix: /_matrix
+      services:
+        - name: matrix-stack-matrix-synapse
+          port: 8008
+    - conditions:
+        - prefix: /_synapse
+      services:
+        - name: matrix-stack-matrix-synapse
+          port: 8008
+
+    # 2. Interface web Cinny (racine /)
+    - conditions:
+        - prefix: /
+      services:
+        - name: cinny-deployment
+          port: 80
+
+      timeoutPolicy:
+        response: 60s
+        idle: 60s

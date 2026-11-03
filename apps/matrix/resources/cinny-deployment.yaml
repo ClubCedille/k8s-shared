@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cinny-deployment
+  namespace: matrix
+  labels:
+    app: cinny-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cinny-deployment
+  template:
+    metadata:
+      labels:
+        app: cinny-deployment
+    spec:
+      containers:
+        - name: cinny
+          image: ghcr.io/cinnyapp/cinny:latest
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          volumeMounts:
+            - name: config-volume
+              mountPath: /app/config.json
+              subPath: config.json
+            - name: config-volume
+              mountPath: /usr/share/nginx/html/config.json
+              subPath: config.json
+      volumes:
+        - name: config-volume
+          configMap:
+            name: cinny-config
