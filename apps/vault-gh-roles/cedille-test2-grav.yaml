@@ -1,0 +1,12 @@
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: GitHubSecretEngineRole
+metadata:
+  name: cedille-test2-grav
+spec:
+  authentication:
+    path: kubernetes
+    role: config-admin
+  path: github
+  repositories:
+    - cedille-test2.etsmtl.ca
+  organizationName: ClubCedille
