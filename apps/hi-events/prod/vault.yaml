@@ -1,0 +1,68 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: hi-events-auth
+spec:
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    audiences:
+      - vault
+    role: secret-reader
+    serviceAccount: default
+---
+# Manuel : APP_KEY, JWT_SECRET, MAIL_*
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: hi-events-secret
+spec:
+  vaultAuthRef: hi-events-auth
+  type: kv-v1
+  mount: kv
+  path: data/hi-events/default/hi-events-secret
+  destination:
+    name: hi-events-secret
+    create: true
+---
+# Terraform : terraform/hi-events/authentik-vault
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: hi-events-oidc-secret
+spec:
+  vaultAuthRef: hi-events-auth
+  type: kv-v1
+  mount: kv
+  path: data/hi-events/default/hi-events-oidc-secret
+  destination:
+    name: hi-events-oidc-secret
+    create: true
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: dockerhub-pull-secret
+spec:
+  vaultAuthRef: hi-events-auth
+  type: kv-v1
+  mount: kv-system
+  path: default_passwords/docker
+  destination:
+    name: dockerhub-pull
+    create: true
+    overwrite: true
+    type: kubernetes.io/dockerconfigjson
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: b2-creds
+spec:
+  vaultAuthRef: hi-events-auth
+  type: kv-v1
+  mount: kv-system
+  path: default_passwords/b2-creds
+  destination:
+    name: b2-creds
+    create: true
