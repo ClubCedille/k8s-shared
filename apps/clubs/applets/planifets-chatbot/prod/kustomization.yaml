@@ -3,8 +3,12 @@ kind: Kustomization
 
 resources:
   - ../base/qdrant
+  - ../base/llama-server
   - vault-secret.yaml
 
 images:
   - name: qdrant/qdrant
     digest: sha256:0bd98fa7977f1e75694779359ca4e212822e5a71334e28421182f72f209d5286
+  - name: ghcr.io/ggml-org/llama.cpp
+    newTag: server
+    digest: sha256:e67d88af487390098c76d7982b1761484339fa147b7e41d3c64ae1318759f78b

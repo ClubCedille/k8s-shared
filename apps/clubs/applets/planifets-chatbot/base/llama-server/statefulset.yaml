@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: planifets-chatbot-llama-server
+  annotations:
+    kube-score/ignore: pod-networkpolicy
+spec:
+  serviceName: planifets-chatbot-llama-server
+  replicas: 1
+  selector:
+    matchLabels:
+      app: planifets-chatbot-llama-server
+  template:
+    metadata:
+      labels:
+        app: planifets-chatbot-llama-server
+    spec:
+      securityContext:
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      containers:
+        - name: llama-server
+          image: ghcr.io/ggml-org/llama.cpp:server@sha256:e67d88af487390098c76d7982b1761484339fa147b7e41d3c64ae1318759f78b
+          imagePullPolicy: Always
+          args:
+            - --hf-repo
+            - google/gemma-4-E2B-it-qat-q4_0-gguf
+            - --hf-file
+            - gemma-4-E2B_q4_0-it.gguf
+            - --no-mmproj
+            - --alias
+            - gemma-4-e2b-it-qat
+            - --host
+            - 0.0.0.0
+            - --port
+            - "8080"
+            - --ctx-size
+            - "8192"
+            - --parallel
+            - "1"
+            - --n-gpu-layers
+            - "0"
+            - --threads
+            - "6"
+            - --threads-batch
+            - "6"
+            - --jinja
+            - --reasoning-budget
+            - "0"
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: LLAMA_CACHE
+              value: /models
+            - name: HOME
+              value: /tmp
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 180
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: "6"
+              memory: 6Gi
+              ephemeral-storage: 1Gi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: llama-models
+              mountPath: /models
+            - name: tmp
+              mountPath: /tmp
+  volumeClaimTemplates:
+    - metadata:
+        name: llama-models
+      spec:
+        accessModes: ["ReadWriteMany"]
+        storageClassName: cephfs
+        resources:
+          requests:
+            storage: 5Gi
