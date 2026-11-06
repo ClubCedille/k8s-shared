@@ -19,6 +19,7 @@ jobs:
       pull-requests: write
     env:
       CLUB: ${{ inputs.nom_club }}
+      DOMAINE: ${{ inputs.domaine || format('wiki.{0}.etsmtl.club', inputs.nom_club) }}
       ROOT_DIR: apps/clubs/${{ inputs.nom_club }}/outlinewiki
       BASE_DIR: apps/clubs/${{ inputs.nom_club }}/outlinewiki/base
       PROD_DIR: apps/clubs/${{ inputs.nom_club }}/outlinewiki/prod
@@ -27,20 +28,20 @@ jobs:
       TEMPLATE_PROD_DIR: bases/outlinewiki/prod-templates
       j2_vars: |
         nom_club=${{ inputs.nom_club }}
-        domaine=${{ inputs.domaine }}
+        domaine=${{ inputs.domaine || format('wiki.{0}.etsmtl.club', inputs.nom_club) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Verify inputs
         run: |
-          if [[ ! "${{ inputs.nom_club }}" =~ ^[a-z0-9-]+$ ]]; then
-            echo "::error::ERREUR: Le nom du club '${{ inputs.nom_club }}' est invalide."
+          if [[ ! "$CLUB" =~ ^[a-z0-9-]+$ ]]; then
+            echo "::error::ERREUR: Le nom du club '$CLUB' est invalide."
             echo "::error::Il ne doit contenir que des lettres minuscules, des chiffres et des tirets (-)."
             exit 1
           fi
-          if [[ ! "${{ inputs.domaine }}" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]]; then
-            echo "::error::ERREUR: Le nom du domaine '${{ inputs.domaine }}' est invalide."
+          if [[ ! "$DOMAINE" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]]; then
+            echo "::error::ERREUR: Le nom du domaine '$DOMAINE' est invalide."
             exit 1
           fi
 
