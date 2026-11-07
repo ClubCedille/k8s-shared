@@ -1,0 +1,46 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namePrefix: grav2-
+
+resources:
+  - ../../../../../bases/grav
+  - vault-secret.yaml
+
+patches:
+  - path: vault-patch.yaml
+  - target:
+      kind: HTTPProxy
+      name: grav-ingress
+    patch: |-
+      - op: replace
+        path: /spec/virtualhost/fqdn
+        value: grav2.ca
+      - op: replace
+        path: /spec/virtualhost/tls/secretName
+        value: grav2-grav-tls
+      - op: replace
+        path: /spec/routes/0/services/0/name
+        value: grav2-grav
+  - target:
+      kind: Certificate
+      name: grav-tls
+    patch: |-
+      - op: replace
+        path: /spec/secretName
+        value: grav2-grav-tls
+      - op: replace
+        path: /spec/commonName
+        value: grav2.ca
+      - op: replace
+        path: /spec/dnsNames/0
+        value: grav2.ca
+      - op: replace
+        path: /spec/issuerRef/name
+        value: letsencrypt-http
+  - target:
+      kind: RandomSecret
+    patch: |-
+      - op: replace
+        path: /spec/path
+        value: kv/data/grav2-grav/default/grav
