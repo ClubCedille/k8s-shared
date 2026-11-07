@@ -10,7 +10,7 @@ resources:
   - resources/vault.yaml
 helmCharts:
   - name: loki
-    version: "7.3.0"
+    version: "7.5.0"
     repo: "https://grafana.github.io/helm-charts"
     releaseName: "loki"
     namespace: monitoring

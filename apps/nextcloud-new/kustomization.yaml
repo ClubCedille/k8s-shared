@@ -122,13 +122,13 @@ patches:
 helmCharts:
   - name: nextcloud
     repo: https://nextcloud.github.io/helm
-    version: 9.1.3
+    version: 9.4.1
     releaseName: nextcloud
     namespace: nextcloud-new
     valuesFile: ./helm/nextcloud-values.yaml
   - name: collabora-online
     repo: https://collaboraonline.github.io/online
-    version: 1.3.0
+    version: 1.3.7
     releaseName: collabora
     namespace: nextcloud-new
     valuesFile: ./helm/collabora-values.yaml
