@@ -10,7 +10,7 @@ resources:
   - resources/vault.yaml
 helmCharts:
   - name: mimir-distributed
-    version: "6.2.0"
+    version: "6.2.2"
     repo: "https://grafana.github.io/helm-charts"
     releaseName: "mimir"
     namespace: monitoring
