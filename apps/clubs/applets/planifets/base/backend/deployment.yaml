@@ -72,26 +72,17 @@ spec:
               value: "2"
             - name: QDRANT_URL
               value: "http://planifets-chatbot-qdrant:6333"
+            - name: LLAMA_BASE_URL
+              value: "http://planifets-chatbot-llama-server:8080/v1"
+            - name: LLAMA_MODEL
+              value: gemma-4-e2b-it-qat
+            - name: LLAMA_TIMEOUT_MS
+              value: "180000"
             - name: QDRANT_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: planifets-secret
                   key: qdrant_api_key
-            - name: GEMINI_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: planifets-secret
-                  key: gemini_api_key
-            - name: GROQ_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: planifets-secret
-                  key: groq_api_key
-            - name: NVIDIA_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: planifets-secret
-                  key: nvidia_api_key
           livenessProbe:
             httpGet:
               path: /api/health
