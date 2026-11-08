@@ -4,7 +4,7 @@ namespace: trivy-operator
 helmCharts:
   - name: trivy-operator
     repo: https://aquasecurity.github.io/helm-charts/
-    version: 0.35.0
+    version: 0.38.1
     releaseName: trivy-operator
     namespace: trivy-operator
     valuesFile: ./helm/trivy-values.yaml
