@@ -5,13 +5,13 @@ helmCharts:
   - name: valkey
     releaseName: forgejo-cache
     repo: https://valkey.io/valkey-helm/
-    version: 0.9.3
+    version: 0.12.1
     valuesFile: valkey.values.yaml
     namespace: forgejo
 
   - name: forgejo
     releaseName: forgejo
     repo: oci://code.forgejo.org/forgejo-helm
-    version: 17.1.0
+    version: 17.3.2
     valuesFile: forgejo.values.yaml
     namespace: forgejo
