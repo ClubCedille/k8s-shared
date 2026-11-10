@@ -1,0 +1,131 @@
+# Prometheus in-cluster dédié aux métriques d'objets Kubernetes (Trivy
+# Operator, et tout autre ServiceMonitor/PodMonitor du cluster). Il
+# remote-write vers Mimir (apps/mimir), qui reste le stockage long terme et
+# la datasource Grafana : ce Prometheus n'est qu'un collecteur avec un buffer
+# local court.
+#
+# kube-prometheus-stack est utilisé pour l'operator (CRDs Prometheus/
+# ServiceMonitor/...) et le Prometheus managé. Tout le reste de la stack
+# (Grafana, Alertmanager, node-exporter, kube-state-metrics) est déjà fourni
+# ailleurs dans apps/ ou n'est pas nécessaire ici.
+
+crds:
+  enabled: true
+  # Le job de mise à jour des CRDs est un Helm hook : kustomize/ArgoCD ne
+  # l'exécutent pas (et le hook échouerait faute de certificats). Les CRDs
+  # sont rendues via includeCRDs et appliquées par ArgoCD (ordre CRDs avant
+  # CRs), ce qui suffit pour les installs et les upgrades de schéma.
+  upgradeJob:
+    enabled: false
+
+# Sous-composants de la stack : désactivés, ils existent déjà (Grafana,
+# Mimir/Loki pour le stockage) ou ne sont pas utilisés (Alertmanager).
+grafana:
+  enabled: false
+alertmanager:
+  enabled: false
+nodeExporter:
+  enabled: false
+kubeStateMetrics:
+  enabled: false
+windowsMonitoring:
+  enabled: false
+
+# Pas de scrape des composants du control-plane : leurs endpoints ne sont pas
+# exposés sur ce cluster (kubeadm managé), ce qui ne produirait que des
+# targets "down" en permanence.
+kubeApiServer:
+  enabled: false
+kubelet:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
+kubeEtcd:
+  enabled: false
+
+# Les règles par défaut référencent node-exporter/kube-state-metrics (désactivés)
+# et l'Alertmanager absent : rien à évaluer.
+defaultRules:
+  create: false
+
+prometheusOperator:
+  # Les webhooks d'admission dépendent d'un job Helm (certificats + patch des
+  # webhookconfigurations) qui ne tourne pas sous ArgoCD/kustomize. Sans eux,
+  # l'operator fonctionne normalement.
+  admissionWebhooks:
+    enabled: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+prometheus:
+  prometheusSpec:
+    # Buffer local uniquement : Mimir est le stockage long terme. 6h couvrent
+    # une indisponibilité de Mimir sans faire grossir le PVC.
+    retention: 6h
+    retentionSize: 5GiB
+    walCompression: true
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+
+    # externalLabels distinguent ces séries de celles remote-writées par le
+    # monitoring01 externe vers le même Mimir.
+    externalLabels:
+      cluster: k8s-shared
+      prometheus: in-cluster
+
+    # Mimir est en single-tenant (multitenancy_enabled: false) : le
+    # distributor direct accepte le push sans auth. Le gateway (basicAuth)
+    # n'est utile qu'au chemin externe mimir.etsmtl.club.
+    remoteWrite:
+      - name: mimir
+        url: http://mimir-distributor.monitoring.svc.cluster.local:8080/api/v1/push
+        remoteTimeout: 30s
+        queueConfig:
+          maxSamplesPerSend: 2000
+          maxShards: 10
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ceph-rbd
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+
+    # Sélecteurs "tout" : n'importe quel ServiceMonitor/PodMonitor/PrometheusRule
+    # du cluster est pris en compte, quel que soit son namespace ou ses labels
+    # (c'est le pattern documenté par Trivy Operator pour son dashboard).
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {}
+    serviceMonitorNamespaceSelector: {}
+    podMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelector: {}
+    podMonitorNamespaceSelector: {}
+    probeSelectorNilUsesHelmValues: false
+    probeSelector: {}
+    probeNamespaceSelector: {}
+    ruleSelectorNilUsesHelmValues: false
+    ruleSelector: {}
+    ruleNamespaceSelector: {}
+    scrapeConfigSelectorNilUsesHelmValues: false
+    scrapeConfigSelector: {}
+    scrapeConfigNamespaceSelector: {}

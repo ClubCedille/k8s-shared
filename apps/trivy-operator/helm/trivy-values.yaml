@@ -50,7 +50,9 @@ operator:
   # -- namespace to install the operator, defaults to the .Release.Namespace
   namespace: "trivy-operator"
   # -- replicas the number of replicas of the operator's pod
-  replicas: 3
+  # Doit rester à 1 : en mode CR, l'operator n'a pas besoin de HA et le mode
+  # alternateReportStorage (PVC RWO) ne supporte qu'une réplique par nœud.
+  replicas: 1
 
   # -- number of old history to retain to allow rollback (if not set, default Kubernetes value is set to 10)
   revisionHistoryLimit: 10
@@ -236,15 +238,22 @@ service:
 # produce an error.
 serviceMonitor:
   # -- enabled determines whether a serviceMonitor should be deployed
-  enabled: false
+  # Activé : le Prometheus in-cluster (apps/prometheus) scrape /metrics de
+  # l'operator pour alimenter le dashboard Grafana "Trivy Operator".
+  enabled: true
   # -- The namespace where Prometheus expects to find service monitors
+  # Laissé vide : le ServiceMonitor est créé dans le namespace de l'operator
+  # (trivy-operator) et le Prometheus sélectionne tous les namespaces.
   namespace: ~
   # -- Interval at which metrics should be scraped. If not specified Prometheus’ global scrape interval is used.
-  interval: ~
+  interval: 60s
   # -- Additional annotations for the serviceMonitor
   annotations: {}
   # -- Additional labels for the serviceMonitor
-  labels: {}
+  labels:
+    # Permet de cibler ce ServiceMonitor si les sélecteurs du Prometheus sont
+    # un jour restreints (aujourd'hui ils prennent tout, cf. apps/prometheus).
+    prometheus: in-cluster
   # -- HonorLabels chooses the metric’s labels on collisions with target labels
   honorLabels: true
   # -- EndpointAdditionalProperties allows setting additional properties on the endpoint such as relabelings, metricRelabelings etc.
@@ -430,9 +439,10 @@ trivy:
 
   # -- Mirrored registries. There can be multiple registries with different keys.
   # Make sure to quote registries containing dots
+  # mirror.gcr.io évite les rate limits Docker Hub (TOOMANYREQUESTS) des scan jobs
   registry:
-    mirror: {}
-    # "docker.io": docker-mirror.example.com
+    mirror:
+      "docker.io": "mirror.gcr.io"
 
   # -- severity is a comma separated list of severity levels reported by Trivy.
   severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
@@ -708,17 +718,13 @@ volumes:
   - name: cache-policies
     emptyDir: {}
 
-resources: {}
-# -- We usually recommend not to specify default resources and to leave this as a conscious
-# choice for the user. This also increases chances charts run on environments with little
-# resources, such as Minikube. If you do want to specify resources, uncomment the following
-# lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-limits:
-  cpu: 250m
-  memory: 512Mi
-requests:
-  cpu: 1
-  memory: 1024Mi
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 250m
+    memory: 512Mi
 
 # -- nodeSelector set the operator nodeSelector
 nodeSelector: {}
@@ -831,8 +837,12 @@ nodeCollector:
       hostPath:
         path: /etc/cni/net.d/
 # -- alternateReportStorage is the flag to enable alternate storage for all trivy reports (crds) in the form json files inside of a persistent volume
+# ATTENTION : activé, ce mode stocke les rapports en fichiers JSON sur un PVC et ne crée
+# AUCUN CR Kubernetes (kubectl get vulnerabilityreports -A reste vide). Désactivé, les
+# rapports sont exposés en CRs (VulnerabilityReport, ConfigAuditReport, SbomReport, ...),
+# ce qui est requis pour Policy Reporter / adaptateurs.
 alternateReportStorage:
-  enabled: true
+  enabled: false
   mountPath: "/mnt/data/trivy-operator"
   volumeName: "trivy-operator-pvc"
   storage: "15Gi"

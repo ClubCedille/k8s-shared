@@ -26,6 +26,7 @@ resources:
   - resources/dashboards/infra-opnsense.yaml
   - resources/dashboards/infra-logs-opnsense.yaml
   - resources/dashboards/k8s-app-logs-overview.yaml
+  - resources/dashboards/k8s-security-trivy-operator.yaml
 helmCharts:
   - name: grafana
     version: "10.5.15"

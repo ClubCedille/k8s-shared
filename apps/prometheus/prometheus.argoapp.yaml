@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus
+  namespace: argocd
+  annotations:
+    # Avant trivy-operator (sync-wave 1) : ses CRDs monitoring.coreos.com
+    # doivent exister pour que le ServiceMonitor de Trivy soit accepté.
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  destination:
+    namespace: monitoring
+    server: https://kubernetes.default.svc
+  project: k8s-shared
+  source:
+    path: apps/prometheus
+    repoURL: https://github.com/ClubCedille/k8s-shared.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
