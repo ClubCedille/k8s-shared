@@ -238,15 +238,22 @@ service:
 # produce an error.
 serviceMonitor:
   # -- enabled determines whether a serviceMonitor should be deployed
-  enabled: false
+  # Activé : le Prometheus in-cluster (apps/prometheus) scrape /metrics de
+  # l'operator pour alimenter le dashboard Grafana "Trivy Operator".
+  enabled: true
   # -- The namespace where Prometheus expects to find service monitors
+  # Laissé vide : le ServiceMonitor est créé dans le namespace de l'operator
+  # (trivy-operator) et le Prometheus sélectionne tous les namespaces.
   namespace: ~
   # -- Interval at which metrics should be scraped. If not specified Prometheus’ global scrape interval is used.
-  interval: ~
+  interval: 60s
   # -- Additional annotations for the serviceMonitor
   annotations: {}
   # -- Additional labels for the serviceMonitor
-  labels: {}
+  labels:
+    # Permet de cibler ce ServiceMonitor si les sélecteurs du Prometheus sont
+    # un jour restreints (aujourd'hui ils prennent tout, cf. apps/prometheus).
+    prometheus: in-cluster
   # -- HonorLabels chooses the metric’s labels on collisions with target labels
   honorLabels: true
   # -- EndpointAdditionalProperties allows setting additional properties on the endpoint such as relabelings, metricRelabelings etc.
