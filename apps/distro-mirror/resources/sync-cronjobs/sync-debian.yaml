@@ -1,10 +1,21 @@
-# Currently-supported stable release only (13/trixie). The rsync mirror used
-# here (cdimage.debian.org) only carries the current stable tree, not
-# oldstable/12 -- revisit with a different upstream source if oldstable
-# coverage is wanted later. Debian doesn't split server/desktop ISOs the way
-# Ubuntu does: the single netinst image installs either, so there's no
-# separate "desktop" artifact to fetch (debian-edu/-mac are different spins,
-# explicitly excluded, not a desktop variant).
+# Currently-supported stable release only (13/trixie). The upstream sources
+# used here (csclub for ISOs, gemmei for cloud images) only carry the current
+# stable tree, not oldstable/12 -- revisit with a different upstream source if
+# oldstable coverage is wanted later. Debian doesn't split server/desktop
+# ISOs the way Ubuntu does: the single netinst image installs either, so
+# there's no separate "desktop" artifact to fetch (debian-edu/-mac are
+# different spins, explicitly excluded, not a desktop variant).
+#
+# Debian's canonical hosts, cdimage.debian.org and cloud.debian.org, are both
+# CNAMEs to mirror.accum.se, which the ETS FortiGuard DNS filter sinkholes
+# (resolves to 208.91.112.55 / 2620:101:9000:53::55 =
+# fortinet-block-page-*.fortinet.com). Since 2026-11-07 that made fetch-iso
+# die with rsync exit 10 and fetch-cloud-image would fail the same way
+# (never reached: init containers run sequentially). Sources were therefore
+# moved to two official Debian mirrors reachable from this cluster, verified
+# live from a pod: rsync.debian-cd at CS Club Waterloo (already the upstream
+# of sync-gnu) and the umu.se cdimage HTTPS mirror (serves /cdimage/cloud/,
+# unlike most debian-cd mirrors).
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -41,7 +52,7 @@ spec:
                     --exclude="debian-mac-*" \
                     --include="debian-*-amd64-netinst.iso" \
                     --exclude="*" \
-                    "rsync://cdimage.debian.org/debian-cd/current/amd64/iso-cd/" /scratch/debian/amd64/isos/13/
+                    "rsync://mirror.csclub.uwaterloo.ca/debian-cd/current/amd64/iso-cd/" /scratch/debian/amd64/isos/13/
               securityContext:
                 allowPrivilegeEscalation: false
                 capabilities:
@@ -73,9 +84,9 @@ spec:
                   apk add --no-cache curl
                   mkdir -p /scratch/debian/amd64/cloud-images/13
                   curl -fsSL --retry 3 --retry-delay 5 --retry-connrefused -o /scratch/debian/amd64/cloud-images/13/debian-13-generic-amd64.qcow2 \
-                    "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-amd64.qcow2"
+                    "https://gemmei.ftp.acc.umu.se/cdimage/cloud/trixie/latest/debian-13-generic-amd64.qcow2"
                   curl -fsSL --retry 3 --retry-delay 5 --retry-connrefused -o /scratch/debian/amd64/cloud-images/13/debian-13-nocloud-amd64.qcow2 \
-                    "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-nocloud-amd64.qcow2"
+                    "https://gemmei.ftp.acc.umu.se/cdimage/cloud/trixie/latest/debian-13-nocloud-amd64.qcow2"
               volumeMounts:
                 - name: scratch
                   mountPath: /scratch
