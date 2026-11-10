@@ -1,0 +1,58 @@
+# CoreDNS is deployed by Talos as a bootstrap manifest (the live ConfigMap
+# carries config.k8s.io/owning-inventory: talos-bootstrap-manifests-inventory),
+# so its Corefile isn't normally under GitOps. This app takes ownership of the
+# single knob we need: the upstream resolvers of the catch-all `forward` zone.
+#
+# Why: nodes get their resolvers from the ETS network via DHCP; the recursive
+# servers behind that apply FortiGuard DNS filtering and sinkhole legitimate
+# domains to fortinet-block-page-*.fortinet.com (208.91.112.55 /
+# 2620:101:9000:53::55) -- observed on cdimage.debian.org and cloud.debian.org
+# (both CNAMEs to mirror.accum.se) since 2026-11-07, which broke the
+# distro-mirror Debian sync. Forwarding to Cloudflare's public resolvers
+# (1.1.1.1 / 1.0.0.1) resolves every public name correctly regardless of the
+# campus filter; the `kubernetes` plugin keeps serving cluster.local as
+# before, untouched.
+#
+# Caveat: on Talos upgrades/reboots, Talos may re-apply its stock Corefile;
+# ArgoCD self-heal will revert it to this one within a sync interval. If that
+# flapping ever becomes a problem, the long-term alternative is disabling
+# Talos's built-in CoreDNS (cluster.coreDNS.enabled=false) and deploying our
+# own fully from GitOps.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns
+  namespace: kube-system
+  annotations:
+    # Cluster-critical object: never let ArgoCD prune it (a pruned ConfigMap
+    # would break DNS resolution cluster-wide on the next CoreDNS reload).
+    argocd.argoproj.io/sync-options: Prune=false
+data:
+  Corefile: |
+    .:53 {
+        errors
+        health {
+            lameduck 5s
+        }
+        ready
+        log . {
+            class error
+        }
+        prometheus :9153
+
+        kubernetes cluster.local in-addr.arpa ip6.arpa {
+            pods insecure
+            fallthrough in-addr.arpa ip6.arpa
+            ttl 30
+        }
+        forward . 1.1.1.1 1.0.0.1 {
+           max_concurrent 1000
+        }
+        cache 30 {
+           disable success cluster.local
+           disable denial cluster.local
+        }
+        loop
+        reload
+        loadbalance
+    }

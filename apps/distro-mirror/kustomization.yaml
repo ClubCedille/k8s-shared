@@ -6,6 +6,7 @@ metadata:
 resources:
   - resources/objectbucketclaim.yaml
   - resources/bucket-setup-job.yaml
+  - resources/bucket-policy-reconcile-cronjob.yaml
   - resources/tooling-configmap.yaml
   - resources/frontend-configmap.yaml
   - resources/frontend-deployment.yaml
