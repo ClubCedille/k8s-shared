@@ -22,3 +22,7 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      # Les CRDs volumineuses (prometheuses, alertmanagers, ...) dépassent la
+      # limite de 256 KiB de l'annotation last-applied-configuration en
+      # client-side apply : le server-side apply est requis pour les installer.
+      - ServerSideApply=true
