@@ -6,4 +6,5 @@ variable "AUTHENTIK_API_TOKEN" {
 variable "INVENTREE_ADMIN_EMAIL" {
   type        = string
   description = "Adresse du compte administrateur local initial"
+  default     = "admin@cedille.club"
 }
