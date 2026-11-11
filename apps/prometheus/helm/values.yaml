@@ -58,6 +58,13 @@ prometheusOperator:
   # l'operator fonctionne normalement.
   admissionWebhooks:
     enabled: false
+  # tls.enabled (défaut true) rend le volume tls-secret dans le Deployment de
+  # l'operator : le secret prometheus-kube-prometheus-admission qu'il monte
+  # n'est créé que par ces mêmes hooks Helm, le pod resterait bloqué en
+  # FailedMount. En HTTP, le ServiceMonitor de l'operator s'adapte
+  # automatiquement (scheme http).
+  tls:
+    enabled: false
   resources:
     requests:
       cpu: 50m
