@@ -550,7 +550,8 @@ environment:
     ## SSL mode options: disable, allow, prefer, require, verify-ca, verify-full
     DB_SSL: disable
     REQUEST_ALLOW_X_FORWARDED_PATH: "true"
-    FILE_SIZE_LIMIT: "52428800"
+    # 200 MiB: les journaux étudiants dépassent parfois 50 MiB.
+    FILE_SIZE_LIMIT: "209715200"
     FILE_STORAGE_BACKEND_PATH: /var/lib/storage
     TENANT_ID: stub
     REGION: garage
