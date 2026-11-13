@@ -5,8 +5,8 @@ metadata:
 spec:
   secretName: algoets-website-tls
   issuerRef:
-    name: letsencrypt-http
+    name: letsencrypt-etsmtl
     kind: ClusterIssuer
-  commonName: algoets.prodv2.cedille.club
+  commonName: algoets.etsmtl.club
   dnsNames:
-    - algoets.prodv2.cedille.club
+    - algoets.etsmtl.club
