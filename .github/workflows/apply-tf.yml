@@ -4,14 +4,14 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - 'terraform/**'
-      - 'data/**'
+      - "terraform/**"
+      - "data/**"
   push:
     branches:
       - main
     paths:
-      - 'terraform/**'
-      - 'data/**'
+      - "terraform/**"
+      - "data/**"
 
 permissions:
   contents: read
@@ -37,6 +37,8 @@ jobs:
             dir: terraform/matomo/authentik-vault
           - name: penpot
             dir: terraform/penpot/authentik-vault
+          - name: inventree
+            dir: terraform/inventree/authentik-vault
           - name: hi-events
             dir: terraform/hi-events/authentik-vault
     steps:
@@ -114,6 +116,8 @@ jobs:
             dir: terraform/matomo/authentik-vault
           - name: penpot
             dir: terraform/penpot/authentik-vault
+          - name: inventree
+            dir: terraform/inventree/authentik-vault
           - name: hi-events
             dir: terraform/hi-events/authentik-vault
     steps:
