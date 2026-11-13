@@ -31,7 +31,7 @@ patches:
 helmCharts:
   - name: nextcloud
     repo: https://nextcloud.github.io/helm
-    version: 9.4.1
+    version: 9.4.3
     releaseName: nextcloud
     namespace: nextcloud
     valuesFile: ./helm/nextcloud-values.yaml
