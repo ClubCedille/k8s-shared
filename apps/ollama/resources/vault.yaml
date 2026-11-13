@@ -1,0 +1,29 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: ollama-auth
+spec:
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    audiences:
+      - vault
+    role: secret-reader
+    serviceAccount: default
+---
+# À créer manuellement dans Vault : kv-system/default_passwords/ollama-api-token { token: <random> }
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: ollama-api-token
+spec:
+  vaultAuthRef: ollama-auth
+  type: kv-v1
+  mount: kv-system
+  path: default_passwords/ollama-api-token
+  destination:
+    name: ollama-api-token
+    create: true
+  rolloutRestartTargets:
+    - kind: Deployment
+      name: ollama-auth-proxy

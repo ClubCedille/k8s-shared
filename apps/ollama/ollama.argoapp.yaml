@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ollama
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ollama
+  project: k8s-shared
+  sources:
+    - chart: ollama
+      helm:
+        releaseName: ollama
+        valueFiles:
+          - $values/apps/ollama/helm/values.yaml
+      repoURL: https://helm.otwld.com/
+      targetRevision: 1.83.0
+    - repoURL: "https://github.com/ClubCedille/k8s-shared.git"
+      targetRevision: HEAD
+      ref: values
+    - repoURL: "https://github.com/ClubCedille/k8s-shared.git"
+      path: apps/ollama/resources
+      targetRevision: HEAD
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true

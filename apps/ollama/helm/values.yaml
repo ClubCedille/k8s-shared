@@ -1,0 +1,42 @@
+image:
+  tag: "0.34.3"
+
+ollama:
+  gpu:
+    enabled: true
+    type: nvidia
+    number: 1
+  models:
+    # Apache 2.0, ~3.4 Go téléchargés ; prévoir aussi la mémoire du contexte.
+    # Avec 4 Go de VRAM, une partie peut être exécutée sur CPU/RAM.
+    # Repli manuel si trop lent : qwen3.5:2b-q4_K_M (~1.9 Go, Apache 2.0).
+    pull:
+      - qwen3.5:4b-q4_K_M
+
+runtimeClassName: nvidia
+
+nodeSelector:
+  nvidia.com/gpu.present: "true"
+
+extraEnv:
+  - name: OLLAMA_CONTEXT_LENGTH
+    value: "4096"
+  - name: OLLAMA_KEEP_ALIVE
+    value: "30m"
+  - name: OLLAMA_NUM_PARALLEL
+    value: "1"
+
+persistentVolume:
+  enabled: true
+  size: 20Gi
+  storageClass: ceph-rbd
+
+resources:
+  requests:
+    cpu: 1
+    memory: 4Gi
+  limits:
+    memory: 8Gi
+
+service:
+  type: ClusterIP
