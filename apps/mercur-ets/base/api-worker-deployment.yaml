@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mercur-api-worker
+  labels:
+    app.kubernetes.io/name: mercur-api
+    app.kubernetes.io/component: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mercur-api
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mercur-api
+        app.kubernetes.io/component: worker
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+        - name: api-worker
+          image: ghcr.io/clubcedille/mercur-ets/api:latest
+          imagePullPolicy: IfNotPresent
+          command: ["bun", "run", "start"]
+          envFrom:
+            - configMapRef:
+                name: mercur-api-config
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: MEDUSA_WORKER_MODE
+              value: "worker"
+            - name: DISABLE_MEDUSA_ADMIN
+              value: "true"
+
+            # PostgreSQL
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-mercur-ets-app
+                  key: uri
+
+            # Secrets
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: mercur-secrets
+                  key: JWT_SECRET
+            - name: COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: mercur-secrets
+                  key: COOKIE_SECRET
+
+            # S3 Object Storage
+            - name: S3_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: mercur-ets-attachments
+                  key: BUCKET_NAME
+            - name: S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: mercur-ets-attachments
+                  key: AWS_ACCESS_KEY_ID
+            - name: S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mercur-ets-attachments
+                  key: AWS_SECRET_ACCESS_KEY
+
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 2Gi
