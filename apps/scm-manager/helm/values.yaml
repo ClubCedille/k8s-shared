@@ -22,7 +22,7 @@ image:
   # image.repository --  Name of SCM-Manager image
   repository: docker.io/scmmanager/scm-manager
   # image.tag -- Tag of SCM-Manager image
-  tag: 3.11.10
+  tag: 3.12.2
   # image.pullPolicy -- SCM-Manager image pull policy
   pullPolicy: Always
   # image.pullSecret -- Secret with credentials for the image registry
