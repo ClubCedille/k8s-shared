@@ -1,6 +1,23 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/valkey-io/valkey-helm/refs/heads/main/valkey/values.schema.json
-# Number of Valkey pods to run
-replicaCount: 3
+# Valkey runs in master/replica mode: 1 master + 2 replicas, each with its own
+# RWO PVC (volumeClaimTemplates). The master Service still targets pod-0 only.
+#
+# WARNING: this chart does not ship automatic failover (no Sentinel). Replicas
+# provide data redundancy and read scaling; pod `forgejo-cache-valkey-0` remains
+# the only writable master. See the PR description for the availability caveat.
+replica:
+  enabled: true
+  replicas: 2
+  persistence:
+    size: "5Gi"
+    storageClass: "ceph-rbd"
+    accessModes:
+      - ReadWriteOnce
+
+# Only used in standalone mode (replica.enabled=false). Kept as a safety net:
+# with a single RWO PVC, RollingUpdate can never complete (the replacement pod
+# cannot mount the volume while the old pod still holds it).
+deploymentStrategy: Recreate
 
 serviceAccount:
   # Create a service account for Valkey
@@ -28,7 +45,7 @@ securityContext:
   runAsUser: 1000
 
 service:
-  # Type of Kubernetes service (ClusterIP, NodePort, LoadBalancer)
+  # Type of Service (ClusterIP, NodePort, LoadBalancer)
   type: ClusterIP
   # Port on which Valkey will be exposed
   port: 6379
@@ -37,27 +54,21 @@ service:
 # More info: https://kubernetes.io/docs/concepts/services-networking/network-policies/
 networkPolicy: {}
 
-# Persistent storage configuration
-dataStorage:
-  # Enable persistent volume claim creation
+# Spread the 3 pods across nodes so a single node loss cannot take the whole
+# cache down. Soft constraint on purpose: scheduling must never block.
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: valkey
+        app.kubernetes.io/instance: forgejo-cache
+
+# Only used in replica mode. Allow one pod to be disrupted at a time.
+podDisruptionBudget:
   enabled: true
-  # Use existing PVC by name (skip dynamic provisioning if set)
-  persistentVolumeClaimName: ""
-  # Name of the volume (referenced in deployment)
-  volumeName: "valkey-data"
-  # Request size (e.g. 5Gi) for dynamically provisioned volume
-  requestedSize: "5Gi"
-  # Name of the storage class to use
-  className: "ceph-rbd"
-  # Access modes for the PVC (e.g., ReadWriteOnce, ReadWriteMany)
-  accessModes:
-    - ReadWriteOnce
-  # If true, keep the PVC on Helm uninstall
-  keepPvc: true
-  # Optional annotations to add to the PVC
-  annotations: {}
-  # Optional labels to add to the PVC
-  labels: {}
+  maxUnavailable: 1
 
 auth:
   # Enable ACL-based authentication
