@@ -20,6 +20,13 @@ server:
     enabled: true
     maxReplicas: 5
     minReplicas: 2
+  # Le HPA en pourcentage a besoin de requests pour calculer l'utilisation
+  # (sinon il reste en <unknown> : "missing request for cpu").
+  # Usage observé : ~90m/680Mi par pod server.
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
   initContainers:
     - name: fix-permissions
       image: busybox:1.38
@@ -43,6 +50,11 @@ worker:
     enabled: true
     minReplicas: 2
     maxReplicas: 5
+  # Usage observé : ~200m/360Mi par pod worker.
+  resources:
+    requests:
+      cpu: "1"
+      memory: 1Gi
 
 defaultStorageClass: cephfs
 
