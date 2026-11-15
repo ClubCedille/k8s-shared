@@ -1,0 +1,47 @@
+# metrics-server fournit l'API resource.k8s.io (kubectl top, HPA).
+# Il n'était pas installé sur ce cluster : les HPA restaient bloqués en
+# <unknown> et donc à leur minReplicas.
+
+# Talos : le certificat serving des kubelets est signé par une CA propre à
+# chaque nœud (CN=<node>-ca) et ne contient que le hostname. La vérification
+# TLS échouerait donc systématiquement (x509) : c'est le flag standard sur
+# Talos. Le trafic reste interne au cluster (réseau pod -> kubelet:10250).
+args:
+  - --kubelet-insecure-tls
+
+# Deux réplicas pour que l'APIService agrégé ne dépende pas d'un seul pod.
+replicas: 2
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 100Mi
+  limits:
+    memory: 256Mi
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: metrics-server
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: metrics-server
+
+# Le Prometheus in-cluster (apps/prometheus) peut scraper metrics-server une
+# fois son ServiceMonitor activé ; pas nécessaire au fonctionnement de l'API.
+serviceMonitor:
+  enabled: false
