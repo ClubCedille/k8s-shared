@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mercur-storefront-config
+data:
+  # Internal connection to Medusa backend service
+  MEDUSA_BACKEND_URL: "http://mercur-api-server:9000"
+
+  # Public storefront settings
+  DEFAULT_REGION: "ca"
+  NEXT_PUBLIC_BASE_URL: "https://mercur.etsmtl.club"
+  NEXT_PUBLIC_DEFAULT_REGION: "ca"
+  NEXT_PUBLIC_SITE_NAME: "Mercur ETS"
+  NEXT_PUBLIC_SITE_DESCRIPTION: "Multi-vendor marketplace for ETS"
+  NEXT_PUBLIC_VENDOR_URL: "https://api.mercur.etsmtl.club/seller"

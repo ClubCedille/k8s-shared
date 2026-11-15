@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: mercur-ets
+
+resources:
+  - ../base
+  - postgres.yaml
+  - certificate.yaml
+  - httpproxy.yaml
+  - vault.yaml

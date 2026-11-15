@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - configmap-api.yaml
+  - configmap-storefront.yaml
+  - redis-service.yaml
+  - redis-statefulset.yaml
+  - api-server-service.yaml
+  - api-server-deployment.yaml
+  - api-worker-deployment.yaml
+  - storefront-service.yaml
+  - storefront-deployment.yaml
+  - api-migration-job.yaml
+  - objectbucketclaim.yaml
