@@ -2,6 +2,11 @@
 # Standalone Valkey used by Penpot for its cache/session store.
 # Penpot chart >= 1.0.0 no longer ships the Bitnami Valkey subchart, so it is
 # deployed separately (same pattern as apps/forgejo/base).
+#
+# The PVC is ReadWriteOnce and there is a single replica, so a RollingUpdate
+# deadlocks: the new pod cannot attach the volume while the old pod still holds
+# it. Recreate tears the old pod down first, which lets the volume move.
+deploymentStrategy: Recreate
 dataStorage:
   enabled: true
   requestedSize: "5Gi"
