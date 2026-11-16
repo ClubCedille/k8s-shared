@@ -14,5 +14,7 @@ spec:
     path: apps/clubs/comets/inventree
 
   syncPolicy:
+    automated:
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
