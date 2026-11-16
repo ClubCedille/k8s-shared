@@ -16,7 +16,7 @@ spec:
               value: "True"
           readinessProbe:
             httpGet:
-              path: /
+              path: /api/system/health/
               port: http
               httpHeaders:
                 - name: Host
@@ -35,7 +35,7 @@ spec:
         - name: inventree-proxy
           readinessProbe:
             httpGet:
-              path: /
+              path: /api/system/health/
               port: 80
               httpHeaders:
                 - name: Host
