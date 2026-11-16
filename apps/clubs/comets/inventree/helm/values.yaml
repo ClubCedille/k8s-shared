@@ -1,6 +1,9 @@
 fullnameOverride: inventree
 replicaCount: 1
 
+env:
+  GIT_CONFIG_GLOBAL: /tmp/.gitconfig
+
 global:
   siteUrl: https://inventree.prodv2.cedille.club
   adminSecret: inventree-admin
