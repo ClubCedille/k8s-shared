@@ -215,7 +215,12 @@ matomo:
 nginx:
   image: digitalist/nginx:1.31.6
   imagePullSecrets: []
-  runAsUser: 100
+  # digitalist/nginx is Wolfi-based since 1.31: /var/lib/nginx/{logs,tmp} and
+  # /var/log/nginx are owned by its "nonroot" user (uid 65532) with no
+  # group/other write access. Running as the old Debian image's uid 100 makes
+  # nginx fail on startup with "open() .../error.log failed (13: Permission
+  # denied)" and the pod crashloops.
+  runAsUser: 65532
 db:
   hostname: matomo-mariadb
   password:
