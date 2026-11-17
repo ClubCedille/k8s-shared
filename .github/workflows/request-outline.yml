@@ -151,6 +151,8 @@ jobs:
           labels: |
             automated
             outlinewiki
+            workflow:outlinewiki
+            ${{ inputs.id && format('userid:{0}', inputs.id) || '' }}
             ${{ env.CLUB }}
           title: "Créer un wiki Outline pour ${{ env.CLUB }}"
           body: |

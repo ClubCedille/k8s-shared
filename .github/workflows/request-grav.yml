@@ -129,6 +129,8 @@ jobs:
             automated
             grav
             ${{ env.CLUB }}
+            workflow:grav
+            ${{ inputs.id && format('userid:{0}', inputs.id) || '' }}
           body: |
             PR automatisée pour la création d'un site web GRAV.
 
