@@ -1,0 +1,30 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: policy-reporter-auth
+spec:
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    audiences:
+      - vault
+    role: secret-reader
+    serviceAccount: default
+---
+# Cles : discoveryUrl, clientId, clientSecret (lues par le UI Policy
+# Reporter via openIDConnect.secretRef). Le secret cote Vault est ecrit par
+# terraform/policy-reporter/authentik-vault/.
+# Chemin Vault : kv/data/policy-reporter/default/policy-reporter-oidc-secret
+# (la policy `secret-reader` scope kv/data/<namespace>/<sa>/*).
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: policy-reporter-oidc-secret
+spec:
+  vaultAuthRef: policy-reporter-auth
+  type: kv-v1
+  mount: kv
+  path: data/policy-reporter/default/policy-reporter-oidc-secret
+  destination:
+    name: policy-reporter-oidc-secret
+    create: true
