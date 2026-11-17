@@ -718,13 +718,17 @@ volumes:
   - name: cache-policies
     emptyDir: {}
 
+# -- Le pod est en CrashLoopBackOff (OOMKilled, exit 137, 1432 restarts en
+# ~7 jours) avec la limite précédente de 512Mi : l'operator synchronise le
+# cache de ~1100 reports (configaudit/rbac/secrets) sur ~150 namespaces.
+# Dimensionné pour respirer ; à réajuster si les usage metrics le confirment.
 resources:
   requests:
-    cpu: 100m
-    memory: 128Mi
-  limits:
     cpu: 250m
     memory: 512Mi
+  limits:
+    cpu: 1
+    memory: 2Gi
 
 # -- nodeSelector set the operator nodeSelector
 nodeSelector: {}
