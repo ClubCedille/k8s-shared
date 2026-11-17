@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cinny-deployment
+  name: cinny-config
   namespace: matrix
 data:
   config.json: |

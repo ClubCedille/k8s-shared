@@ -9,7 +9,6 @@ spec:
     tls:
       secretName: matrix-tls
   routes:
-    # 1. API Synapse (Matrix endpoints)
     - conditions:
         - prefix: /.well-known/matrix
       services:
@@ -20,19 +19,22 @@ spec:
       services:
         - name: matrix-stack-matrix-synapse
           port: 8008
+      timeoutPolicy:
+        response: 600s
+        idle: 600s
     - conditions:
         - prefix: /_synapse
       services:
         - name: matrix-stack-matrix-synapse
           port: 8008
-
-    # 2. Interface web Cinny (racine /)
+      timeoutPolicy:
+        response: 600s
+        idle: 600s
     - conditions:
         - prefix: /
       services:
         - name: cinny-deployment
           port: 80
-
       timeoutPolicy:
         response: 60s
         idle: 60s
