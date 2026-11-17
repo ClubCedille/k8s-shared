@@ -1,0 +1,35 @@
+# VaultSecret -> cree `policy-reporter-github-token` dans ce namespace : cle
+# `token` = PAT GitHub extrait du dockerconfigjson `kv-system/default_passwords/docker`
+# (meme Vault path que le pull secret `ghcr-clubcedille-secret` utilise ailleurs).
+# Utilise par le plugin trivy via env GITHUB_TOKEN (voir helm/policy-reporter-values.yaml)
+# pour authentifier les requetes api.github.com (advisories GHSA des CVE).
+#
+# Structure attendue cote Vault (identique a ce qui existe deja) :
+#   kv-system/default_passwords/docker -> { docker: { config: <base64 dockerconfigjson> } }
+#   dockerconfigjson -> { "auths": { "ghcr.io": { "auth": <base64 user:PAT> } } }
+# Si l'entre Vault passe un jour par un credHelpers/credsStore ou un username
+# modifie, ajuster le template `token` ci-dessous.
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: VaultSecret
+metadata:
+  name: policy-reporter-github-token
+spec:
+  refreshPeriod: 1h0m0s
+  refreshThreshold: 90
+  syncOnResourceChange: false
+  vaultSecretDefinitions:
+    - authentication:
+        path: kubernetes
+        role: secret-reader
+        serviceAccount:
+          name: default
+      name: docker
+      path: kv-system/default_passwords/docker
+      requestType: GET
+  output:
+    name: policy-reporter-github-token
+    type: Opaque
+    stringData:
+      # b64dec auths ghcr.io -> "utilisateur:PAT" ; on ne garde que le PAT
+      # (les PATs GitHub ne contiennent pas de ":").
+      token: '{{ $cfg := b64dec .docker.config | fromJson }}{{ $auth := index (index (index $cfg "auths") "ghcr.io") "auth" }}{{ b64dec $auth | splitList ":" | last | trim }}'

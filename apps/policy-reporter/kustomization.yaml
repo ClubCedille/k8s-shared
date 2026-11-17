@@ -5,6 +5,8 @@ resources:
   - resources/certificate.yaml
   - resources/httpproxy.yaml
   - resources/vault.yaml
+  - resources/github-token-vault.yaml
+  - resources/prometheusrule.yaml
 helmCharts:
   - name: policy-reporter
     repo: https://kyverno.github.io/policy-reporter

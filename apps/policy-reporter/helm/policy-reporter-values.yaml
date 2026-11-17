@@ -61,15 +61,30 @@ plugin:
     resources:
       requests:
         cpu: 50m
-        memory: 64Mi
+        memory: 128Mi
       limits:
         cpu: 500m
-        memory: 256Mi
+        memory: 512Mi
+    # Token GitHub pour authentifier les requetes api.github.com du plugin
+    # (sinon : 403/429 rate limit / abuse detection sur les advisories
+    # GHSA). La cle `token` du Secret est alimentee depuis le Vault path
+    # `kv-system/default_passwords/docker` (meme source que le pull secret
+    # ghcr-clubcedille-secret) via resources/github-token-vault.yaml.
+    # NOTE : le chart n'offre pas de secretRef pour `github.token` -- le
+    # token passe par la variable d'environnement GITHUB_TOKEN (a valider :
+    # le plugin honorerait la variable ; sinon repasser par un PAT en
+    # values ou desactiver github.disable).
+    envVars:
+      - name: GITHUB_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: policy-reporter-github-token
+            key: token
 
 resources:
   requests:
     cpu: 50m
-    memory: 64Mi
+    memory: 128Mi
   limits:
     cpu: 500m
-    memory: 256Mi
+    memory: 512Mi
