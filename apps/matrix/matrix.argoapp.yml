@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: matrix
+  namespace: argocd
+spec:
+  destination:
+    namespace: matrix
+    server: https://kubernetes.default.svc
+  project: k8s-shared
+  source:
+    path: apps/matrix
+    repoURL: https://github.com/ClubCedille/k8s-shared.git
+    targetRevision: HEAD
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: matrix-stack-postgresql
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Secret
+      name: matrix-stack-redis
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Secret
+      name: matrix-stack-matrix-synapse
+      jsonPointers:
+        - /data
+        - /stringData
+    - group: apps
+      kind: Deployment
+      name: matrix-stack-matrix-synapse
+      jsonPointers:
+        - /spec/template/metadata/annotations/checksum~1secrets
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true

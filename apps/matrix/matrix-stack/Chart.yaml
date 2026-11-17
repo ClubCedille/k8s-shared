@@ -1,0 +1,7 @@
+apiVersion: v2
+name: matrix-stack
+version: 1.0.0
+dependencies:
+  - name: matrix-synapse
+    version: 3.12.41
+    repository: https://ananace.gitlab.io/charts
