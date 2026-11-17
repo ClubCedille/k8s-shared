@@ -10,6 +10,13 @@ crds:
   # lues nativement par policy-reporter 3.x.
   install: true
 
+# WatchList (client-go, defaut du chart : true) : la ConfigAuditReport n'
+# atteint jamais HasSynced avec ce mode -- le reflector log "Caches
+# populated" mais le controller-runtime attend la sync en vain (2 min) puis
+# le process sort en erreur -> CrashLoopBackOff et 0 ConfigAuditReport
+# ingere. On repasse sur LIST+WATCH classique.
+useWatchList: false
+
 adapters:
   vulnerabilityReports:
     enabled: true
