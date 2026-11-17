@@ -11,7 +11,7 @@ resources:
 helmCharts:
   - name: matrix-synapse
     repo: https://ananace.gitlab.io/charts
-    version: 3.12.41
+    version: 3.12.43
     releaseName: matrix-stack
     namespace: matrix
     valuesFile: matrix-stack/values.yaml
