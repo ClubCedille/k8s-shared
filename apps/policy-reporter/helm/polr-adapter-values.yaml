@@ -20,23 +20,38 @@ useWatchList: false
 # La sync initiale de ~1070 ConfigAuditReports depasse 256Mi (pod OOMKilled,
 # exit 137). 512Mi comme le pod core.
 
+# CacheSyncTimeout (controller-runtime), PAR adaptateur, en minutes. Le
+# defaut chart est 2 -- insuffisant ici : ~2000 CRDs (1073 ConfigAuditReports
+# + 410 VulnerabilityReports + 194 ClusterRbacAssessment + 249 ExposedSecret
+# + 111 RbacAssessment) n'atteignent jamais HasSynced en 2 min avec le
+# client-side throttling observe (~1 req/s). Le pod sortait en erreur ->
+# CrashLoopBackOff, et la sync progressait d'une tentative a l'autre sans
+# jamais converger. 10 min laissent la marge necessaire a la premiere sync.
 adapters:
   vulnerabilityReports:
     enabled: true
+    timeout: 10
   configAuditReports:
     enabled: true
+    timeout: 10
   rbacAssessmentReports:
     enabled: true
+    timeout: 10
   exposedSecretReports:
     enabled: true
+    timeout: 10
   infraAssessmentReports:
     enabled: true
+    timeout: 10
   complianceReports:
     enabled: true
+    timeout: 10
   clusterVulnerabilityReports:
     enabled: true
+    timeout: 10
   clusterInfraAssessmentReports:
     enabled: true
+    timeout: 10
 
 resources:
   requests:
