@@ -29,8 +29,8 @@ resources:
   - resources/dashboards/k8s-security-trivy-operator.yaml
 helmCharts:
   - name: grafana
-    version: "10.5.15"
-    repo: "https://grafana.github.io/helm-charts"
+    version: "14.5.0"
+    repo: "https://grafana-community.github.io/helm-charts"
     releaseName: "grafana"
     namespace: monitoring
     valuesFile: "helm/values.yaml"
