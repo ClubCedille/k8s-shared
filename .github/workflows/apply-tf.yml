@@ -41,6 +41,8 @@ jobs:
             dir: terraform/inventree/authentik-vault
           - name: hi-events
             dir: terraform/hi-events/authentik-vault
+          - name: policy-reporter
+            dir: terraform/policy-reporter/authentik-vault
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -120,6 +122,8 @@ jobs:
             dir: terraform/inventree/authentik-vault
           - name: hi-events
             dir: terraform/hi-events/authentik-vault
+          - name: policy-reporter
+            dir: terraform/policy-reporter/authentik-vault
     steps:
       - name: Checkout
         uses: actions/checkout@v4
