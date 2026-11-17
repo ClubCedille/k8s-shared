@@ -6,7 +6,7 @@ metadata:
 spec:
   secretName: matrix-tls
   issuerRef:
-    name: letsencrypt-etsmtl 
+    name: letsencrypt-etsmtl
     kind: ClusterIssuer
   commonName: matrix.etsmtl.club
   dnsNames:
