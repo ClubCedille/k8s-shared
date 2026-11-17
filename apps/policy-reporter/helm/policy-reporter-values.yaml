@@ -1,0 +1,75 @@
+# Policy Reporter -- core API + UI + Trivy plugin (chart kyverno repo).
+#
+# Docs: https://kyverno.github.io/policy-reporter/
+#
+# Exposition : contour-external uniquement, authentifiee par SSO OIDC
+# Authentik (policy-reporter.etsmtl.club). La REST API core (port 8080)
+# reste ClusterIP sans authentification -- memes hypothese que Mimir/Loki
+# (confiance intra-cluster), non exposable via HTTPProxy.
+#
+# SSO : le UI Policy Reporter v2.9 a un OIDC natif. Le secret
+# `policy-reporter-oidc-secret` (discoveryUrl/clientId/clientSecret +
+# groupClaim) est synchronise depuis Vault via resources/vault.yaml.
+# L'application Authentik + l'acces groupe sont geres par
+# terraform/policy-reporter/authentik-vault/ (apply manuel, hor ArgoCD).
+
+fullnameOverride: policy-reporter
+
+# Pas de basicAuth : le seul client de l'API in-cluster est l'UI (meme
+# namespace). Activer si un jour l'API est consommee hors cluster.
+
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 60s
+  grafana:
+    # Dashboards deja fournis en maison (Security/*) : ne pas dupliquer.
+    dashboards:
+      enabled: false
+
+ui:
+  enabled: true
+  openIDConnect:
+    enabled: true
+    discoveryUrl: "https://auth.etsmtl.club/application/o/policy-reporter/.well-known/openid-configuration"
+    callbackUrl: "https://policy-reporter.etsmtl.club/callback"
+    clientId: "policy-reporter"
+    groupClaim: "groups"
+    scopes:
+      - openid
+      - email
+      - profile
+      - groups
+    # Clefs attendues par l'UI : discoveryUrl, clientId, clientSecret.
+    # (certificate/skipTLS en optionnel si Authentik use d'un self-signed.)
+    secretRef: policy-reporter-oidc-secret
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  # L'UI se connecte automatiquement a l'API in-cluster : le chart cree le
+  # secret `policy-reporter-ui-default-cluster` (host + plugins trivy) --
+  # ne pas surcharger ui.clusters.
+
+plugin:
+  trivy:
+    enabled: true
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi

@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: policy-reporter-tls
+spec:
+  secretName: policy-reporter-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: policy-reporter.etsmtl.club
+  dnsNames:
+    - policy-reporter.etsmtl.club

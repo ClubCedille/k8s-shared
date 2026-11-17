@@ -1,0 +1,37 @@
+# Trivy Operator PolicyReport Adapter -- convertit les CRDs du trivy-operator
+# (VulnerabilityReport, ConfigAuditReport, RbacAssessmentReport,
+# ExposedSecretReport, InfraAssessmentReport, ...) en PolicyReport /
+# ClusterPolicyReport consommes par Policy Reporter.
+#
+# Docs: https://github.com/fjogeleit/trivy-operator-polr-adapter
+
+crds:
+  # CRDs wgpolicyk8s.io/v1alpha2 (PolicyReport/ClusterPolicyReport) --
+  # lues nativement par policy-reporter 3.x.
+  install: true
+
+adapters:
+  vulnerabilityReports:
+    enabled: true
+  configAuditReports:
+    enabled: true
+  rbacAssessmentReports:
+    enabled: true
+  exposedSecretReports:
+    enabled: true
+  infraAssessmentReports:
+    enabled: true
+  complianceReports:
+    enabled: true
+  clusterVulnerabilityReports:
+    enabled: true
+  clusterInfraAssessmentReports:
+    enabled: true
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
