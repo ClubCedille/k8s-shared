@@ -1,6 +1,16 @@
 # Dashboard officiel "Trivy Operator Dashboard" (grafana.com #17813,
 # uid ycwPj724k), adapté pour le provisioning : la datasource est une variable
 # de templating (${datasource}, défaut = Mimir) au lieu d'un __input d'import.
+#
+# Retravaillé le 2026-11-17 : les métriques trivy_* sont des GAUGES (valeurs
+# absolues au moment du scrape), pas des compteurs cumulatifs. Le problème
+# initial était double : (1) sum() comptait chaque image une fois par workload
+# qui la porte (Pod + ReplicaSet + ...) → valeurs ~2x trop hautes ; les images
+# sont maintenant dédupliquées par image_digest ; (2) les données historiques
+# sont trouées (l'opérateur ne scrape pas en continu), donc un total qui
+# « monte dans le temps » reflète le re-scan en cours, pas un compteur.
+# Les panels RBAC combinent désormais Roles + ClusterRoles (la sévérité Unknown
+# est supprimée, ces métriques n'exposent pas d'Unknown).
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -91,7 +101,7 @@ data:
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "description": "Total number by type of security issues identified in the cluster",
+              "description": "Current totals in the cluster (gauges, not cumulative counters). Image vulnerabilities and exposed secrets are deduplicated by image digest so a running image is counted once per severity, not once per workload.",
               "fieldConfig": {
                 "defaults": {
                   "mappings": [],
@@ -179,6 +189,7 @@ data:
                       {
                         "id": "color",
                         "value": {
+                          "fixedColor": "dark-gray",
                           "mode": "fixed"
                         }
                       }
@@ -216,11 +227,11 @@ data:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(trivy_image_vulnerabilities)",
-                  "instant": true,
+                  "expr": "sum(max by (image_digest, severity) (trivy_image_vulnerabilities))",
                   "legendFormat": "Vulnerabilities",
-                  "range": false,
-                  "refId": "A"
+                  "refId": "A",
+                  "instant": true,
+                  "range": false
                 },
                 {
                   "datasource": {
@@ -230,11 +241,10 @@ data:
                   "editorMode": "code",
                   "exemplar": false,
                   "expr": "sum(trivy_resource_configaudits)",
-                  "hide": false,
-                  "instant": true,
                   "legendFormat": "Misconfiguration",
-                  "range": false,
-                  "refId": "B"
+                  "refId": "B",
+                  "instant": true,
+                  "range": false
                 },
                 {
                   "datasource": {
@@ -243,12 +253,11 @@ data:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(trivy_image_exposedsecrets)",
-                  "hide": false,
-                  "instant": true,
+                  "expr": "sum(max by (image_digest, severity) (trivy_image_exposedsecrets))",
                   "legendFormat": "Exposed Secrets",
-                  "range": false,
-                  "refId": "C"
+                  "refId": "C",
+                  "instant": true,
+                  "range": false
                 },
                 {
                   "datasource": {
@@ -257,12 +266,11 @@ data:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(trivy_clusterrole_clusterrbacassessments)",
-                  "hide": false,
-                  "instant": true,
+                  "expr": "sum(trivy_clusterrole_clusterrbacassessments) + sum(trivy_role_rbacassessments)",
                   "legendFormat": "RBAC Assessment",
-                  "range": false,
-                  "refId": "D"
+                  "refId": "D",
+                  "instant": true,
+                  "range": false
                 }
               ],
               "title": "Number and Type of Security Issues",
@@ -287,7 +295,7 @@ data:
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "description": "",
+              "description": "Current vulnerabilities by severity, deduplicated by image digest (one report per image, not one per workload).",
               "fieldConfig": {
                 "defaults": {
                   "mappings": [],
@@ -375,6 +383,7 @@ data:
                       {
                         "id": "color",
                         "value": {
+                          "fixedColor": "dark-gray",
                           "mode": "fixed"
                         }
                       }
@@ -412,11 +421,11 @@ data:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(trivy_image_vulnerabilities{severity=\"Critical\"})",
-                  "instant": true,
+                  "expr": "sum(max by (image_digest, severity) (trivy_image_vulnerabilities{severity=\"Critical\"}))",
                   "legendFormat": "Critical",
-                  "range": false,
-                  "refId": "A"
+                  "refId": "A",
+                  "instant": true,
+                  "range": false
                 },
                 {
                   "datasource": {
@@ -425,12 +434,11 @@ data:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(trivy_image_vulnerabilities{severity=\"High\"})",
-                  "hide": false,
-                  "instant": true,
+                  "expr": "sum(max by (image_digest, severity) (trivy_image_vulnerabilities{severity=\"High\"}))",
                   "legendFormat": "High",
-                  "range": false,
-                  "refId": "B"
+                  "refId": "B",
+                  "instant": true,
+                  "range": false
                 },
                 {
                   "datasource": {
@@ -439,12 +447,11 @@ data:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(trivy_image_vulnerabilities{severity=\"Medium\"})",
-                  "hide": false,
-                  "instant": true,
+                  "expr": "sum(max by (image_digest, severity) (trivy_image_vulnerabilities{severity=\"Medium\"}))",
                   "legendFormat": "Medium",
-                  "range": false,
-                  "refId": "C"
+                  "refId": "C",
+                  "instant": true,
+                  "range": false
                 },
                 {
                   "datasource": {
@@ -453,12 +460,11 @@ data:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(trivy_image_vulnerabilities{severity=\"Low\"})",
-                  "hide": false,
-                  "instant": true,
+                  "expr": "sum(max by (image_digest, severity) (trivy_image_vulnerabilities{severity=\"Low\"}))",
                   "legendFormat": "Low",
-                  "range": false,
-                  "refId": "D"
+                  "refId": "D",
+                  "instant": true,
+                  "range": false
                 },
                 {
                   "datasource": {
@@ -467,12 +473,11 @@ data:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(trivy_image_vulnerabilities{severity=\"Unknown\"})",
-                  "hide": false,
-                  "instant": true,
+                  "expr": "sum(max by (image_digest, severity) (trivy_image_vulnerabilities{severity=\"Unknown\"}))",
                   "legendFormat": "Unknown",
-                  "range": false,
-                  "refId": "E"
+                  "refId": "E",
+                  "instant": true,
+                  "range": false
                 }
               ],
               "title": "Severity Breakdown of all Vulnerabilities",
@@ -483,7 +488,7 @@ data:
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "description": "",
+              "description": "Current vulnerability count per namespace (deduplicated by image digest inside each namespace). Absolute values, not a cumulative counter.",
               "fieldConfig": {
                 "defaults": {
                   "color": {
@@ -561,10 +566,11 @@ data:
                     "uid": "${datasource}"
                   },
                   "editorMode": "code",
-                  "expr": "sum(trivy_image_vulnerabilities) by (namespace)",
-                  "legendFormat": "__auto",
-                  "range": true,
-                  "refId": "A"
+                  "exemplar": false,
+                  "expr": "sum by (namespace) (max by (namespace, image_digest, severity) (trivy_image_vulnerabilities))",
+                  "legendFormat": "{{namespace}}",
+                  "refId": "A",
+                  "range": true
                 }
               ],
               "title": "Number of Vulnerabilities by namespace",
@@ -668,11 +674,12 @@ data:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(trivy_image_vulnerabilities{severity=\"Critical\"}) by (image_repository,image_tag)",
+                  "expr": "sum by (image_repository, image_tag) (max by (image_digest, image_repository, image_tag) (trivy_image_vulnerabilities{severity=\"Critical\"}))",
+                  "legendFormat": "",
+                  "refId": "A",
                   "format": "table",
                   "instant": true,
-                  "range": false,
-                  "refId": "A"
+                  "range": false
                 },
                 {
                   "datasource": {
@@ -681,12 +688,12 @@ data:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(trivy_image_vulnerabilities{severity=\"High\"}) by (image_repository,image_tag)",
+                  "expr": "sum by (image_repository, image_tag) (max by (image_digest, image_repository, image_tag) (trivy_image_vulnerabilities{severity=\"High\"}))",
+                  "legendFormat": "",
+                  "refId": "B",
                   "format": "table",
-                  "hide": false,
                   "instant": true,
-                  "range": false,
-                  "refId": "B"
+                  "range": false
                 },
                 {
                   "datasource": {
@@ -695,12 +702,12 @@ data:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(trivy_image_vulnerabilities{severity=\"Medium\"}) by (image_repository,image_tag)",
+                  "expr": "sum by (image_repository, image_tag) (max by (image_digest, image_repository, image_tag) (trivy_image_vulnerabilities{severity=\"Medium\"}))",
+                  "legendFormat": "",
+                  "refId": "C",
                   "format": "table",
-                  "hide": false,
                   "instant": true,
-                  "range": false,
-                  "refId": "C"
+                  "range": false
                 },
                 {
                   "datasource": {
@@ -709,12 +716,12 @@ data:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(trivy_image_vulnerabilities{severity=\"Low\"}) by (image_repository,image_tag)",
+                  "expr": "sum by (image_repository, image_tag) (max by (image_digest, image_repository, image_tag) (trivy_image_vulnerabilities{severity=\"Low\"}))",
+                  "legendFormat": "",
+                  "refId": "D",
                   "format": "table",
-                  "hide": false,
                   "instant": true,
-                  "range": false,
-                  "refId": "D"
+                  "range": false
                 },
                 {
                   "datasource": {
@@ -723,12 +730,12 @@ data:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(trivy_image_vulnerabilities{severity=\"Unknown\"}) by (image_repository,image_tag)",
+                  "expr": "sum by (image_repository, image_tag) (max by (image_digest, image_repository, image_tag) (trivy_image_vulnerabilities{severity=\"Unknown\"}))",
+                  "legendFormat": "",
+                  "refId": "E",
                   "format": "table",
-                  "hide": false,
                   "instant": true,
-                  "range": false,
-                  "refId": "E"
+                  "range": false
                 }
               ],
               "title": "Vulnerability by Image",
@@ -790,7 +797,8 @@ data:
                   }
                 }
               ],
-              "type": "table"
+              "type": "table",
+              "description": "Per-image vulnerability counts, deduplicated by image digest (multiple workloads on the same image no longer double-count it)."
             }
           ],
           "title": "Vulnerabilities",
@@ -811,7 +819,7 @@ data:
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "description": "",
+              "description": "Failing configuration checks across the reported workload resources. Pods and their controllers are reported separately by trivy-operator, so this counts findings per resource rather than per unique template.",
               "fieldConfig": {
                 "defaults": {
                   "mappings": [],
@@ -899,6 +907,7 @@ data:
                       {
                         "id": "color",
                         "value": {
+                          "fixedColor": "dark-gray",
                           "mode": "fixed"
                         }
                       }
@@ -1007,7 +1016,7 @@ data:
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "description": "",
+              "description": "Non-compliant RBAC objects, Roles and ClusterRoles combined (sum of both assessment metrics).",
               "fieldConfig": {
                 "defaults": {
                   "mappings": [],
@@ -1085,20 +1094,6 @@ data:
                         }
                       }
                     ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "Unknown"
-                    },
-                    "properties": [
-                      {
-                        "id": "color",
-                        "value": {
-                          "mode": "fixed"
-                        }
-                      }
-                    ]
                   }
                 ]
               },
@@ -1132,11 +1127,11 @@ data:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(trivy_role_rbacassessments{severity=\"Critical\"})",
-                  "instant": true,
+                  "expr": "sum(trivy_clusterrole_clusterrbacassessments{severity=\"Critical\"}) + sum(trivy_role_rbacassessments{severity=\"Critical\"})",
                   "legendFormat": "Critical",
-                  "range": false,
-                  "refId": "A"
+                  "refId": "A",
+                  "instant": true,
+                  "range": false
                 },
                 {
                   "datasource": {
@@ -1145,12 +1140,11 @@ data:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(trivy_role_rbacassessments{severity=\"High\"})",
-                  "hide": false,
-                  "instant": true,
+                  "expr": "sum(trivy_clusterrole_clusterrbacassessments{severity=\"High\"}) + sum(trivy_role_rbacassessments{severity=\"High\"})",
                   "legendFormat": "High",
-                  "range": false,
-                  "refId": "B"
+                  "refId": "B",
+                  "instant": true,
+                  "range": false
                 },
                 {
                   "datasource": {
@@ -1159,12 +1153,11 @@ data:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(trivy_role_rbacassessments{severity=\"Medium\"})",
-                  "hide": false,
-                  "instant": true,
+                  "expr": "sum(trivy_clusterrole_clusterrbacassessments{severity=\"Medium\"}) + sum(trivy_role_rbacassessments{severity=\"Medium\"})",
                   "legendFormat": "Medium",
-                  "range": false,
-                  "refId": "C"
+                  "refId": "C",
+                  "instant": true,
+                  "range": false
                 },
                 {
                   "datasource": {
@@ -1173,26 +1166,11 @@ data:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(trivy_role_rbacassessments{severity=\"Low\"})",
-                  "hide": false,
-                  "instant": true,
+                  "expr": "sum(trivy_clusterrole_clusterrbacassessments{severity=\"Low\"}) + sum(trivy_role_rbacassessments{severity=\"Low\"})",
                   "legendFormat": "Low",
-                  "range": false,
-                  "refId": "D"
-                },
-                {
-                  "datasource": {
-                    "type": "prometheus",
-                    "uid": "${datasource}"
-                  },
-                  "editorMode": "code",
-                  "exemplar": false,
-                  "expr": "sum(trivy_role_rbacassessments{severity=\"UNKNOWN\"})",
-                  "hide": false,
+                  "refId": "D",
                   "instant": true,
-                  "legendFormat": "Unknown",
-                  "range": false,
-                  "refId": "E"
+                  "range": false
                 }
               ],
               "title": "Severity Breakdown of RBAC Security Issues",
@@ -1217,7 +1195,7 @@ data:
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "description": "",
+              "description": "Current exposed-secrets count per namespace (deduplicated by image digest inside each namespace).",
               "fieldConfig": {
                 "defaults": {
                   "color": {
@@ -1295,10 +1273,11 @@ data:
                     "uid": "${datasource}"
                   },
                   "editorMode": "code",
-                  "expr": "sum(trivy_image_exposedsecrets) by (namespace)",
-                  "legendFormat": "__auto",
-                  "range": true,
-                  "refId": "A"
+                  "exemplar": false,
+                  "expr": "sum by (namespace) (max by (namespace, image_digest, severity) (trivy_image_exposedsecrets))",
+                  "legendFormat": "{{namespace}}",
+                  "refId": "A",
+                  "range": true
                 }
               ],
               "title": "Exposed Secrets per namespace",
@@ -1309,7 +1288,7 @@ data:
           "type": "row"
         }
       ],
-      "refresh": false,
+      "refresh": "5m",
       "schemaVersion": 37,
       "style": "dark",
       "tags": [
@@ -1344,7 +1323,7 @@ data:
       "timezone": "",
       "title": "Trivy Operator Dashboard",
       "uid": "ycwPj724k",
-      "version": 12,
+      "version": 13,
       "weekStart": "",
       "gnetId": 17813
     }
