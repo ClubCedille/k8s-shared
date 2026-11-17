@@ -17,6 +17,9 @@ crds:
 # ingere. On repasse sur LIST+WATCH classique.
 useWatchList: false
 
+# La sync initiale de ~1070 ConfigAuditReports depasse 256Mi (pod OOMKilled,
+# exit 137). 512Mi comme le pod core.
+
 adapters:
   vulnerabilityReports:
     enabled: true
@@ -38,7 +41,7 @@ adapters:
 resources:
   requests:
     cpu: 50m
-    memory: 64Mi
+    memory: 128Mi
   limits:
     cpu: 500m
-    memory: 256Mi
+    memory: 512Mi
