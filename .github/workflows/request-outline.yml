@@ -11,6 +11,14 @@ on:
         type: string
         required: false
         description: "Nom du domaine (par défaut: wiki.{nom_club}.etsmtl.club)"
+      id:
+        type: string
+        required: false
+        description: "Identifiant du propriétaire de la ressource (fourni par Calidum Rotae)"
+      club:
+        type: string
+        required: false
+        description: "Club propriétaire de la ressource (fourni par Calidum Rotae)"
 jobs:
   create_pr:
     runs-on: ubuntu-latest
@@ -29,6 +37,8 @@ jobs:
       j2_vars: |
         nom_club=${{ inputs.nom_club }}
         domaine=${{ inputs.domaine || format('wiki.{0}.etsmtl.club', inputs.nom_club) }}
+        id=${{ inputs.id }}
+        club=${{ inputs.club }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -146,6 +156,8 @@ jobs:
           body: |
             PR automatisée pour la création d'un Wiki Outline.
             Nom du club: `${{ env.CLUB }}`
+            Identifiant du propriétaire: `${{ inputs.id }}`
+            Club propriétaire: `${{ inputs.club }}`
 
             **Changements inclus:**
             - Ajout du club à `clubs.json` pour Terraform (Authentik/Vault).

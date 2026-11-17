@@ -3,6 +3,15 @@ kind: Application
 metadata:
   name: {{ nom_club }}-s3-bucket
   namespace: argocd
+{%- if (id is defined and id) or (club is defined and club) %}
+  annotations:
+{%- if id is defined and id %}
+    calidum-rotae.cedille.club/id: {{ id | tojson }}
+{%- endif %}
+{%- if club is defined and club %}
+    calidum-rotae.cedille.club/club: {{ club | tojson }}
+{%- endif %}
+{%- endif %}
 spec:
   destination:
     namespace: {{ nom_club }}-s3-bucket
