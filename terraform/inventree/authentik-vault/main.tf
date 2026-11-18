@@ -115,7 +115,7 @@ resource "authentik_provider_oauth2" "inventree" {
     {
       matching_mode     = "strict"
       redirect_uri_type = "authorization"
-      url               = "https://${local.hostname}/accounts/oidc/authentik/login/callback/"
+      url               = "https://${local.hostname}/accounts/authentik/login/callback/"
     },
   ]
 }
