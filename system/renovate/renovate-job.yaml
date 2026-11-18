@@ -1,7 +1,7 @@
 apiVersion: renovate-operator.mogenius.com/v1alpha1
 kind: RenovateJob
 metadata:
-  name: k8s-shared
+  name: k8s-cedille
 spec:
   schedule: "CRON_TZ=America/Toronto 0 3 * * *"
   secretRef: renovate-secret
@@ -10,7 +10,7 @@ spec:
   image: renovate/renovate:44
   parallelism: 1
   discoveryFilters:
-    - "ClubCedille/k8s-shared"
+    - "ClubCedille/k8s-*"
   # The CRD in the datree CRDs catalog predates spec.renovateConfig, so mount
   # the config ourselves instead of using the newer field. This also works with
   # the current operator CRD.
