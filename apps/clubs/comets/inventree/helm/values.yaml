@@ -4,6 +4,9 @@ replicaCount: 1
 env:
   GIT_CONFIG_GLOBAL: /tmp/.gitconfig
   INVENTREE_GUNICORN_WORKERS: "1"
+  # Le proxy nginx du chart ecrase X-Forwarded-Proto avec $scheme (http).
+  # On lit donc l'en-tete https ajoute par Contour dans l'HTTPProxy.
+  INVENTREE_X_FORWARDED_PROTO_NAME: HTTP_X_ORIGINAL_PROTO
 
 global:
   siteUrl: https://inventree.prodv2.cedille.club

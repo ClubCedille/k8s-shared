@@ -15,3 +15,10 @@ spec:
       services:
         - name: inventree
           port: 80
+          # Le nginx du chart force X-Forwarded-Proto a http (TLS termine ici).
+          # On fournit le vrai schema sous un autre nom pour construire les
+          # URL absolues (redirect_uri OIDC) en https.
+          requestHeadersPolicy:
+            set:
+              - name: X-Original-Proto
+                value: https
