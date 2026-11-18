@@ -4,6 +4,12 @@ metadata:
   name: {{ deployment_prefix }}-grav
   namespace: argocd
   annotations:
+{%- if id is defined and id %}
+    calidum-rotae.cedille.club/id: {{ id | tojson }}
+{%- endif %}
+{%- if club is defined and club %}
+    calidum-rotae.cedille.club/club: {{ club | tojson }}
+{%- endif %}
     argocd.argoproj.io/sync-wave: "2"
     argocd-image-updater.argoproj.io/image-list: website=ghcr.io/clubcedille/grav:latest
     argocd-image-updater.argoproj.io/website.update-strategy: digest

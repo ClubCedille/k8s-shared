@@ -11,6 +11,14 @@ on:
         type: string
         required: false
         description: "Nom du domaine qui accède le bucket (par défaut: {nom_club}.etsmtl.club)"
+      id:
+        type: string
+        required: false
+        description: "Identifiant du propriétaire de la ressource (fourni par Calidum Rotae)"
+      club:
+        type: string
+        required: false
+        description: "Club propriétaire de la ressource (fourni par Calidum Rotae)"
 jobs:
   create_pr:
     runs-on: ubuntu-latest
@@ -26,6 +34,8 @@ jobs:
       j2_vars: |
         nom_club=${{ inputs.nom_club }}
         domaine=${{ inputs.domaine || format('{0}.etsmtl.club', inputs.nom_club) }}
+        id=${{ inputs.id }}
+        club=${{ inputs.club }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -93,11 +103,15 @@ jobs:
           labels: |
             automated
             s3-bucket
+            workflow:s3-bucket
+            ${{ inputs.id && format('userid:{0}', inputs.id) || '' }}
             ${{ env.CLUB }}
           title: "Créer un S3 Bucket pour ${{ env.CLUB }}"
           body: |
             PR automatisée pour la création d'un S3 Bucket..
             Nom du club: `${{ env.CLUB }}`
+            Identifiant du propriétaire: `${{ inputs.id }}`
+            Club propriétaire: `${{ inputs.club }}`
 
             **Changements inclus:**
             - Génération des manifestes K8s via Jinja2.
