@@ -65,8 +65,7 @@ spec:
                 - name: dt-token
                   mountPath: /var/run/secrets/dt
                   readOnly: true
-                  # Le token est cree apres coup (cle API a generer dans DT).
-                  optional: true
+                  # `optional: true` est porte par volumes[].secret (voir ci-dessous)
                 - name: tmp
                   mountPath: /tmp
               command: ["python", "/app/sbom-bridge.py"]
