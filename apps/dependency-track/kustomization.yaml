@@ -5,6 +5,8 @@ resources:
   # VaultStaticSecret (credentials DB, KEK, OIDC, B2) + PostgreSQL CNPG,
   # certificat TLS, HTTPProxy et regles d'alerte.
   - resources
+  # Pont SBOM -> Dependency-Track (CronJob + RBAC + script Python).
+  - bridge
 
 helmCharts:
   # Chart 2.9.0 -> Dependency-Track 5.2.1.
