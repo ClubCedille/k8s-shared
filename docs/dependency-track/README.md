@@ -13,6 +13,25 @@ La clé `sbom-bridge` n'a que `BOM_UPLOAD`, `PROJECT_CREATION_UPLOAD` et
 `VIEW_PORTFOLIO` : elle suffit pour la lecture décrite ici et l'upload, mais pas
 pour marquer un faux positif (voir §4).
 
+## 0. Comptes et permissions (SSO Authentik)
+
+Le login SSO crée le compte utilisateur mais n'accorde aucune permission. Pour
+qu'un utilisateur puisse accéder au portefeuille, un administrateur doit créer
+dans DT une **équipe dont le nom est exactement `dependency-track-users`**
+(identique au groupe Authentik : c'est ainsi que fonctionne la synchro d'équipes
+OIDC), et lui attribuer au moins `VIEW_PORTFOLIO` + `VIEW_VULNERABILITY` (+ 
+`VULNERABILITY_ANALYSIS` pour les faux positifs). Déconnexion/reconnexion
+nécessaire après l'ajout à l'équipe.
+
+Les permissions utiles sont :
+
+| Permission | Usage |
+|---|---|
+| `VIEW_PORTFOLIO` | voir projets/composants/métriques |
+| `VIEW_VULNERABILITY` | voir les findings et faire l'exercice CVE (§2) |
+| `VULNERABILITY_ANALYSIS` | marquer un faux positif (§4) |
+| `BOM_UPLOAD`, `PROJECT_CREATION_UPLOAD` | importer des SBOM manuellement |
+
 ## 1. Chercher un composant dans tout le portefeuille
 
 Dans l'UI : barre de recherche globale (en haut) → saisir le nom ou le PURL du

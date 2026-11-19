@@ -72,24 +72,37 @@ curl -fsS https://dependency-track.etsmtl.club/health/ready
 
 ## Après le premier déploiement (à faire manuellement)
 
-1. **Compte admin par défaut** : le premier boot crée `admin`/`admin`. Comme
-   l'OIDC est activé, se connecter une fois avec Authentik, puis désactiver
-   (ou supprimer) le compte local `admin` dans *Administration → Access
-   Management → Users*.
-2. **Sources de vulnérabilités** (*Administration → Vulnerability Sources*) :
+1. **Équipe DT et permissions (OBLIGATOIRE)** : `dt.oidc.user-provisioning=true`
+   crée le compte à la première connexion OIDC mais n'accorde **aucune**
+   permission (message « Login succeeded, but you don't seem to have any
+   permissions yet »). La synchro d'équipes (`dt.oidc.team-synchronization`)
+   mappe le claim `groups` d'Authentik sur des **équipes DT portant le même
+   nom**. Avec le compte local `admin` (mot de passe changé au premier login) :
+   - *Administration → Access Management → Teams* → créer l'équipe
+     **`dependency-track-users`** (nom exact, identique au groupe Authentik) ;
+   - lui attribuer au minimum `VIEW_PORTFOLIO`, `VIEW_VULNERABILITY` et
+     `VULNERABILITY_ANALYSIS` ; ajouter `BOM_UPLOAD` +
+     `PROJECT_CREATION_UPLOAD` si les utilisateurs doivent aussi importer des
+     SBOM ;
+   - se déconnecter puis se reconnecter avec Authentik : la synchro d'équipes
+     s'exécute à chaque authentification.
+2. **Compte admin par défaut** : une fois les utilisateurs OIDC autorisés via
+   l'équipe ci-dessus, désactiver (ou supprimer) le compte local `admin` dans
+   *Administration → Access Management → Users*.
+3. **Sources de vulnérabilités** (*Administration → Vulnerability Sources*) :
    activer **NVD** (pas de clé requise), **GitHub Advisories** (PAT ou GitHub
    App ; le PAT partagé `ghcr` peut être réutilisé en lecture seule) et **OSV**
    (sélectionner au minimum l'écosystème Debian). Lancer « Mirror now » pour
    chacune — le premier mirroring NVD est long.
-3. **Équipe et clé API pour le pont SBOM** (obligatoire, voir section ci-dessous).
-4. **Notifications** : dans *Administration → Notifications → Publishers*, créer
+4. **Équipe et clé API pour le pont SBOM** (obligatoire, voir section ci-dessous).
+5. **Notifications** : dans *Administration → Notifications → Publishers*, créer
    un publisher **Webhook** pointant vers notre canal habituel (Discord/Matrix),
    puis une politique *Notification Rule* sur sévérité **critique/haute** avec
    `New vulnerability` et `BOM processed` comme événements. Tester avec une
    notification de test. Ces objets sont configurés via l'UI/API de DT (aucune
    variable d'environnement ne les supporte) : ils sont sauvegardés dans la base
    PostgreSQL, donc couverts par les sauvegardes B2.
-5. **Restauration** : tester une fois la restauration d'une sauvegarde B2 sur
+6. **Restauration** : tester une fois la restauration d'une sauvegarde B2 sur
    un cluster de test, puis documenter la procédure dans le wiki (issue #606).
 
 ## Pont SBOM (`bridge/`)
