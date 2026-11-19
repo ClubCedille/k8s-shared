@@ -46,7 +46,9 @@ spec:
                   ephemeral-storage: 64Mi
                 limits:
                   cpu: 500m
-                  memory: 256Mi
+                  # Le script stream les rapports un par un (~500 Mo au total) ;
+                  # 512Mi laisse de la marge pour les plus gros SBOM.
+                  memory: 512Mi
                   ephemeral-storage: 128Mi
               env:
                 - name: POD_NAMESPACE

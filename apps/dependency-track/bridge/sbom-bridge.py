@@ -50,18 +50,24 @@ def k8s(method, path, body=None, content_type="application/json"):
         return json.loads(raw) if raw else None
 
 
-def list_sbom_reports():
-    """Liste tous les SbomReport du cluster, en suivant les pages `continue`."""
-    reports, cont = [], None
+def iter_sbom_reports():
+    """Yield les SbomReport un par un (pagination `limit=1`).
+
+    Le volume total des SBOM est ~500 Mo (677 rapports) : charger la liste
+    complete en memoire fait OOMKiller le job (limite 256Mi). Une page a la
+    fois garde l'empreinte a quelques Mo par rapport.
+    """
+    cont = None
     while True:
-        path = "/apis/aquasecurity.github.io/v1alpha1/sbomreports"
+        path = "/apis/aquasecurity.github.io/v1alpha1/sbomreports?limit=1"
         if cont:
-            path += "?continue=" + urllib.parse.quote(cont)
+            path += "&continue=" + urllib.parse.quote(cont)
         page = k8s("GET", path)
-        reports.extend(page.get("items", []))
+        for report in page.get("items", []):
+            yield report
         cont = page.get("metadata", {}).get("continue")
         if not cont:
-            return reports
+            return
 
 
 def load_state():
@@ -121,11 +127,11 @@ def main():
         return 2
 
     state = load_state()
-    reports = list_sbom_reports()
-    print(f"{len(reports)} SbomReport trouves, {len(state)} deja uploades.")
+    print(f"Demarrage, {len(state)} rapports deja uploades.")
 
-    uploaded, skipped, failed = 0, 0, 0
-    for report in reports:
+    uploaded, skipped, failed, seen = 0, 0, 0, 0
+    for report in iter_sbom_reports():
+        seen += 1
         meta = report.get("metadata", {})
         bom = report.get("report", {}).get("components")
         if not isinstance(bom, dict) or "bomFormat" not in bom:
@@ -164,7 +170,7 @@ def main():
         except Exception as exc:  # noqa: BLE001
             print(f"ERREUR sauvegarde etat: {exc} -- les BOM seront re-uploades.", file=sys.stderr)
 
-    print(f"Termine: {uploaded} uploades, {skipped} inchanges, {failed} en echec.")
+    print(f"Termine: {seen} rapport(s) vus, {uploaded} uploades, {skipped} inchanges, {failed} en echec.")
     return 1 if failed else 0
 
 
