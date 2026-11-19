@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cedille-outlinewiki
+  namespace: argocd
+  annotations:
+    calidum-rotae.cedille.club/id: "abf48f98c19c16143efd0a76d7b2aaa16c203648"
+    calidum-rotae.cedille.club/club: "cedille"
+spec:
+  destination:
+    namespace: cedille-outlinewiki
+    server: https://kubernetes.default.svc
+  project: k8s-shared
+  source:
+    path: apps/clubs/cedille/outlinewiki/prod
+    repoURL: https://github.com/ClubCedille/k8s-shared
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
