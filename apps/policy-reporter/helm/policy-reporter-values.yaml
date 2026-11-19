@@ -80,12 +80,14 @@ plugin:
         path: /ready
         port: http
     resources:
+      # Le plugin enchaine les restarts (probe sur /vulnr/v1/policies =>
+      # lookup GitHub a chaque requete). Lui donner de la marge memoire/CPU.
       requests:
-        cpu: 50m
-        memory: 128Mi
+        cpu: 250m
+        memory: 256Mi
       limits:
-        cpu: 500m
-        memory: 512Mi
+        cpu: "1"
+        memory: 1Gi
     # Token GitHub pour authentifier les requetes api.github.com du plugin
     # (sinon : 403/429 rate limit / abuse detection sur les advisories
     # GHSA). La cle `token` du Secret est alimentee depuis le Vault path
@@ -103,9 +105,12 @@ plugin:
             key: token
 
 resources:
+  # Core : RSS observee a ~550 Mo avec une limite de 512 Mi => OOMKilled en
+  # boucle (49 restarts), API lente, plugin en timeout, UI lente.
+  # 1Gi laisse de la marge pour les ~73k samples de metriques / 949 rapports.
   requests:
-    cpu: 50m
-    memory: 128Mi
-  limits:
-    cpu: 500m
+    cpu: 250m
     memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
