@@ -9,8 +9,9 @@ export DT_API_KEY='<clé API avec VIEW_PORTFOLIO>'
 dtapi() { curl -fsS -H "X-Api-Key: $DT_API_KEY" -H 'Content-Type: application/json' "$@"; }
 ```
 
-La clé `sbom-bridge` n'a que `BOM_UPLOAD` et `VIEW_PORTFOLIO` : elle suffit
-pour la lecture décrite ici, mais pas pour marquer un faux positif (voir §4).
+La clé `sbom-bridge` n'a que `BOM_UPLOAD`, `PROJECT_CREATION_UPLOAD` et
+`VIEW_PORTFOLIO` : elle suffit pour la lecture décrite ici et l'upload, mais pas
+pour marquer un faux positif (voir §4).
 
 ## 1. Chercher un composant dans tout le portefeuille
 

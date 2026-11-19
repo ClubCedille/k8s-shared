@@ -1,6 +1,7 @@
 # Token de l'API Dependency-Track pour le pont SBOM. La cle doit etre creee
 # dans DT (Administration -> Access Management -> Teams) avec les seules
-# permissions BOM_UPLOAD et VIEW_PORTFOLIO, puis son token ecrit dans Vault
+# permissions BOM_UPLOAD, PROJECT_CREATION_UPLOAD et VIEW_PORTFOLIO,
+# puis son token ecrit dans Vault
 # sous kv/data/dependency-track/default/sbom-upload-token (cle `token`).
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultStaticSecret

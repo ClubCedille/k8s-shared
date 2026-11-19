@@ -112,8 +112,8 @@ Forbid`) qui exporte les `SbomReport` de Trivy Operator vers Dependency-Track.
 ### Créer la clé API (prérequis)
 
 1. Dans DT : *Administration → Access Management → Teams* → créer une équipe
-   `sbom-bridge`, lui donner les permissions `BOM_UPLOAD` et `VIEW_PORTFOLIO`
-   sur le portefeuille (et rien de plus).
+   `sbom-bridge`, lui donner les permissions `BOM_UPLOAD`, `PROJECT_CREATION_UPLOAD` (auto-create des projets
+   lors de l'upload) et `VIEW_PORTFOLIO` — rien de plus.
 2. *Administration → Access Management → API Keys* → créer une clé pour cette
    équipe et copier le token.
 3. Écrire le token dans Vault (le `secret-reader` de Kubernetes peut lire ce
