@@ -73,7 +73,7 @@ spec:
   vaultAuthRef: conjure-auth
   type: kv-v1
   mount: kv
-  path: data/conjure-outlinewiki/default/notion-secret
+  path: data/conjure-outlinewiki/default/notion-secrets
   destination:
     name: notion-secrets
     create: true
