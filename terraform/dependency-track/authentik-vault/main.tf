@@ -64,12 +64,6 @@ resource "random_password" "kek" {
   special          = false
 }
 
-resource "random_password" "oidc_client_secret" {
-  length           = 48
-  special          = true
-  override_special = "!-_="
-}
-
 resource "vault_kv_secret" "db_secret" {
   path = "${local.vault_base}/dependency-track-db-secret"
 
@@ -92,10 +86,12 @@ resource "vault_kv_secret" "kek_secret" {
 resource "vault_kv_secret" "oidc_secret" {
   path = "${local.vault_base}/dependency-track-oidc-secret"
 
+  # Le frontend Dependency-Track est un SPA public (code flow + PKCE) : il
+  # n'envoie que client_id au token endpoint. Aucun clientSecret n'est requis
+  # ni utilise ; le secret Vault ne contient donc que l'issuer et le clientId.
   data_json = jsonencode({
-    issuer       = local.issuer
-    clientId     = authentik_provider_oauth2.dependency_track.client_id
-    clientSecret = authentik_provider_oauth2.dependency_track.client_secret
+    issuer   = local.issuer
+    clientId = authentik_provider_oauth2.dependency_track.client_id
   })
 }
 
@@ -144,9 +140,12 @@ data "authentik_certificate_key_pair" "default" {
 }
 
 resource "authentik_provider_oauth2" "dependency_track" {
-  name               = local.app_slug
-  client_id          = local.app_slug
-  client_secret      = random_password.oidc_client_secret.result
+  name      = local.app_slug
+  client_id = local.app_slug
+  # SPA : client public, authentification par PKCE uniquement. Avec le defaut
+  # `confidential` et un client_secret, le token endpoint renvoie 400
+  # (auth_via=unauthenticated) car le frontend n'envoie pas de secret.
+  client_type        = "public"
   grant_types        = ["authorization_code", "refresh_token"]
   authorization_flow = data.authentik_flow.default_authorization_flow.id
   invalidation_flow  = data.authentik_flow.default_invalidation_flow.id
