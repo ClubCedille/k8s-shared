@@ -134,6 +134,21 @@ kubectl -n dependency-track create job --from=cronjob/dependency-track-sbom-brid
 kubectl -n dependency-track logs job/sbom-bridge-manual -f
 ```
 
+## Dépannage : `password authentication failed for user "dtrack"`
+
+Si CNPG a démarré **avant** que le `VaultStaticSecret` ne crée
+`dependency-track-db-secret`, l'initdb génère un mot de passe aléatoire et le
+secret Vault écrase ensuite la valeur. Les `VaultStaticSecret` portent désormais
+un sync-wave `-1` pour éviter ce cas. Sur un déploiement déjà installé,
+réaligner le rôle PostgreSQL sur le secret courant :
+
+```sh
+pod=$(kubectl -n dependency-track get pods -o name | grep postgresql-dependency-track-1 | head -1 | cut -d/ -f2)
+pass=$(kubectl -n dependency-track get secret dependency-track-db-secret -o jsonpath='{.data.password}' | base64 -d)
+kubectl -n dependency-track exec "$pod" -- psql -U postgres -d postgres \
+  -v ON_ERROR_STOP=1 -c "ALTER ROLE dtrack WITH PASSWORD '$pass';"
+```
+
 ## Reste à faire pour clore #606
 
 - [ ] Politiques et notifications vers le canal habituel.

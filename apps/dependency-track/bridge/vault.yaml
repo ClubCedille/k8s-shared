@@ -5,6 +5,8 @@
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultStaticSecret
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
   name: dependency-track-sbom-token
 spec:
   vaultAuthRef: dependency-track-auth
