@@ -1,0 +1,25 @@
+# Exposition externe. L'acces est protege par le SSO OIDC Authentik de
+# Dependency-Track : sans lui, ce proxy donnerait un acces non authentifie
+# a l'inventaire des composants et aux CVE.
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: dependency-track
+spec:
+  virtualhost:
+    fqdn: dependency-track.etsmtl.club
+    tls:
+      secretName: dependency-track-tls
+      minimumProtocolVersion: "1.3"
+  routes:
+    # Le SPA appelle l'API sur le meme hostname (API_BASE_URL).
+    - conditions:
+        - prefix: /api
+      services:
+        - name: dependency-track-api-server
+          port: 8080
+    - conditions:
+        - prefix: /
+      services:
+        - name: dependency-track-frontend
+          port: 8080

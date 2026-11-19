@@ -43,6 +43,8 @@ jobs:
             dir: terraform/hi-events/authentik-vault
           - name: policy-reporter
             dir: terraform/policy-reporter/authentik-vault
+          - name: dependency-track
+            dir: terraform/dependency-track/authentik-vault
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -124,6 +126,8 @@ jobs:
             dir: terraform/hi-events/authentik-vault
           - name: policy-reporter
             dir: terraform/policy-reporter/authentik-vault
+          - name: dependency-track
+            dir: terraform/dependency-track/authentik-vault
     steps:
       - name: Checkout
         uses: actions/checkout@v4

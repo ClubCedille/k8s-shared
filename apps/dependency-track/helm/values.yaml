@@ -1,0 +1,120 @@
+# Valeurs Dependency-Track -- chart 2.9.0 / app 5.2.1.
+#
+# Decisions locales :
+#  - images pinnées par digest (issue #606 : "Pinner les images par digest").
+#    Digests resolves le 2026-11-19 depuis registry-1.docker.io pour le tag 5.2.1 :
+#      dependencytrack/apiserver : sha256:a7ce7a42928c6c03e94e8255e2ee871f5268f55b638a69729cae7afc47ef43b8
+#      dependencytrack/frontend  : sha256:1c0f63b083af8e89ff4ede5e7ed5cfc4e23ab871fa140ed101e8dc56f53eb51c
+#  - PostgreSQL EXTERNE (CNPG, voir resources/postgres.yaml) : aucune base embarquee.
+#  - Authentification OIDC Authentik : aucun compte admin local ne doit etre
+#    utilise en exploitation (voir README.md pour sa desactivation).
+#  - Ingress/HTTPRoute du chart desactives : exposition via HTTPProxy Contour
+#    dans resources/httpproxy.yaml, comme policy-reporter.
+
+database:
+  # CNPG : service RW du cluster `postgresql-dependency-track`.
+  jdbcUrl: "jdbc:postgresql://postgresql-dependency-track-rw.dependency-track.svc.cluster.local:5432/dtrack?reWriteBatchedInserts=true"
+  # Secret cree par VaultStaticSecret (cles username/password).
+  existingSecret:
+    name: dependency-track-db-secret
+    usernameKey: username
+    passwordKey: password
+
+secretManagement:
+  # Les secrets applicatifs (cles API pour le pont SBOM, tokens) doivent etre
+  # stockes dans PostgreSQL, pas en clair dans etcd : on fournit la KEK via un
+  # secret Vault (mode `config`, cle base64 de 32 octets).
+  provider: database
+  database:
+    kek:
+      mode: config
+      existingSecret:
+        name: dependency-track-kek
+        key: kek
+
+apiServer:
+  topology: monolith
+  image:
+    repository: dependencytrack/apiserver
+    # Pin par digest -- ne jamais remettre un tag flottant.
+    tag: sha256:a7ce7a42928c6c03e94e8255e2ee871f5268f55b638a69729cae7afc47ef43b8
+    pullPolicy: IfNotPresent
+
+  # OIDC : le serveur valide les tokens emis par Authentik. Client public
+  # (PKCE) : aucun clientSecret cote serveur n'est necessaire.
+  extraEnv:
+    - name: DT_OIDC_ENABLED
+      value: "true"
+    - name: DT_OIDC_ISSUER
+      # Authentik : l'issuer est /application/o/<slug>/ et non la racine.
+      value: "https://auth.etsmtl.club/application/o/dependency-track/"
+    - name: DT_OIDC_CLIENT_ID
+      value: "dependency-track"
+    - name: DT_OIDC_USERNAME_CLAIM
+      value: "preferred_username"
+    - name: DT_OIDC_USER_PROVISIONING
+      value: "true"
+    - name: DT_OIDC_TEAM_SYNCHRONIZATION
+      value: "true"
+    - name: DT_OIDC_TEAMS_CLAIM
+      value: "groups"
+
+  web:
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "2"
+        # JVM : 80% de la limite pour le heap, 20% pour le off-heap.
+        memory: 2Gi
+
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+    scrapeInterval: 60s
+    scrapeTimeout: 30s
+    labels:
+      prometheus: in-cluster
+
+frontend:
+  image:
+    repository: dependencytrack/frontend
+    tag: sha256:1c0f63b083af8e89ff4ede5e7ed5cfc4e23ab871fa140ed101e8dc56f53eb51c
+    pullPolicy: IfNotPresent
+  # Le SPA appelle l'API sur le meme hostname (route /api de l'HTTPProxy).
+  # Utiliser apiBaseUrl (et non extraEnv) : le chart definit deja API_BASE_URL,
+  # un doublon dans extraEnv rendrait la valeur effective ambigue.
+  apiBaseUrl: "https://dependency-track.etsmtl.club"
+  extraEnv:
+    - name: OIDC_ISSUER
+      value: "https://auth.etsmtl.club/application/o/dependency-track/"
+    - name: OIDC_CLIENT_ID
+      value: "dependency-track"
+    - name: OIDC_SCOPE
+      value: "openid profile email"
+    - name: OIDC_LOGIN_BUTTON_TEXT
+      value: "Se connecter avec Authentik"
+  resources:
+    requests:
+      cpu: 150m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 128Mi
+
+fileStorage:
+  provider: local
+  local:
+    size: 20Gi
+    storageClassName: ceph-rbd
+    accessModes:
+      - ReadWriteOnce
+    mountPath: /data
+
+# Exposure geree par resources/httpproxy.yaml (Contour + cert-manager).
+ingress:
+  enabled: false
+httpRoute:
+  enabled: false

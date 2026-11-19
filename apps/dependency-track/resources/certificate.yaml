@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: dependency-track-tls
+spec:
+  secretName: dependency-track-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: dependency-track.etsmtl.club
+  dnsNames:
+    - dependency-track.etsmtl.club

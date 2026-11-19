@@ -1,0 +1,50 @@
+---
+namespace: dependency-track
+
+resources:
+  # VaultStaticSecret (credentials DB, KEK, OIDC, B2) + PostgreSQL CNPG,
+  # certificat TLS, HTTPProxy et regles d'alerte.
+  - resources
+
+helmCharts:
+  # Chart 2.9.0 -> Dependency-Track 5.2.1.
+  # Signature verifiee via KEYS du depôt officiel :
+  #   gpg --dearmor KEYS > keys.gpg
+  #   helm verify dependency-track-2.9.0.tgz --keyring keys.gpg
+  #   -> Signed by: OWASP Dependency-Track Helm Charts
+  #      Fingerprint: 9E84D97EE40FC91081E0AB5CDA73BC27D109A385
+  # Les images sont pinnées par digest dans helm/values.yaml (aucun tag flottant).
+  - name: dependency-track
+    repo: https://dependencytrack.github.io/helm-charts/
+    version: 2.9.0
+    releaseName: dependency-track
+    namespace: dependency-track
+    valuesFile: ./helm/values.yaml
+
+# Le chart ne gere pas ces aspects ; les ignorer avec justification plutôt
+# que de patcher le rendu Helm (voir README du dépôt, politique kube-score).
+patches:
+  - target:
+      kind: Deployment
+      name: dependency-track-api-server
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: dependency-track-api-server
+        annotations:
+          # Images pinnees par digest : IfNotPresent est voulu (pas de tag).
+          # Le schema du chart n'autorise pas ephemeral-storage dans resources.
+          kube-score/ignore: pod-networkpolicy, container-image-tag, container-image-pull-policy, container-security-context-user-group-id, container-ephemeral-storage-request-and-limit
+  - target:
+      kind: Deployment
+      name: dependency-track-frontend
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: dependency-track-frontend
+        annotations:
+          # rootfs writable : le SPA ecrit sa config runtime au demarrage.
+          # probes identiques : defaut upstream (/static/config.json).
+          kube-score/ignore: pod-networkpolicy, container-image-tag, container-image-pull-policy, container-security-context-user-group-id, container-ephemeral-storage-request-and-limit, container-security-context-readonlyrootfilesystem, pod-probes-identical
