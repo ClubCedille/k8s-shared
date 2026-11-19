@@ -30,6 +30,10 @@ DT_URL = os.environ.get(
 TOKEN_PATH = "/var/run/secrets/dt/token"
 STATE_CM = "sbom-bridge-state"
 STATE_KEY = "uploaded"
+# Un import BOM declenche plusieurs workflows et taches asynchrones cote DT.
+# Sans delai, 600+ uploads en rafale saturent l'API (readiness timeout) et
+# PostgreSQL (replay WAL) -- observé lors du premier run.
+UPLOAD_DELAY_SEC = float(os.environ.get("UPLOAD_DELAY_SEC", "1.0"))
 
 with open("/var/run/secrets/kubernetes.io/serviceaccount/token", encoding="utf-8") as f:
     SA_TOKEN = f.read().strip()
@@ -174,6 +178,7 @@ def main():
                 raise RuntimeError(f"HTTP {status}")
             state[uid] = fingerprint
             uploaded += 1
+            time.sleep(UPLOAD_DELAY_SEC)
         except Exception as exc:  # noqa: BLE001 - on continue avec les autres rapports
             failed += 1
             print(f"ERREUR upload {project}@{version}: {exc}", file=sys.stderr)
