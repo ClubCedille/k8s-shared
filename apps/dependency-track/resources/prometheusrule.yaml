@@ -1,0 +1,42 @@
+# Sante du scrape du serveur d'API Dependency-Track.
+# Note : kube-prometheus-stack est deploye sans Alertmanager dans k8s-shared ;
+# ces alertes sont visibles via Prometheus/Grafana mais ne notifient pas encore.
+# Le routage vers le canal habituel (webhook Dependency-Track / Alertmanager)
+# fera l'objet d'une MR de suivi pour l'issue #606.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: dependency-track
+  labels:
+    app.kubernetes.io/name: dependency-track
+    app.kubernetes.io/part-of: dependency-track
+spec:
+  groups:
+    - name: dependency-track
+      rules:
+        - alert: DependencyTrackDown
+          expr: up{job="dependency-track-api-server-metrics"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Dependency-Track API est down"
+            description: "Prometheus ne scrape plus job=\"dependency-track-api-server-metrics\" depuis 5 min (instance {{ $labels.instance }})."
+
+        - alert: DependencyTrackScrapeSamplesEmpty
+          expr: scrape_samples_scraped{job="dependency-track-api-server-metrics"} == 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Scrape Dependency-Track vide"
+            description: "Le dernier scrape du serveur d'API n'a ramene aucun sample (instance {{ $labels.instance }}). Le endpoint /metrics du port management (9000) est-il accessible ?"
+
+        - alert: DependencyTrackScrapeSlow
+          expr: scrape_duration_seconds{job="dependency-track-api-server-metrics"} > 10
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Scrape Dependency-Track lent ({{ $value }}s)"
+            description: "Le scrape depasse 10s (budget timeout : 30s). Verifier la charge de l'API et le nombre de composants ingeres."
