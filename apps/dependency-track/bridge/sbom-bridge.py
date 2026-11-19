@@ -30,6 +30,10 @@ DT_URL = os.environ.get(
 TOKEN_PATH = "/var/run/secrets/dt/token"
 STATE_CM = "sbom-bridge-state"
 STATE_KEY = "uploaded"
+# Un import BOM declenche plusieurs workflows et taches asynchrones cote DT.
+# Sans delai, 600+ uploads en rafale saturent l'API (readiness timeout) et
+# PostgreSQL (replay WAL) -- observé lors du premier run.
+UPLOAD_DELAY_SEC = float(os.environ.get("UPLOAD_DELAY_SEC", "1.0"))
 
 with open("/var/run/secrets/kubernetes.io/serviceaccount/token", encoding="utf-8") as f:
     SA_TOKEN = f.read().strip()
@@ -96,6 +100,20 @@ def save_state(state):
         k8s("POST", f"/api/v1/namespaces/{NAMESPACE}/configmaps", body=cm)
 
 
+def sanitize_bom(bom):
+    """Dedoublonne `dependencies[].dependsOn`.
+
+    Certains SBOM generes par Trivy contiennent des entrees dupliquees dans
+    `dependsOn`, ce qui fait echouer la validation de schema CycloneDX cote
+    Dependency-Track (HTTP 400 "must have only unique items in the array").
+    """
+    for dependency in bom.get("dependencies", []):
+        depends_on = dependency.get("dependsOn")
+        if isinstance(depends_on, list):
+            dependency["dependsOn"] = list(dict.fromkeys(depends_on))
+    return bom
+
+
 def upload_bom(api_key, project_name, project_version, bom):
     payload = {
         "projectName": project_name,
@@ -155,11 +173,12 @@ def main():
 
         project = f"{CLUSTER}/{ns}/{workload}/{container}"
         try:
-            status = upload_bom(api_key, project, version, bom)
+            status = upload_bom(api_key, project, version, sanitize_bom(bom))
             if status != 200:
                 raise RuntimeError(f"HTTP {status}")
             state[uid] = fingerprint
             uploaded += 1
+            time.sleep(UPLOAD_DELAY_SEC)
         except Exception as exc:  # noqa: BLE001 - on continue avec les autres rapports
             failed += 1
             print(f"ERREUR upload {project}@{version}: {exc}", file=sys.stderr)

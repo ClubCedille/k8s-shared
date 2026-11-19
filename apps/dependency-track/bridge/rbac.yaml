@@ -35,9 +35,12 @@ metadata:
   name: dependency-track-sbom-bridge
   namespace: dependency-track
 rules:
+  # `create` ne peut pas etre limite par resourceNames : le Role couvre donc
+  # les ConfigMaps du namespace dedie. Le script cree sbom-bridge-state s'il
+  # n'existe pas, puis le met a jour. Ce ConfigMap n'est pas gere par ArgoCD
+  # (il n'est pas dans les manifestes) pour eviter tout self-heal de l'etat.
   - apiGroups: [""]
     resources: ["configmaps"]
-    resourceNames: ["sbom-bridge-state"]
     verbs: ["get", "create", "update"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1

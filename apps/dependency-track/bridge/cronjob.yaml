@@ -59,6 +59,10 @@ spec:
                   value: k8s-shared
                 - name: DT_URL
                   value: http://dependency-track-api-server.dependency-track.svc.cluster.local:8080
+                # 600+ BOM en rafale saturent l'API DT et PostgreSQL (observe
+                # au premier run) : espacer les uploads d'au moins 1s.
+                - name: UPLOAD_DELAY_SEC
+                  value: "1.0"
               volumeMounts:
                 - name: script
                   mountPath: /app/sbom-bridge.py
