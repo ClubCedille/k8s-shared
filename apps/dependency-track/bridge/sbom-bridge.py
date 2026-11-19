@@ -55,24 +55,41 @@ def k8s(method, path, body=None, content_type="application/json"):
         return json.loads(raw) if raw else None
 
 
-def iter_sbom_reports():
-    """Yield les SbomReport un par un (pagination `limit=1`).
+def list_report_refs():
+    """Liste rapidement les references des SbomReport (sans les BOM).
 
-    Le volume total des SBOM est ~500 Mo (677 rapports) : charger la liste
-    complete en memoire fait OOMKiller le job (limite 256Mi). Une page a la
-    fois garde l'empreinte a quelques Mo par rapport.
+    Deux contraintes observees en production :
+      * ~500 Mo de BOM au total : charger la liste complete fait OOMKiller ;
+      * un `continue` token K8s expire apres ~5 min : avec 1s d'espacement
+        entre les uploads, la pagination melee aux uploads renvoie HTTP 410.
+
+    On parcourt donc d'abord les pages de 20 rapports en gardant uniquement
+    uid/namespace/nom/labels (quelques Ko), sans upload. La liste complete
+    tient en ~100 Ko. Chaque BOM est ensuite charge individuellement.
     """
-    cont = None
+    refs, cont = [], None
     while True:
-        path = "/apis/aquasecurity.github.io/v1alpha1/sbomreports?limit=1"
+        path = "/apis/aquasecurity.github.io/v1alpha1/sbomreports?limit=20"
         if cont:
             path += "&continue=" + urllib.parse.quote(cont)
         page = k8s("GET", path)
         for report in page.get("items", []):
-            yield report
+            meta = report.get("metadata", {})
+            refs.append({
+                "namespace": meta.get("namespace"),
+                "name": meta.get("name"),
+                "uid": meta.get("uid"),
+                "resourceVersion": meta.get("resourceVersion", ""),
+                "labels": meta.get("labels", {}),
+            })
         cont = page.get("metadata", {}).get("continue")
         if not cont:
-            return
+            return refs
+
+
+def get_report(namespace, name):
+    """Charge un seul SbomReport complet."""
+    return k8s("GET", f"/apis/aquasecurity.github.io/v1alpha1/namespaces/{namespace}/sbomreports/{name}")
 
 
 def load_state():
@@ -146,30 +163,39 @@ def main():
         return 2
 
     state = load_state()
-    print(f"Demarrage, {len(state)} rapports deja uploades.")
+    print(f"Demarrage, {len(state)} rapports deja uploades.", flush=True)
+
+    refs = list_report_refs()
+    print(f"{len(refs)} SbomReport trouves, {len(state)} deja uploades.", flush=True)
 
     uploaded, skipped, failed, seen = 0, 0, 0, 0
-    for report in iter_sbom_reports():
+    for ref in refs:
         seen += 1
-        meta = report.get("metadata", {})
-        bom = report.get("report", {}).get("components")
+        uid, rv = ref["uid"], ref["resourceVersion"]
+        if not uid:
+            continue
+        try:
+            report = get_report(ref["namespace"], ref["name"])
+        except Exception as exc:  # noqa: BLE001 - rapport supprime entre-temps
+            failed += 1
+            print(f"ERREUR lecture {ref['namespace']}/{ref['name']}: {exc}", file=sys.stderr)
+            continue
+
+        rep = (report or {}).get("report", {})
+        bom = rep.get("components")
         if not isinstance(bom, dict) or "bomFormat" not in bom:
             continue
 
-        uid = meta.get("uid")
-        rv = meta.get("resourceVersion", "")
-        if not uid:
-            continue
-        fingerprint = f"{rv}/{report.get('report', {}).get('artifact', {}).get('digest', '')}"
+        digest = rep.get("artifact", {}).get("digest", "") or ""
+        fingerprint = f"{rv}/{digest}"
         if state.get(uid) == fingerprint:
             skipped += 1
             continue
 
-        labels = meta.get("labels", {})
-        ns = labels.get("trivy-operator.resource.namespace", meta.get("namespace", "unknown"))
-        workload = labels.get("trivy-operator.resource.name", meta.get("name", "unknown"))
+        labels = ref["labels"]
+        ns = labels.get("trivy-operator.resource.namespace", ref["namespace"] or "unknown")
+        workload = labels.get("trivy-operator.resource.name", ref["name"] or "unknown")
         container = labels.get("trivy-operator.container.name", "default")
-        digest = report.get("report", {}).get("artifact", {}).get("digest", "") or ""
         version = digest.split(":")[-1][:12] if digest else rv
 
         project = f"{CLUSTER}/{ns}/{workload}/{container}"
@@ -190,7 +216,7 @@ def main():
         except Exception as exc:  # noqa: BLE001
             print(f"ERREUR sauvegarde etat: {exc} -- les BOM seront re-uploades.", file=sys.stderr)
 
-    print(f"Termine: {seen} rapport(s) vus, {uploaded} uploades, {skipped} inchanges, {failed} en echec.")
+    print(f"Termine: {seen} rapport(s) vus, {uploaded} uploades, {skipped} inchanges, {failed} en echec.", flush=True)
     return 1 if failed else 0
 
 
