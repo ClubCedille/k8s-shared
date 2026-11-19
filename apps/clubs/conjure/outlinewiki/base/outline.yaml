@@ -33,6 +33,8 @@ spec:
           envFrom:
             - secretRef:
                 name: outline-secrets
+            - secretRef:
+                name: notion-secrets
             - configMapRef:
                 name: outline-config
           env:

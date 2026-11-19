@@ -64,3 +64,17 @@ spec:
     name: dockerhub-secret
     create: true
     type: kubernetes.io/dockerconfigjson
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: notion-secrets
+spec:
+  vaultAuthRef: conjure-auth
+  type: kv-v1
+  mount: kv
+  path: data/conjure-outlinewiki/default/notion-secret
+  destination:
+    name: notion-secrets
+    create: true
+---
