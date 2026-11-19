@@ -25,6 +25,47 @@ provider "grafana" {
   auth = var.GRAFANA_SERVICE_ACCOUNT_TOKEN
 }
 
+# Les ressources grafana_organization sont instance-scoped et utilisent
+# les API admin de Grafana : un token de service account (org-scoped) ne
+# suffit pas, il faut la basic auth du compte Server Admin local. Ce
+# provider ne sert qu'aux deux orgs ; les ressources d'org restent sur le
+# provider par défaut.
+provider "grafana" {
+  alias = "admin"
+  url   = "https://grafana.etsmtl.club"
+  auth  = var.GRAFANA_ADMIN_AUTH
+}
+
+# L'org par défaut (id 1, "Main Org.") conserve tous les dashboards et
+# datasources existants : on la renomme simplement "Cedille" plutôt que
+# de ré-importer les dashboards dans une nouvelle org. Import unique à
+# faire avant le premier apply (voir docs/grafana-orgs-2026-11):
+#   tofu import grafana_organization.cedille 1
+# L'appartenance à l'org est gérée par OIDC (auto_assign_org + groupes
+# Authentik), pas par Terraform : ignore_changes empêche un apply de
+# retirer les utilisateurs ajoutés lors des logins.
+resource "grafana_organization" "cedille" {
+  provider = grafana.admin
+  name     = "Cedille"
+
+  lifecycle {
+    ignore_changes = [admins, editors, viewers, users_without_access]
+  }
+}
+
+# Nouvelle org isolée. Aucun dashboard/datasource n'y est provisionné
+# pour l'instant : les siens seront à créer séparément. Les membres sont
+# ajoutés automatiquement par org_mapping (voir helm/values.yaml) lors de
+# leur prochain login Authentik, avec le rôle de leur groupe.
+resource "grafana_organization" "lan_ets" {
+  provider = grafana.admin
+  name     = "Lan_ETS"
+
+  lifecycle {
+    ignore_changes = [admins, editors, viewers, users_without_access]
+  }
+}
+
 # Le dossier est créé par le sidecar de dashboards du chart Grafana (voir
 # apps/grafana/resources/dashboards/k8s-app-logs-overview.yaml, annotation
 # k8s-sidecar-target-directory: "Kubernetes/App-Logs"), pas par Terraform --
@@ -53,12 +94,13 @@ data "grafana_folder" "k8s_app_logs" {
 # (grafana_data_source_permission) est une fonctionnalité Grafana
 # ENTERPRISE uniquement (confirmé dans la doc du provider : cette ressource
 # est classée "Grafana Enterprise", contrairement à grafana_folder_permission
-# qui est "Grafana OSS"). Ce cluster tourne en OSS -- il n'y a donc
-# actuellement aucun moyen étanche de cacher le datasource Loki lui-même aux
-# Viewers dans Explore. Deux options si ce point doit être fermé : une
-# licence Enterprise, ou déplacer le contenu staff-only dans un Org Grafana
-# séparé (les Viewers n'y étant jamais invités, le datasource n'existe
-# simplement pas pour eux). Aucune des deux n'est faite ici.
+# qui est "Grafana OSS"). Ce cluster tourne en OSS -- il n'y a donc toujours
+# aucun moyen étanche de cacher le datasource Loki lui-même aux Viewers de
+# Cedille dans Explore. Deux options si ce point doit être fermé : une
+# licence Enterprise, ou déplacer le contenu staff-only dans une org
+# séparée. L'org Lan_ETS créée ci-dessus est bien séparée, mais les
+# dashboards et datasources n'y ont PAS été déplacés : le risque Explore
+# reste donc entier dans Cedille.
 resource "grafana_folder_permission" "k8s_app_logs" {
   folder_uid = data.grafana_folder.k8s_app_logs.uid
 

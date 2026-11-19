@@ -71,14 +71,32 @@ grafana.ini:
     api_url: "https://auth.etsmtl.club/application/o/userinfo/"
     signout_redirect_url: "https://auth.etsmtl.club/application/o/grafana/end-session/"
     login_attribute_path: preferred_username
-    # Members of either Authentik group (see terraform/grafana/
-    # authentik-vault) get Editor (dashboard creation + Explore/
-    # Drilldown) on next login. Everyone else falls through to
-    # auto_assign_org_role (Viewer, chart default). Grafana OSS has no
-    # Team Sync (Enterprise-only), so both groups currently grant the
-    # same role -- see the comment on the group resources in
-    # authentik-vault for why they're still kept separate.
+    # L'org par défaut (id 1) est renommée "Cedille" via Terraform
+    # (terraform/grafana/access/main.tf) : les dashboards et datasources
+    # existants restent où ils sont. Tout compte Authentik y est ajouté
+    # automatiquement (auto_assign_org, défaut true) avec le rôle Viewer
+    # (celui de auto_assign_org_role à la création, puis celui de
+    # "*:Cedille:Viewer" ci-dessous aux logins suivants), sauf les deux
+    # groupes staff ci-dessous qui reçoivent Editor (création de dashboards + Explore/
+    # Drilldown) au prochain login. Grafana OSS n'a pas de Team Sync
+    # (Enterprise-only), d'où l'absence de granularité entre ces deux
+    # groupes.
     role_attribute_path: "contains(groups, 'grafana-dashboard-creators') && 'Editor' || contains(groups, 'grafana-metrics-explorers') && 'Editor' || 'Viewer'"
+    # org_attribute_path doit évaluer un TABLEAU : le claim "groups" est
+    # produit par grafana-scope-groups (terraform/grafana/
+    # authentik-vault). org_mapping ajoute l'utilisateur à l'org Lan_ETS
+    # (créée par Terraform) avec le rôle de son groupe Authentik. Sans
+    # appartenance à l'un de ces trois groupes, Lan_ETS reste inaccessible.
+    #
+    # "*:Cedille:Viewer" est indispensable : dès qu'org_mapping est
+    # renseigné, Grafana remplace TOUS les rôles d'org de l'utilisateur
+    # par ceux du mapping (et retire l'appartenance aux orgs absentes).
+    # Sans cette entrée, les membres des groupes Lan_ETS perdraient
+    # l'accès à Cedille. Le rôle issu de role_attribute_path est ensuite
+    # fusionné en prenant le plus élevé : les groupes staff restent
+    # Editor dans Cedille.
+    org_attribute_path: "groups"
+    org_mapping: "*:Cedille:Viewer grafana-lanets-admin:Lan_ETS:Admin grafana-lanets-editor:Lan_ETS:Editor grafana-lanets-viewer:Lan_ETS:Viewer"
     # New OAuth sign-ups land as Viewer by default (Grafana's normal OAuth
     # default) -- promote the first admin manually via the local admin
     # account (admin/admin, see chart default adminUser/adminPassword)
