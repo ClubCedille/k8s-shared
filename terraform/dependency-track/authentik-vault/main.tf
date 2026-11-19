@@ -162,17 +162,14 @@ resource "authentik_provider_oauth2" "dependency_track" {
     authentik_property_mapping_provider_scope.groups.id,
   ]
 
-  # SPA (code flow + PKCE) : callback a la racine de l'application.
+  # SPA (code flow + PKCE) : le frontend Dependency-Track envoie
+  # redirect_uri=https://<host>/static/oidc-callback.html (observe dans les
+  # logs Authentik : cause=redirect_uri_no_match avec la racine seule).
   allowed_redirect_uris = [
     {
       matching_mode     = "strict"
       redirect_uri_type = "authorization"
-      url               = "https://${local.hostname}"
-    },
-    {
-      matching_mode     = "strict"
-      redirect_uri_type = "authorization"
-      url               = "https://${local.hostname}/"
+      url               = "https://${local.hostname}/static/oidc-callback.html"
     },
   ]
 }
