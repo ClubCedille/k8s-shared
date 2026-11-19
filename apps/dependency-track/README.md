@@ -81,19 +81,61 @@ curl -fsS https://dependency-track.etsmtl.club/health/ready
    App ; le PAT partagé `ghcr` peut être réutilisé en lecture seule) et **OSV**
    (sélectionner au minimum l'écosystème Debian). Lancer « Mirror now » pour
    chacune — le premier mirroring NVD est long.
-3. **Équipe et clé API pour le pont SBOM** : créer une équipe (ex. `sre`) et
-   une clé API avec les seules permissions `BOM_UPLOAD` / `VIEW_PORTFOLIO`,
-   puis stocker la clé dans Vault sous
-   `kv/data/dependency-track/default/sbom-upload-token` pour le CronJob de la
-   MR suivante.
-4. **Notifications** : configurer un publisher webhook vers notre canal
-   habituel, avec une politique « critique/haute » (MR de suivi).
+3. **Équipe et clé API pour le pont SBOM** (obligatoire, voir section ci-dessous).
+4. **Notifications** : dans *Administration → Notifications → Publishers*, créer
+   un publisher **Webhook** pointant vers notre canal habituel (Discord/Matrix),
+   puis une politique *Notification Rule* sur sévérité **critique/haute** avec
+   `New vulnerability` et `BOM processed` comme événements. Tester avec une
+   notification de test. Ces objets sont configurés via l'UI/API de DT (aucune
+   variable d'environnement ne les supporte) : ils sont sauvegardés dans la base
+   PostgreSQL, donc couverts par les sauvegardes B2.
 5. **Restauration** : tester une fois la restauration d'une sauvegarde B2 sur
    un cluster de test, puis documenter la procédure dans le wiki (issue #606).
 
+## Pont SBOM (`bridge/`)
+
+CronJob quotidien `dependency-track-sbom-bridge` (04h15, `concurrencyPolicy:
+Forbid`) qui exporte les `SbomReport` de Trivy Operator vers Dependency-Track.
+
+- Le champ `.report.components` de chaque CR est un document **CycloneDX**
+  complet : il est envoyé tel quel à `PUT /api/v1/bom` avec `autoCreate: true`.
+- Nommage des projets : `<cluster>/<namespace>/<workload>/<conteneur>` (ex.
+  `k8s-shared/algoets-website/algoets-website-57988b5c76/nginx`) ; la version
+  est le digest court de l'image.
+- Un ConfigMap `sbom-bridge-state` mémorise la `resourceVersion` du dernier
+  rapport uploadé par UID : seuls les BOM modifiés sont renvoyés. Supprimer ce
+  ConfigMap force une resynchronisation complète.
+- L'image Python est épinglée par digest ; le script n'utilise que la stdlib.
+- RBAC minimal : `get/list` sur `sbomreports` (cluster-wide) et
+  `get/create/update` sur le seul ConfigMap d'état.
+
+### Créer la clé API (prérequis)
+
+1. Dans DT : *Administration → Access Management → Teams* → créer une équipe
+   `sbom-bridge`, lui donner les permissions `BOM_UPLOAD` et `VIEW_PORTFOLIO`
+   sur le portefeuille (et rien de plus).
+2. *Administration → Access Management → API Keys* → créer une clé pour cette
+   équipe et copier le token.
+3. Écrire le token dans Vault (le `secret-reader` de Kubernetes peut lire ce
+   chemin, mais pas l'écrire) :
+
+   ```sh
+   vault kv put kv/dependency-track/default/sbom-upload-token token="<token>"
+   ```
+
+4. Le `VaultStaticSecret` `dependency-track-sbom-token` crée alors le Secret
+   Kubernetes ; le CronJob peut démarrer. Sans token, le job s'arrête avec un
+   message explicite (le volume est `optional: true` pour ne pas bloquer le pod).
+
+Vérification :
+
+```sh
+kubectl -n dependency-track create job --from=cronjob/dependency-track-sbom-bridge sbom-bridge-manual
+kubectl -n dependency-track logs job/sbom-bridge-manual -f
+```
+
 ## Reste à faire pour clore #606
 
-- [ ] Pont Trivy `SbomReport` → Dependency-Track (CronJob d'export + upload API).
 - [ ] Politiques et notifications vers le canal habituel.
 - [ ] Validation de l'exercice « trouver les projets affectés par une CVE en < 5 min ».
 - [ ] Documentation wiki (recherche d'un composant, lecture d'un projet, faux positifs).
