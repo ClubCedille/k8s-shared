@@ -100,7 +100,9 @@ operator:
   # -- scannerReportTTL the flag to set how long a report should exist. "" means that the ScannerReportTTL feature is disabled
   scannerReportTTL: "48h"
   # -- cacheReportTTL the flag to set how long a cluster sbom report should exist. "" means that the cacheReportTTL feature is disabled
-  cacheReportTTL: "240h"
+  # 240h conservait ~663 SBOM (~493 Mo) dans le watch-cache des 5 apiservers,
+  # soit ~13 Gi de RSS par control-plane et des OOM en cascade. Aligne sur scannerReportTTL.
+  cacheReportTTL: "48h"
   # -- configAuditScannerEnabled the flag to enable configuration audit scanner
   configAuditScannerEnabled: true
   # -- rbacAssessmentScannerEnabled the flag to enable rbac assessment scanner
