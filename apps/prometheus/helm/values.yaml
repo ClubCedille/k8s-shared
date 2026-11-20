@@ -5,9 +5,10 @@
 # local court.
 #
 # kube-prometheus-stack est utilisé pour l'operator (CRDs Prometheus/
-# ServiceMonitor/...) et le Prometheus managé. Tout le reste de la stack
-# (Grafana, Alertmanager, node-exporter, kube-state-metrics) est déjà fourni
-# ailleurs dans apps/ ou n'est pas nécessaire ici.
+# ServiceMonitor/...), le Prometheus managé, kube-state-metrics et le scrape
+# cAdvisor des kubelets (voir plus bas). Grafana, Alertmanager et node-exporter
+# ne sont pas nécessaires ici : Grafana/Mimir/Loki sont déployés à part dans
+# apps/ (et node-exporter tourne sur les hôtes Proxmox/NAS, pas dans ce cluster).
 
 crds:
   enabled: true
@@ -26,8 +27,11 @@ alertmanager:
   enabled: false
 nodeExporter:
   enabled: false
+# kube-state-metrics fournit les requests/limits (kube_pod_container_resource_*)
+# et l'état des conteneurs. Indispensable au dashboard de recensement des
+# ressources : apps/grafana/resources/dashboards/k8s-resources-oom-risk.yaml.
 kubeStateMetrics:
-  enabled: false
+  enabled: true
 windowsMonitoring:
   enabled: false
 
@@ -36,8 +40,26 @@ windowsMonitoring:
 # targets "down" en permanence.
 kubeApiServer:
   enabled: false
+# Les kubelets, eux, sont scrapés : /metrics/cadvisor expose l'usage réel
+# (container_cpu_usage_seconds_total, container_memory_working_set_bytes) et
+# les OOM (container_oom_events_total), vérifiés via
+#   kubectl get --raw /api/v1/nodes/<noeud>/proxy/metrics/cadvisor
+# Le certificat serving des kubelets Talos est signé par une CA propre à chaque
+# noeud (CN=<noeud>-ca) : KPS pose donc insecureSkipVerify: true par défaut, ce
+# qui est le comportement attendu ici (même raison que --kubelet-insecure-tls
+# dans apps/metrics-server/helm/values.yaml). Le token du ServiceAccount
+# Prometheus a bien l'accès `nodes/metrics` (vérifié via son ClusterRole).
 kubelet:
-  enabled: false
+  enabled: true
+  serviceMonitor:
+    # On ne veut que /metrics/cadvisor : /metrics et /metrics/probes de kubelet
+    # ne servent pas au dashboard de ressources et ajoutent du volume inutile.
+    kubelet: false
+    probes: false
+    cAdvisor: true
+    # Défaut du chart : 10s. Aligné sur le scrapeInterval global (30s) pour ne
+    # pas multiplier par 3 le nombre de samples remote-writés vers Mimir.
+    cAdvisorInterval: "30s"
 kubeControllerManager:
   enabled: false
 kubeScheduler:
