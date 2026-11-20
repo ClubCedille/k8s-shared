@@ -18,7 +18,7 @@ helmCharts:
   # Les images sont pinnées par digest dans helm/values.yaml (aucun tag flottant).
   - name: dependency-track
     repo: https://dependencytrack.github.io/helm-charts/
-    version: 2.9.0
+    version: 2.10.0
     releaseName: dependency-track
     namespace: dependency-track
     valuesFile: ./helm/values.yaml
