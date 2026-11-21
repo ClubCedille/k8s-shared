@@ -171,3 +171,15 @@ resource "authentik_group" "proxmox-networking-core-user" {
 resource "authentik_group" "summercamp" {
   name = "summercamp"
 }
+
+resource "authentik_group" "formulemaster_capitaines" {
+  name = "formulemaster-capitaines"
+}
+
+resource "authentik_group" "formulemaster_gestionnaires_beton" {
+  name = "formulemaster-gestionnaires-beton"
+}
+
+resource "authentik_group" "formulemaster_users" {
+  name = "formulemaster-users"
+}
