@@ -3,7 +3,9 @@ locals {
   clubs = sort(distinct(concat(
     [for c in yamldecode(file("${path.module}/../../data/clubs.yaml")) : c.name],
   )))
-
+  proxmox = sort(distinct(concat(
+    [for c in yamldecode(file("${path.module}/../../data/proxmox.yaml")) : c.name],
+  )))
   # Rôles additionnels pour certains clubs qui nécessitent des rôles spécifiques
   club_group_roles = {
     "cedille" = authentik_rbac_role.club-cedille.id
