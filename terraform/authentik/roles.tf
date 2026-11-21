@@ -2,26 +2,6 @@ resource "authentik_rbac_role" "outline_sync_service" {
   name = "Outline Sync Service"
 }
 
-resource "authentik_rbac_role" "ak-managed-role--user-2" {
-  name = "ak-managed-role--user-2"
-}
-
-resource "authentik_rbac_role" "ak-managed-role--user-256" {
-  name = "ak-managed-role--user-256"
-}
-
-resource "authentik_rbac_role" "ak-migrated-role--user-12" {
-  name = "ak-migrated-role--user-12"
-}
-
-resource "authentik_rbac_role" "ak-migrated-role--user-2" {
-  name = "ak-migrated-role--user-2"
-}
-
-resource "authentik_rbac_role" "ak-migrated-role--user-77" {
-  name = "ak-migrated-role--user-77"
-}
-
 resource "authentik_rbac_role" "authentik_agent-users" {
   name = "authentik Agent-Users"
 }
