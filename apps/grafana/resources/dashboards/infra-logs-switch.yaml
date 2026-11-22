@@ -5,14 +5,14 @@ metadata:
   labels:
     grafana_dashboard: "1"
   annotations:
-    k8s-sidecar-target-directory: "Infra/Logs"
+    k8s-sidecar-target-directory: "Infra/Logs (inactif)"
 data:
   infra-logs-switch.json: |
     {
       "annotations": {
         "list": []
       },
-      "description": "Syslog des switches (data01/core01) filtr\u00e9 : interfaces up/down/flap, port-channels, STP. Vide tant que Plateforme-Cedille#656 n'est pas r\u00e9solu.",
+      "description": "Syslog des switches (data01/core01) : interfaces up/down/flap, port-channels, STP. INACTIF : plus aucun stream Loki job=\"switch\" depuis ~2 semaines (collecteur externe monitoring01, voir Plateforme-Cedille#656). Dashboard conserv\u00e9 pour m\u00e9moire mais class\u00e9 hors de la navigation courante.",
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 1,
@@ -151,7 +151,8 @@ data:
       "tags": [
         "infra",
         "logs",
-        "switch"
+        "switch",
+        "inactive"
       ],
       "templating": {
         "list": [
@@ -217,7 +218,7 @@ data:
       },
       "timepicker": {},
       "timezone": "browser",
-      "title": "Infra \u2014 Switch Logs",
+      "title": "Infra \u2014 Switch Logs (inactif)",
       "uid": "infra-logs-switch",
       "version": 1,
       "weekStart": ""
