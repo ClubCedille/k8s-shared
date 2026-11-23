@@ -5,7 +5,7 @@ metadata:
   labels:
     grafana_dashboard: "1"
   annotations:
-    k8s-sidecar-target-directory: "Infra"
+    k8s-sidecar-target-directory: "Infra/Network"
 data:
   infra-opnsense.json: |
     {

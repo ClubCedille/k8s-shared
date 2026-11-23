@@ -13,3 +13,23 @@ helmCharts:
     # Installe les CRDs monitoring.coreos.com (absentes du cluster). ArgoCD
     # applique les CRDs avant les CRs du même sync.
     includeCRDs: true
+patches:
+  # kube-state-metrics prend ~20s à produire toutes ses métriques sur ce
+  # cluster. Avec le timeout de scrape par défaut (10s), la target reste
+  # "down" (context deadline exceeded, broken pipe dans les logs KSM) et
+  # kube_pod_container_resource_* n'est jamais envoyé à Mimir. On relève le
+  # timeout du ServiceMonitor généré par kube-prometheus-stack à 30s.
+  - target:
+      kind: ServiceMonitor
+      name: prometheus-kube-state-metrics
+    patch: |-
+      apiVersion: monitoring.coreos.com/v1
+      kind: ServiceMonitor
+      metadata:
+        name: prometheus-kube-state-metrics
+      spec:
+        endpoints:
+          - port: http
+            honorLabels: true
+            interval: 30s
+            scrapeTimeout: 30s

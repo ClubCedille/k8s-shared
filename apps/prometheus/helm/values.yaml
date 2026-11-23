@@ -121,6 +121,18 @@ prometheus:
         queueConfig:
           maxSamplesPerSend: 2000
           maxShards: 10
+        # Mimir refuse au-delà de 150 000 séries actives par tenant
+        # (err-mimir-max-series-per-user). Ce Prometheus en expose ~213 000,
+        # dont ~69 000 de policy_report_result (policy-reporter, non utilisé
+        # par les dashboards Grafana) et ~12 000 de buckets HTTP/JDBI/Dex.
+        # Sans ce filtre, le distributor rejette ~4 500 samples/s en continu
+        # et les métriques Kubernetes (kube-state-metrics, Trivy) n'arrivent
+        # jamais jusqu'à Mimir -> dashboards entièrement "No data".
+        # Les séries restent disponibles localement (rétention 6h) si besoin.
+        writeRelabelConfigs:
+          - action: drop
+            regex: "policy_report_result|http_server_requests_seconds_bucket|jdbi_query_latency_seconds_bucket|dt_dex_engine_task_worker_tasks_polled_bucket"
+            sourceLabels: [__name__]
 
     resources:
       requests:
