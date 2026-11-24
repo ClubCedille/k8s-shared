@@ -1,0 +1,12 @@
+---
+- name: k8s-cedille-sandbox
+- name: k8s-cedille-prod
+- name: k8s-poc
+- name: k8s-shared
+- name: cedille-apps
+- name: dci
+- name: eclipse
+- name: lanets
+- name: gameservers
+- name: management-infra
+- name: networking-core
