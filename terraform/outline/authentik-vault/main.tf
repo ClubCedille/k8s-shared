@@ -35,6 +35,15 @@ provider "vault" {
 
 locals {
   clubs = jsondecode(file("${path.module}/clubs.json"))
+
+  # Les noms affiches ont ete personnalises dans l'interface Authentik ;
+  # on les fige ici pour que le refactor ne les renomme pas en "Wiki <club>".
+  app_names = {
+    capra   = "Wiki Capra"
+    conjure = "Wiki Conjure"
+    dci     = "Wiki DCI"
+    piranha = "Wiki Frat"
+  }
 }
 
 resource "random_id" "outline_secret_key" {
@@ -57,6 +66,7 @@ module "oidc" {
 
   app_slug                = "outlinewiki-${each.key}"
   app_name                = "Wiki ${each.key}"
+  application_name        = lookup(local.app_names, each.key, "Wiki ${each.key}")
   grant_types             = ["authorization_code", "refresh_token"]
   use_default_email_scope = true
 

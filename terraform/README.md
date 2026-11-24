@@ -12,7 +12,6 @@ Kubernetes partagé via `~/.kube/config`:
 ## Module partagé `modules/oidc-app`
 
 Les roots `*/authentik-vault` ne déclarent plus chacun leur provider OAuth2,
-
 leur application Authentik et leurs data sources : le squelette commun vit
 dans `terraform/modules/oidc-app` (client secret, provider, application,
 policy binding optionnel, scope `groups` optionnel). Un root ne garde que ses
@@ -23,6 +22,11 @@ Les roots restent des states séparés. Lorsqu'un root est migré vers le
 module, ses anciennes adresses de ressources sont redirigées avec des blocs
 `moved` (et `removed` pour les objets désormais gérés par `terraform/authentik`),
 afin de ne rien détruire ni régénérer de client secret.
+
+> `grafana/authentik-vault` n'est pas encore migré : il n'est pas dans le
+> matrix CI et la politique Vault du rôle GitHub Actions ne couvre pas
+> `kv/data/monitoring/default/grafana-oidc-secret`. La migration nécessite
+> d'abord la mise à jour de cette politique dans `ClubCedille/k8s-base`.
 
 Le workflow `.github/workflows/apply-tf.yml` détecte les changements et
 applique les modules concernés lorsqu'un changement est intégré à `main`.

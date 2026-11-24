@@ -1,6 +1,5 @@
 terraform {
   required_version = ">=1.14"
-
   backend "kubernetes" {
     secret_suffix = "state-grafana"
     namespace     = "terraform"
@@ -44,28 +43,28 @@ locals {
   vault_secret = "kv/data/monitoring/default/grafana-oidc-secret"
 }
 
-# Membership in these groups grants the Grafana "Editor" role (dashboard
+# Membership in either group grants the Grafana "Editor" role (dashboard
 # creation + Explore/Drilldown) on next login, via role_attribute_path in
-# apps/grafana/helm/values.yaml. They are created by terraform/authentik;
-# this root only manages the Lan_ETS-specific groups below.
-removed {
-  from = authentik_group.grafana_dashboard_creators
-  lifecycle {
-    destroy = false
-  }
+# apps/grafana/helm/values.yaml. Kept as two separate groups rather than
+# one, even though they currently grant the same Grafana role -- Grafana
+# OSS has no Team Sync (Enterprise-only, confirmed against Grafana's own
+# docs), so a finer-grained "Explore only, no dashboard editing" tier
+# isn't achievable without either paying for Enterprise or standing up a
+# custom sync job; splitting the groups now means membership is already
+# tracked separately if/when one of those becomes worth doing.
+resource "authentik_group" "grafana_dashboard_creators" {
+  name = "grafana-dashboard-creators"
 }
 
-removed {
-  from = authentik_group.grafana_metrics_explorers
-  lifecycle {
-    destroy = false
-  }
+resource "authentik_group" "grafana_metrics_explorers" {
+  name = "grafana-metrics-explorers"
 }
 
-# Ces trois groupes ne donnent pas un role dans l'org par defaut (Cedille)
-# mais l'acces a l'org separee "Lan_ETS" : org_mapping dans
+# Ces trois groupes ne donnent pas un rôle dans l'org par défaut (Cedille)
+# mais l'accès à l'org séparée "Lan_ETS" : org_mapping dans
 # apps/grafana/helm/values.yaml les mappe vers Admin/Editor/Viewer dans
-# cette org au prochain login OIDC.
+# cette org au prochain login OIDC. Les groupes ci-dessus restent les
+# seuls à élever le rôle dans Cedille.
 resource "authentik_group" "grafana_lanets_admin" {
   name = "grafana-lanets-admin"
 }
@@ -78,46 +77,78 @@ resource "authentik_group" "grafana_lanets_viewer" {
   name = "grafana-lanets-viewer"
 }
 
-module "oidc" {
-  source = "../../modules/oidc-app"
-
-  app_slug            = local.app_slug
-  app_name            = local.app_name
-  grant_types         = ["authorization_code", "refresh_token"]
-  create_groups_scope = true
-
-  redirect_uris = [
-    {
-      url = "https://${local.hostname}/login/generic_oauth"
-    },
-  ]
+resource "random_password" "grafana_client_secret" {
+  length           = 48
+  special          = true
+  override_special = "!-_="
 }
 
 resource "vault_kv_secret" "grafana_oidc_secret" {
   path = local.vault_secret
 
   data_json = jsonencode({
-    OIDC_CLIENT_ID     = module.oidc.client_id
-    OIDC_CLIENT_SECRET = module.oidc.client_secret
+    OIDC_CLIENT_ID     = authentik_provider_oauth2.grafana.client_id
+    OIDC_CLIENT_SECRET = authentik_provider_oauth2.grafana.client_secret
   })
 }
 
-moved {
-  from = random_password.grafana_client_secret
-  to   = module.oidc.random_password.client_secret[0]
+data "authentik_flow" "default_authorization_flow" {
+  slug = "default-provider-authorization-explicit-consent"
 }
 
-moved {
-  from = authentik_property_mapping_provider_scope.groups
-  to   = module.oidc.authentik_property_mapping_provider_scope.groups[0]
+data "authentik_flow" "default_invalidation_flow" {
+  slug = "default-provider-invalidation-flow"
 }
 
-moved {
-  from = authentik_provider_oauth2.grafana
-  to   = module.oidc.authentik_provider_oauth2.provider
+data "authentik_property_mapping_provider_scope" "openid" {
+  managed = "goauthentik.io/providers/oauth2/scope-openid"
 }
 
-moved {
-  from = authentik_application.grafana
-  to   = module.oidc.authentik_application.application
+# The default-managed "email" mapping doesn't set email_verified: true (no
+# email verification flow configured) -- reuse the shared mapping from
+# terraform/authentik/main.tf like terraform/coder/authentik-vault does.
+data "authentik_property_mapping_provider_scope" "email" {
+  name = "cedille-scope-email-verified"
+}
+
+data "authentik_property_mapping_provider_scope" "profile" {
+  managed = "goauthentik.io/providers/oauth2/scope-profile"
+}
+
+# None of the existing apps expose the "groups" claim except Coder's own
+# provider-specific mapping (terraform/coder/authentik-vault) -- property
+# mappings are attached per-provider in Authentik, so Grafana needs its
+# own copy of the same expression rather than reusing Coder's.
+resource "authentik_property_mapping_provider_scope" "groups" {
+  name       = "grafana-scope-groups"
+  scope_name = "groups"
+  expression = "return {\"groups\": [group.name for group in user.ak_groups.all()]}"
+}
+
+resource "authentik_provider_oauth2" "grafana" {
+  name               = local.app_slug
+  client_id          = local.app_slug
+  client_secret      = random_password.grafana_client_secret.result
+  grant_types        = ["authorization_code", "refresh_token"]
+  authorization_flow = data.authentik_flow.default_authorization_flow.id
+  invalidation_flow  = data.authentik_flow.default_invalidation_flow.id
+  property_mappings = [
+    data.authentik_property_mapping_provider_scope.openid.id,
+    data.authentik_property_mapping_provider_scope.email.id,
+    data.authentik_property_mapping_provider_scope.profile.id,
+    authentik_property_mapping_provider_scope.groups.id,
+  ]
+  allowed_redirect_uris = [
+    {
+      matching_mode     = "strict"
+      redirect_uri_type = "authorization"
+      url               = "https://${local.hostname}/login/generic_oauth"
+    },
+  ]
+}
+
+resource "authentik_application" "grafana" {
+  name              = local.app_name
+  slug              = local.app_slug
+  protocol_provider = authentik_provider_oauth2.grafana.id
 }
