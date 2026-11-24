@@ -16,6 +16,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  actions: read
   id-token: write
 
 jobs:
@@ -75,32 +76,58 @@ jobs:
           exportToken: true
 
       - name: Tofu Plan
+        id: plan
+        continue-on-error: true
         env:
           TF_IN_AUTOMATION: "true"
           TF_VAR_AUTHENTIK_API_TOKEN: ${{ secrets.AUTHENTIK_TOKEN }}
           TF_VAR_db_user: ${{ secrets.OUTLINE_DB_USER }}
           TF_VAR_db_password: ${{ secrets.OUTLINE_DB_PASSWORD }}
         run: |
+          set -euo pipefail
           cd "${{ matrix.dir }}"
-          tofu init
-          tofu plan -no-color -out=plan.tfplan
+          tofu init -input=false -no-color 2>&1 | tee plan.log
+          tofu plan -input=false -no-color -out=plan.tfplan 2>&1 | tee -a plan.log
           tofu show -no-color plan.tfplan > plan.txt
+          tofu show -json plan.tfplan > plan.json
 
       - name: Upload plan
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: tfplan-${{ matrix.name }}
+          if-no-files-found: ignore
           path: |
             ${{ matrix.dir }}/plan.tfplan
             ${{ matrix.dir }}/plan.txt
+            ${{ matrix.dir }}/plan.json
+            ${{ matrix.dir }}/plan.log
 
-      - name: Comment plan summary on PR
-        if: github.event_name == 'pull_request'
-        uses: clubcedille/cedille-workflows/.github/actions/tofu-plan-comment@master
+      - name: Fail if plan failed
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+  summary:
+    needs: plan
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: read
+    steps:
+      - name: Download plan artifacts
+        uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
-          plan-path: ${{ matrix.dir }}/plan.txt
-          module: ${{ matrix.name }}
-          artifact-name: tfplan-${{ matrix.name }}
+          pattern: tfplan-*
+          path: plans
+
+      - name: Post consolidated plan summary
+        uses: clubcedille/cedille-workflows/.github/actions/tofu-plan-summary@master
+        with:
+          plans-dir: plans
+          expected-modules: "authentik,outline,nodered,coder,matomo,penpot,inventree,hi-events,policy-reporter,dependency-track"
 
   apply:
     needs: plan
