@@ -1,0 +1,106 @@
+# Ollama n'a pas d'authentification : ce proxy exige un Bearer token
+# (secret Vault ollama-api-token) et n'expose que les endpoints d'inférence.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ollama-auth-proxy
+data:
+  # Les templates de /etc/nginx/templates sont passés à envsubst au démarrage
+  # (seules les variables d'env définies sont substituées).
+  default.conf.template: |
+    server {
+      listen 8080;
+      client_max_body_size 1m;
+
+      location = /healthz {
+        access_log off;
+        return 200 "ok\n";
+      }
+
+      location ~ ^/api/(chat|generate)$ {
+        if ($http_authorization != "Bearer ${OLLAMA_API_TOKEN}") {
+          return 401;
+        }
+        proxy_set_header Authorization "";
+        proxy_pass http://ollama.ollama.svc.cluster.local:11434;
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_read_timeout 300s;
+      }
+
+      location / {
+        return 404;
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama-auth-proxy
+  labels:
+    app: ollama-auth-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama-auth-proxy
+  template:
+    metadata:
+      labels:
+        app: ollama-auth-proxy
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:1.31.6-alpine
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: OLLAMA_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: ollama-api-token
+                  key: token
+          volumeMounts:
+            - name: templates
+              mountPath: /etc/nginx/templates
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: templates
+          configMap:
+            name: ollama-auth-proxy
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-auth-proxy
+spec:
+  selector:
+    app: ollama-auth-proxy
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
