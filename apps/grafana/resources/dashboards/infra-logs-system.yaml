@@ -12,7 +12,7 @@ data:
       "annotations": {
         "list": []
       },
-      "description": "Logs syst\u00e8me communs PVE + NAS : ssh, sudo, kernel (rsyslog absent, journald direct)",
+      "description": "Logs syst\u00e8me (job=\"system\") via Loki. Les streams r\u00e9cents n\u0027ont plus les labels instance/unit (collecteur externe) : filtrage sur filename \u00e0 la place.",
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 1,
@@ -102,8 +102,8 @@ data:
                 "type": "loki",
                 "uid": "${datasource}"
               },
-              "expr": "sum by (unit) (rate({job=\"system\", instance=~\"$instance\"}[5m]))",
-              "legendFormat": "{{unit}}",
+              "expr": "sum by (filename) (rate({job=\"system\", filename=~\"$filename\"}[5m]))",
+              "legendFormat": "{{filename}}",
               "refId": "A"
             }
           ],
@@ -138,7 +138,7 @@ data:
                 "type": "loki",
                 "uid": "${datasource}"
               },
-              "expr": "{job=\"system\", instance=~\"$instance\", unit=~\"$unit\"} |~ \"$search\"",
+              "expr": "{job=\"system\", filename=~\"$filename\"} |~ \"$search\"",
               "refId": "A"
             }
           ],
@@ -172,46 +172,22 @@ data:
               "type": "loki",
               "uid": "${datasource}"
             },
-            "definition": "label_values({job=\"system\"}, instance)",
+            "definition": "label_values({job=\"system\"}, filename)",
             "hide": 0,
             "includeAll": true,
             "allValue": ".*",
             "multi": true,
-            "name": "instance",
+            "name": "filename",
             "options": [],
             "query": {
               "refId": "LokiVariableQueryEditor-VariableQuery",
               "type": 1,
-              "label": "instance",
+              "label": "filename",
               "stream": "{job=\"system\"}"
             },
             "refresh": 2,
             "sort": 1,
-            "label": "Host",
-            "type": "query"
-          },
-          {
-            "current": {},
-            "datasource": {
-              "type": "loki",
-              "uid": "${datasource}"
-            },
-            "definition": "label_values({job=\"system\"}, unit)",
-            "hide": 0,
-            "includeAll": true,
-            "allValue": ".*",
-            "multi": true,
-            "name": "unit",
-            "options": [],
-            "query": {
-              "refId": "LokiVariableQueryEditor-VariableQuery",
-              "type": 1,
-              "label": "unit",
-              "stream": "{job=\"system\"}"
-            },
-            "refresh": 2,
-            "sort": 1,
-            "label": "Daemon",
+            "label": "Fichier",
             "type": "query"
           },
           {

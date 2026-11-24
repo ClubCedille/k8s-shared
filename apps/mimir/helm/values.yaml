@@ -86,7 +86,9 @@ mimir:
       # instance/pod labels) were dropped while existing ones kept flowing.
       # Result: Trivy dashboard showed "No data" although Prometheus was
       # scraping it fine. Largest contributor at the time:
-      # policy_report_result (~42k series). 300k leaves headroom; the
+      # policy_report_result (~42k series). The write_relabel_configs filter
+      # added in apps/prometheus/helm/values.yaml (PR #709) now drops most of
+      # that noise; 300k still leaves headroom for cardinality spikes. The
       # ingester was at ~554Mi for 150k series and nodes have ample RAM.
       # Requires an ingester rollout (runtime config is not wired up).
       max_global_series_per_user: 300000

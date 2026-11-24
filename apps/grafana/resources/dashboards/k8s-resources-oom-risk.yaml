@@ -12,7 +12,7 @@ metadata:
   labels:
     grafana_dashboard: "1"
   annotations:
-    k8s-sidecar-target-directory: "Kubernetes/Resources"
+    k8s-sidecar-target-directory: "Kubernetes"
 data:
   k8s-resources-oom-risk.json: |
     {
@@ -1551,7 +1551,7 @@ data:
         ]
       },
       "timezone": "browser",
-      "title": "Kubernetes — Ressources, gaspillage & risques OOM",
+      "title": "Kubernetes — Ressources & OOM",
       "uid": "k8s-resources-oom-risk",
       "version": 1,
       "weekStart": ""

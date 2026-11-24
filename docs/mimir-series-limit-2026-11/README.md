@@ -33,6 +33,12 @@ mimir:
       max_global_series_per_user: 300000
 ```
 
+Le filtre `write_relabel_configs` ajouté entre-temps dans
+`apps/prometheus/helm/values.yaml` (PR #709) supprime déjà l'essentiel du
+bruit (`policy_report_result` et quelques buckets HTTP/JDBI/Dex) avant le
+remote-write : la limite à 300 k reste une marge pour les pics de
+cardinalité, et non le seul correctif.
+
 La config runtime n'est pas branchée sur le chart (pas de
 `-runtime-config.file` dans les args), donc le changement nécessite un
 **rollout du StatefulSet `mimir-ingester`** — ArgoCD le fait normalement
@@ -59,8 +65,9 @@ progressivement au rythme des scrapes (60 s). Mémoire ingester attendue :
 ~1,1 Gi pour 300 k séries au ratio actuel ; les nœuds ont ~24–28 Gi utilisés
 sur ~64 Gi.
 
-## Suivi possible (non fait ici)
+## Suivi possible
 
-Réduire la cardinalité à la source plutôt que de continuer à monter la
-limite : `write_relabel_configs` côté Prometheus pour écrêter
-`policy_report_result`, ou limites de labels dans policy-reporter.
+Si la cardinalité repart à la hausse, réduire à la source plutôt que de
+continuer à monter la limite : le filtre `write_relabel_configs` est déjà en
+place (PR #709) ; la suite consistait à limiter les labels de
+`policy_report_result` dans policy-reporter.

@@ -47,7 +47,7 @@ collabora:
     periodSeconds: 10
   image:
     repository: collabora/code
-    tag: "24.04.13.3.1"
+    tag: "26.04.6.2.1"
     pullPolicy: IfNotPresent
   securityContext:
     privileged: false
