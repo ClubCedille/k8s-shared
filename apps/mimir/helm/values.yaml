@@ -78,20 +78,21 @@ mimir:
       # Single small source for now -- default ingestion-rate limits are
       # tuned for multi-tenant/HA scale and reject a normal node_exporter
       # fleet's scrape volume well before it gets anywhere close.
-      ingestion_rate: 100000
-      ingestion_burst_size: 200000
+      ingestion_rate: 200000
+      ingestion_burst_size: 400000
       # Mimir's default 150000 per-user series was reached on 2026-11-19:
       # remote-write started failing with err-mimir-max-series-per-user, so
       # NEW series (e.g. trivy-operator after a pod restart, with new
       # instance/pod labels) were dropped while existing ones kept flowing.
       # Result: Trivy dashboard showed "No data" although Prometheus was
-      # scraping it fine. Largest contributor at the time:
-      # policy_report_result (~42k series). The write_relabel_configs filter
-      # added in apps/prometheus/helm/values.yaml (PR #709) now drops most of
-      # that noise; 300k still leaves headroom for cardinality spikes. The
-      # ingester was at ~554Mi for 150k series and nodes have ample RAM.
-      # Requires an ingester rollout (runtime config is not wired up).
-      max_global_series_per_user: 300000
+      # scraping it fine. A future Policy Reporter dashboard requires keeping
+      # policy_report_result (~69k series) in Mimir, so we size for the full
+      # cardinality instead of filtering it out: ~290k series in Prometheus
+      # today, 600k leaves comfortable headroom for growth/spikes. The
+      # ingester was at ~554Mi for 150k series; its requests/limits below are
+      # sized accordingly. Requires an ingester rollout (runtime config is
+      # not wired up).
+      max_global_series_per_user: 600000
       # Retention policy (2026-09-04): 90 days, working number -- see Loki's
       # values.yaml (same PR) for the full rationale and the pending
       # recalibration note. Default here is 0 (keep forever); the compactor
@@ -105,20 +106,57 @@ mimir:
 distributor:
   extraArgs:
     config.expand-env: "true"
+  # ~10k samples/s from the in-cluster remote-write (plus the external
+  # monitoring01 source) -- old chart defaults were 100m/512Mi with no limits.
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 2Gi
 querier:
   extraArgs:
     config.expand-env: "true"
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
 query_frontend:
   extraArgs:
     config.expand-env: "true"
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
 query_scheduler:
   extraArgs:
     config.expand-env: "true"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
 store_gateway:
   extraArgs:
     config.expand-env: "true"
   persistentVolume:
     storageClass: ceph-rbd
+  resources:
+    requests:
+      cpu: 200m
+      memory: 1Gi
+    limits:
+      cpu: "1"
+      memory: 2Gi
   # Zone-aware replication is on by default and splits `replicas` across 3
   # separate zone-a/b/c StatefulSets (1 each, ignoring the total) -- with a
   # single Kubernetes zone this just triples the pod count for nothing.
@@ -129,6 +167,13 @@ compactor:
     config.expand-env: "true"
   persistentVolume:
     storageClass: ceph-rbd
+  resources:
+    requests:
+      cpu: 200m
+      memory: 1Gi
+    limits:
+      cpu: "1"
+      memory: 2Gi
 
 ingester:
   # Chart default is 3 (replication_factor 3) for HA -- durability already
@@ -138,6 +183,15 @@ ingester:
     config.expand-env: "true"
   persistentVolume:
     storageClass: ceph-rbd
+  # ~554Mi observed for 150k series; 600k series budget -> 2Gi request with
+  # 4Gi ceiling so compaction/query spikes do not OOM the single ingester.
+  resources:
+    requests:
+      cpu: "1"
+      memory: 2Gi
+    limits:
+      cpu: "2"
+      memory: 4Gi
   # Same zone-aware caveat as store_gateway above -- without this,
   # `replicas: 1` is silently ignored and 3 zone StatefulSets (1 pod each)
   # get created instead.

@@ -128,19 +128,26 @@ prometheus:
         # Sans ce filtre, le distributor rejette ~4 500 samples/s en continu
         # et les métriques Kubernetes (kube-state-metrics, Trivy) n'arrivent
         # jamais jusqu'à Mimir -> dashboards entièrement "No data".
-        # Les séries restent disponibles localement (rétention 6h) si besoin.
+        # policy_report_result est volontairement CONSERVÉ : un dashboard
+        # Policy Reporter est prévu, ses métriques doivent arriver dans Mimir.
+        # Seuls les buckets génériques/hautement cardinals sans dashboard
+        # sont écartés. La montée de la limite Mimir à 600k séries et du
+        # dimensionnement des composants accompagne ce choix.
         writeRelabelConfigs:
           - action: drop
-            regex: "policy_report_result|http_server_requests_seconds_bucket|jdbi_query_latency_seconds_bucket|dt_dex_engine_task_worker_tasks_polled_bucket"
+            regex: "http_server_requests_seconds_bucket|jdbi_query_latency_seconds_bucket|dt_dex_engine_task_worker_tasks_polled_bucket"
             sourceLabels: [__name__]
 
+    # Prometheus était saturé à 500m CPU / 1Gi (scrape KSM à 30s en timeout,
+    # ~291k séries en local, policy-reporter conservé). On quadruple les limites
+    # et les requests pour absorber la charge courante avec de la marge.
     resources:
       requests:
-        cpu: 100m
-        memory: 256Mi
-      limits:
-        cpu: 500m
+        cpu: 400m
         memory: 1Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
 
     storageSpec:
       volumeClaimTemplate:
