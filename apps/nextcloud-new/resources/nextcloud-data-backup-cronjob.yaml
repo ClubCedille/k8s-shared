@@ -94,7 +94,9 @@ spec:
                   set -eu
 
                   DATE=$(date +%Y-%m-%d)
-                  CUTOFF=$(date -u -d "${RETENTION_DAYS} days ago" +%Y-%m-%d)
+                  # BusyBox date (image rclone) ne comprend pas "7 days ago" :
+                  # calculer la date de coupure en secondes depuis l'epoch.
+                  CUTOFF=$(date -u -d "@$(( $(date +%s) - RETENTION_DAYS * 86400 ))" +%Y-%m-%d)
 
                   echo "== Miroir Garage:nextcloud-data -> B2:${BACKUP_PREFIX} =="
                   rclone sync "garage:nextcloud-data" "b2:k8s-shared-bucket/${BACKUP_PREFIX}" \
