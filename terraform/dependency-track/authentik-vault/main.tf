@@ -53,15 +53,15 @@ locals {
 #-------------------------------------------------------------------------------
 
 resource "random_password" "db_password" {
-  length           = 32
-  special          = false
+  length  = 32
+  special = false
 }
 
 resource "random_password" "kek" {
   # 32 octets aleatoires, puis base64 : format attendu par
   # secretManagement.database.kek.mode=config de Dependency-Track.
-  length           = 32
-  special          = false
+  length  = 32
+  special = false
 }
 
 resource "vault_kv_secret" "db_secret" {
@@ -177,6 +177,11 @@ resource "authentik_application" "dependency_track" {
   name              = local.app_name
   slug              = local.app_slug
   protocol_provider = authentik_provider_oauth2.dependency_track.id
+  meta_icon         = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/dependency-track.png"
+  # The portal folder is managed manually in Authentik.
+  lifecycle {
+    ignore_changes = [group]
+  }
 }
 
 resource "authentik_policy_binding" "dependency_track_access" {

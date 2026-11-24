@@ -33,6 +33,8 @@ jobs:
             dir: terraform/nodered/authentik-vault
           - name: coder
             dir: terraform/coder/authentik-vault
+          - name: coroot
+            dir: terraform/coroot/authentik-vault
           - name: matomo
             dir: terraform/matomo/authentik-vault
           - name: penpot
@@ -116,6 +118,8 @@ jobs:
             dir: terraform/nodered/authentik-vault
           - name: coder
             dir: terraform/coder/authentik-vault
+          - name: coroot
+            dir: terraform/coroot/authentik-vault
           - name: matomo
             dir: terraform/matomo/authentik-vault
           - name: penpot

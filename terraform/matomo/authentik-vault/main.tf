@@ -101,4 +101,10 @@ resource "authentik_application" "matomo" {
   name              = local.app_name
   slug              = local.app_slug
   protocol_provider = authentik_provider_oauth2.matomo.id
+  meta_icon         = "https://avatars.githubusercontent.com/u/698038?s=200&v=4"
+  # The portal folder is managed manually in Authentik.
+  lifecycle {
+    ignore_changes = [group]
+  }
+
 }
