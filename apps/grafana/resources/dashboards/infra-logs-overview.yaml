@@ -102,7 +102,7 @@ data:
                 "type": "loki",
                 "uid": "${datasource}"
               },
-              "expr": "sum by (job) (count_over_time({job=~\".+\"}[$__interval]))",
+              "expr": "sum by (job) (count_over_time({job=~\"$job\"}[$__interval]))",
               "legendFormat": "{{job}}",
               "refId": "A"
             }
@@ -193,7 +193,7 @@ data:
                 "type": "loki",
                 "uid": "${datasource}"
               },
-              "expr": "sum by (instance) (count_over_time({instance=~\"$instance\"}[$__interval]))",
+              "expr": "sum by (instance) (count_over_time({job=~\"$job\", instance=~\"$instance\"}[$__interval]))",
               "legendFormat": "{{instance}}",
               "refId": "A"
             }
@@ -262,7 +262,7 @@ data:
               "type": "loki",
               "uid": "${datasource}"
             },
-            "definition": "label_values(instance)",
+            "definition": "label_values({job=~\"ceph|nas|pve|system|opnsense\"}, instance)",
             "hide": 0,
             "includeAll": true,
             "allValue": ".+",
@@ -273,7 +273,7 @@ data:
               "refId": "LokiVariableQueryEditor-VariableQuery",
               "type": 1,
               "label": "instance",
-              "stream": ""
+              "stream": "{job=~\"ceph|nas|pve|system|opnsense\"}"
             },
             "refresh": 2,
             "sort": 1,
@@ -286,10 +286,10 @@ data:
               "type": "loki",
               "uid": "${datasource}"
             },
-            "definition": "label_values(job)",
+            "definition": "label_values({job=~\"ceph|nas|pve|system|opnsense\"}, job)",
             "hide": 0,
             "includeAll": true,
-            "allValue": ".+",
+            "allValue": "ceph|nas|pve|system|opnsense",
             "multi": true,
             "name": "job",
             "options": [],
@@ -297,7 +297,7 @@ data:
               "refId": "LokiVariableQueryEditor-VariableQuery",
               "type": 1,
               "label": "job",
-              "stream": ""
+              "stream": "{job=~\"ceph|nas|pve|system|opnsense\"}"
             },
             "refresh": 2,
             "sort": 1,

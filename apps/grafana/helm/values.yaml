@@ -135,3 +135,8 @@ sidecar:
     resource: configmap
     provider:
       foldersFromFilesStructure: true
+      # Sans ça, Grafana refuse de réécraser un dashboard marqué "modifié
+      # dans l'UI" (dashboard_provisioning.updated > 0) : les changements du
+      # dépôt (dossiers, titres, requêtes) n'atteignent jamais l'instance.
+      # On veut que Git reste la source de vérité.
+      allowUiUpdates: true
