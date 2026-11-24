@@ -10,6 +10,9 @@
 #   nextcloud-data-backup-changes/<date>/  versions remplacées/supprimées, purgées
 #                                          après RETENTION_DAYS jours
 # Les autres préfixes du bucket (postgresql-*, etc.) ne sont jamais touchés.
+# --ignore-errors : le cache Nextcloud contient quelques references urn:oid:*
+# orphelines (objets deja supprimes de Garage) qui renvoient 404 ; elles sont
+# loggees mais ne doivent pas faire echouer le Job ni declencher 2 retries.
 #
 # Secrets : nextcloud-garage-credentials (clés nextcloud_s3_key/nextcloud_s3_secret)
 # et b2-creds (clés ACCESS_KEY_ID/ACCESS_SECRET_KEY), déjà fournis par Vault dans
@@ -103,7 +106,8 @@ spec:
                     --backup-dir "b2:k8s-shared-bucket/${CHANGES_PREFIX}/${DATE}" \
                     --s3-no-check-bucket \
                     --transfers=4 --checkers=8 \
-                    --stats=1h --stats-one-line-date
+                    --stats=1h --stats-one-line-date \
+                    --ignore-errors
 
                   echo "== Purge des jeux de changements anterieurs a ${CUTOFF} =="
                   for dir in $(rclone lsd "b2:k8s-shared-bucket/${CHANGES_PREFIX}" \
