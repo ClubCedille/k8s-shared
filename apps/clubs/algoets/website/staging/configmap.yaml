@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: algoets-website-config
+data:
+  NODE_ENV: production
+  PORT: "3000"
+  HOST: 0.0.0.0
+  APP_ORIGIN: https://algoets-staging.prodv2.cedille.club
+  # Endpoint public du proxy S3 (bucket dedie au staging).
+  URL: https://s3.algoets.etsmtl.club
+  MAX_UPLOAD_BYTES: "10485760"
+  SMTP_HOST: smtp.office365.com
+  SMTP_USER: algoets@ens.etsmtl.ca
+  MAIL_TO: algoets@ens.etsmtl.ca

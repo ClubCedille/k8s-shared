@@ -29,6 +29,7 @@ spec:
     corsPolicy:
       allowOrigin:
         - https://algoets.etsmtl.club
+        - https://algoets-staging.prodv2.cedille.club
       allowMethods:
         - "*"
       allowHeaders:

@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: algoets-website
+  annotations:
+    kube-score/ignore: container-image-pull-policy,container-image-tag,pod-networkpolicy,container-security-context-user-group-id
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: algoets-website
+  template:
+    metadata:
+      labels:
+        app: algoets-website
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      imagePullSecrets:
+        - name: ghcr-clubcedille-secret
+      containers:
+        - name: website
+          image: ghcr.io/clubcedille/algoets-website:staging
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: algoets-website-config
+            - secretRef:
+                name: algoets-website-secrets
+          env:
+            # Le bucket est cree dans ce namespace : pas de copie inter-namespace.
+            - name: BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: algoets-s3-bucket
+                  key: BUCKET_NAME
+            - name: ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: algoets-s3-bucket
+                  key: AWS_ACCESS_KEY_ID
+            - name: SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: algoets-s3-bucket
+                  key: AWS_SECRET_ACCESS_KEY
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+              ephemeral-storage: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
