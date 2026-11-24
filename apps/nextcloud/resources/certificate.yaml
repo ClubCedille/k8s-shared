@@ -8,8 +8,8 @@ spec:
   issuerRef:
     name: letsencrypt-etsmtl
     kind: ClusterIssuer
-  commonName: nextcloud.etsmtl.club
-  dnsNames: [nextcloud.etsmtl.club]
+  commonName: old-nextcloud.etsmtl.club
+  dnsNames: [old-nextcloud.etsmtl.club]
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -20,5 +20,5 @@ spec:
   issuerRef:
     name: letsencrypt-etsmtl
     kind: ClusterIssuer
-  commonName: collabora-nextcloud.etsmtl.club
-  dnsNames: [collabora-nextcloud.etsmtl.club]
+  commonName: old-collabora-nextcloud.etsmtl.club
+  dnsNames: [old-collabora-nextcloud.etsmtl.club]

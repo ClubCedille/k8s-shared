@@ -26,11 +26,11 @@ resources:
 
 collabora:
   aliasgroups:
-    - host: https://nextcloud.etsmtl.club:443
+    - host: https://old-nextcloud.etsmtl.club:443
   extra_params: --o:ssl.enable=false --o:ssl.termination=true --o:num_prespawn_children=4
-    --o:remote_font_config.url=https://nextcloud.etsmtl.club/apps/richdocuments/settings/fonts.json
+    --o:remote_font_config.url=https://old-nextcloud.etsmtl.club/apps/richdocuments/settings/fonts.json
     --o:allow_update_popup=false
-  server_name: collabora-nextcloud.etsmtl.club
+  server_name: old-collabora-nextcloud.etsmtl.club
   existingSecret:
     enabled: true
     secretName: collabora-admin
