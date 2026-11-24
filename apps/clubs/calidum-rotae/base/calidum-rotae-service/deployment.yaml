@@ -27,9 +27,9 @@ spec:
             - name: OTEL_SERVICE_NAME
               value: "calidum"
             - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
-              value: "http://coroot-coroot .coroot.svc.cluster.local:8080/v1/traces"
+              value: "http://coroot-coroot.coroot.svc.cluster.local:8080/v1/traces"
             - name: OTEL_EXPORTER_OTLP_LOGS_ENDPOINT
-              value: "http://coroot-coroot .coroot.svc.cluster.local:8080/v1/logs"
+              value: "http://coroot-coroot.coroot.svc.cluster.local:8080/v1/logs"
             - name: OTEL_EXPORTER_OTLP_PROTOCOL
               value: "http/protobuf"
             - name: OTEL_METRICS_EXPORTER
