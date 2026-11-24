@@ -89,14 +89,6 @@ jobs:
           tofu show -no-color plan.tfplan > plan.txt
           tofu show -json plan.tfplan > plan.json
 
-      - name: Build plan summary
-        if: always()
-        run: |
-          bash "${{ github.workspace }}/scripts/tofu-plan-summary.sh" \
-            "${{ matrix.name }}" \
-            "${{ matrix.dir }}" \
-            "${{ github.workspace }}/plans/${{ matrix.name }}.summary.json"
-
       - name: Upload plan
         if: always()
         uses: actions/upload-artifact@v4
@@ -108,7 +100,6 @@ jobs:
             ${{ matrix.dir }}/plan.txt
             ${{ matrix.dir }}/plan.json
             ${{ matrix.dir }}/plan.log
-            ${{ github.workspace }}/plans/${{ matrix.name }}.summary.json
 
       - name: Fail if plan failed
         if: steps.plan.outcome == 'failure'
@@ -123,13 +114,12 @@ jobs:
       pull-requests: write
       actions: read
     steps:
-      - name: Download plan summaries
+      - name: Download plan artifacts
         uses: actions/download-artifact@v4
         continue-on-error: true
         with:
           pattern: tfplan-*
           path: plans
-          merge-multiple: true
 
       - name: Post consolidated plan summary
         uses: clubcedille/cedille-workflows/.github/actions/tofu-plan-summary@master
