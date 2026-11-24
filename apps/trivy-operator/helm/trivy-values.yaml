@@ -720,17 +720,20 @@ volumes:
   - name: cache-policies
     emptyDir: {}
 
-# -- Le pod est en CrashLoopBackOff (OOMKilled, exit 137, 1432 restarts en
-# ~7 jours) avec la limite précédente de 512Mi : l'operator synchronise le
-# cache de ~1100 reports (configaudit/rbac/secrets) sur ~150 namespaces.
-# Dimensionné pour respirer ; à réajuster si les usage metrics le confirment.
+# -- L'operator synchronise le cache de ~1100 reports (configaudit/rbac/
+# secrets) sur ~150 namespaces. Après le passage de 512Mi à 2Gi, il restait
+# en OOMKilled (exit 137, 644 restarts, pics de working set à ~2028Mi) :
+# les métriques trivy_* disparaissaient plusieurs minutes à chaque restart,
+# ce qui faisait afficher "No data" aux panneaux stat du dashboard Grafana
+# (requêtes instantanées avec 5m de lookback). On passe à 4Gi avec 1Gi de
+# request ; CPU relevé en conséquence pour ne pas brider les reconciliations.
 resources:
   requests:
-    cpu: 250m
-    memory: 512Mi
+    cpu: 500m
+    memory: 1Gi
   limits:
-    cpu: 1
-    memory: 2Gi
+    cpu: "2"
+    memory: 4Gi
 
 # -- nodeSelector set the operator nodeSelector
 nodeSelector: {}
