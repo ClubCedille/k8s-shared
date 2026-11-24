@@ -87,7 +87,7 @@ jobs:
           set -euo pipefail
           cd "${{ matrix.dir }}"
           tofu init -input=false -no-color 2>&1 | tee plan.log
-          tofu plan -input=false -no-color -out=plan.tfplan 2>&1 | tee -a plan.log
+          tofu plan -input=false -no-color -lock-timeout=5m -out=plan.tfplan 2>&1 | tee -a plan.log
           tofu show -no-color plan.tfplan > plan.txt
           tofu show -json plan.tfplan > plan.json
 
@@ -127,12 +127,15 @@ jobs:
         uses: clubcedille/cedille-workflows/.github/actions/tofu-plan-summary@master
         with:
           plans-dir: plans
-          expected-modules: "authentik,outline,nodered,coder,matomo,penpot,inventree,hi-events,policy-reporter,dependency-track"
+          expected-modules: "authentik,outline,nodered,coder,coroot,matomo,penpot,inventree,hi-events,policy-reporter,dependency-track"
 
   apply:
     needs: plan
-    if: github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
+    concurrency:
+      group: tofu-apply-${{ matrix.name }}
+      cancel-in-progress: false
     strategy:
       fail-fast: false
       matrix:
@@ -194,8 +197,8 @@ jobs:
           TF_VAR_db_password: ${{ secrets.OUTLINE_DB_PASSWORD }}
         run: |
           cd "${{ matrix.dir }}"
-          tofu init
-          tofu apply -auto-approve
+          tofu init -input=false
+          tofu apply -auto-approve -lock-timeout=5m
 
       - name: Reconcile exec role permissions
         if: matrix.name == 'authentik'
