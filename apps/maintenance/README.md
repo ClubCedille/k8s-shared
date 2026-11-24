@@ -5,6 +5,15 @@ PHP.
 
 ## Security maintenance procedure
 
+> **État actuel (2026-11-23).** Les patches décrits ci-dessous ont été retirés de
+> `apps/nextcloud-new` lorsque l'instance a été activée (#708, 2026-11-22) : ni
+> le redirect, ni les replicas à 0, ni les crons suspendus, ni le setup job
+> no-op ne sont présents dans le repo. Cette section décrit donc un **modèle de
+> procédure à réappliquer** lors d'une fenêtre de maintenance, pas l'état
+> courant. Elle s'applique aux deux instances Nextcloud (`nextcloud` =
+> `old-nextcloud.etsmtl.club` et `nextcloud-new` = `nextcloud.etsmtl.club`) en
+> adaptant le namespace.
+
 For a PHP security maintenance, the PHP site overlays:
 
 - replace their `HTTPProxy` routes with a `requestRedirectPolicy` to

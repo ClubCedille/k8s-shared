@@ -191,8 +191,9 @@ nextcloud:
     - name: AUTHENTIK_CONFIG_URL
       value: https://auth.etsmtl.club/application/o/nextcloud-new-oidc/.well-known/openid-configuration
     # S3 primary storage — writes directly to GarageHQ (bypasses Ceph RGW).
-    # RGW hot-tier/GARAGE_COLD lifecycle tiering disabled, see
-    # docs/rgw-tiering-runbook.md (tracker.ceph.com/issues/80309).
+    # The RGW hot-tier/GARAGE_COLD experiment was abandoned in 2026-09 (OBC and
+    # lifecycle Job removed); see docs/rgw-tiering-runbook.md and
+    # docs/nextcloud-migration-2026-09/README.md (tracker.ceph.com/issues/80309).
     - name: OBJECTSTORE_S3_BUCKET
       value: nextcloud-data
     - name: OBJECTSTORE_S3_REGION
