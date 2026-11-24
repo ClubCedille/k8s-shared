@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: exutoire-supabase-bucket-limits
+data:
+  bucket-limits.sql: |
+    -- La limite effective d'un upload est min(FILE_SIZE_LIMIT global,
+    -- storage.buckets.file_size_limit du bucket). Le fichier de valeurs
+    -- Helm porte la limite globale à 200 MiB, mais les limites par bucket
+    -- vivaient dans la DB et étaient restées à 10 MiB pour media-images
+    -- (d'ou les refus de fichiers > 10 MiB). Ce hook PostSync les aligne
+    -- de facon declarative et idempotente a chaque sync ArgoCD.
+    UPDATE storage.buckets
+       SET file_size_limit = 209715200
+     WHERE file_size_limit IS NULL
+        OR file_size_limit < 209715200;
+
+    -- Les buckets crees plus tard heritent aussi de 200 MiB au lieu du
+    -- defaut du schema (50 MiB).
+    ALTER TABLE storage.buckets
+      ALTER COLUMN file_size_limit SET DEFAULT 209715200;
