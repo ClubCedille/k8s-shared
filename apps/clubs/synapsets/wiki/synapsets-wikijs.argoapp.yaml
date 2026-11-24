@@ -4,6 +4,7 @@ metadata:
   name: synapsets-wikijs
   namespace: argocd
   annotations:
+    k8s.cedille.club/club: "synapsets"
     argocd.argoproj.io/sync-wave: "2"
 spec:
   project: k8s-shared

@@ -4,6 +4,7 @@ metadata:
   name: markets-shared
   namespace: argocd
   annotations:
+    k8s.cedille.club/club: "algoets"
     argocd.argoproj.io/sync-wave: "2"
     argocd-image-updater.argoproj.io/image-list: backend=ghcr.io/algoets/markets-backend:latest,frontend=ghcr.io/algoets/markets-frontend:latest,scheduler=ghcr.io/algoets/markets-scheduler:latest
     argocd-image-updater.argoproj.io/backend.update-strategy: digest
@@ -34,6 +35,7 @@ metadata:
   name: markets-dev-shared
   namespace: argocd
   annotations:
+    k8s.cedille.club/club: "algoets"
     argocd.argoproj.io/sync-wave: "2"
     argocd-image-updater.argoproj.io/image-list: backend=ghcr.io/algoets/markets-backend:dernier,frontend=ghcr.io/algoets/markets-frontend:dernier,scheduler=ghcr.io/algoets/markets-scheduler:dernier
     argocd-image-updater.argoproj.io/backend.update-strategy: digest

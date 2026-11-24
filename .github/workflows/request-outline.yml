@@ -44,6 +44,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Verify inputs
+        env:
+          USER_ID: ${{ inputs.id }}
+          CLUB_LABEL: ${{ inputs.club }}
         run: |
           if [[ ! "$CLUB" =~ ^[a-z0-9-]+$ ]]; then
             echo "::error::ERREUR: Le nom du club '$CLUB' est invalide."
@@ -52,6 +55,22 @@ jobs:
           fi
           if [[ ! "$DOMAINE" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]]; then
             echo "::error::ERREUR: Le nom du domaine '$DOMAINE' est invalide."
+            exit 1
+          fi
+          if [[ -n "$USER_ID" && ! "$USER_ID" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+            echo "::error::ERREUR: L'identifiant '$USER_ID' contient des caractères invalides pour un label."
+            exit 1
+          fi
+          if [[ -n "$USER_ID" && "${#USER_ID}" -gt 43 ]]; then
+            echo "::error::ERREUR: L'identifiant '$USER_ID' est trop long pour le label 'userid:<id>' (maximum 43 caractères, limite GitHub de 50 avec le préfixe)."
+            exit 1
+          fi
+          if [[ -n "$CLUB_LABEL" && ! "$CLUB_LABEL" =~ ^[A-Za-z0-9]([-A-Za-z0-9_.]*[A-Za-z0-9])?$ ]]; then
+            echo "::error::ERREUR: Le club '$CLUB_LABEL' contient des caractères invalides pour un label Kubernetes."
+            exit 1
+          fi
+          if [[ -n "$CLUB_LABEL" && "${#CLUB_LABEL}" -gt 63 ]]; then
+            echo "::error::ERREUR: Le club '$CLUB_LABEL' est trop long pour un label Kubernetes (maximum 63 caractères)."
             exit 1
           fi
 

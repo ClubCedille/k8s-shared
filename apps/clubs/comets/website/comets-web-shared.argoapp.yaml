@@ -4,6 +4,7 @@ metadata:
   name: comets-web-shared
   namespace: argocd
   annotations:
+    k8s.cedille.club/club: "comets"
     argocd.argoproj.io/sync-wave: "2"
     argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/clubcedille/comets-web:latest
     argocd-image-updater.argoproj.io/webapp.update-strategy: digest

@@ -4,6 +4,7 @@ metadata:
   name: data-acq-shared
   namespace: argocd
   annotations:
+    k8s.cedille.club/club: "comets"
     argocd.argoproj.io/sync-wave: "2"
 spec:
   project: k8s-shared

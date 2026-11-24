@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: comets-inventree
   namespace: argocd
+  annotations:
+    k8s.cedille.club/club: "comets"
 spec:
   project: k8s-shared
   destination:
