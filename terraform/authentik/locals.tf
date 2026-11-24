@@ -3,9 +3,12 @@ locals {
   clubs = sort(distinct(concat(
     [for c in yamldecode(file("${path.module}/../../data/clubs.yaml")) : c.name],
   )))
-  proxmox = sort(distinct(concat(
-    [for c in yamldecode(file("${path.module}/../../data/proxmox.yaml")) : c.name],
-  )))
+  proxmox = distinct([
+    for c in yamldecode(file("${path.module}/../../data/proxmox.yaml")) : {
+      name  = c.name
+      group = c.group
+    }
+  ])
   # Groupes supplémentaires déclarés par club dans data/authentik-extra-groups.yaml.
   authentik_extra_groups = sort(distinct(yamldecode(file("${path.module}/../../data/authentik-extra-groups.yaml"))))
   # Rôles additionnels pour certains clubs qui nécessitent des rôles spécifiques
