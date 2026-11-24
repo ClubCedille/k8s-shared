@@ -5,6 +5,13 @@
 
 replicas: 1
 
+# Identifiants admin stables, lus depuis Vault (cf. resources/vault.yaml).
+# Sans existingSecret, le chart regénère un mot de passe aléatoire à chaque
+# rendu Helm/Argo (helm template ne peut pas utiliser lookup), ce qui casse
+# le sidecar de dashboards : son POST de reload reçoit un 401.
+admin:
+  existingSecret: grafana-admin
+
 # Le chart n'a pas de resources par défaut -- pas de problème tant que
 # Grafana ne fait que le trafic infra (bas volume), mais apps/alloy-logs
 # ajoute Explore/dashboards sur un volume de logs bien plus large (proxy de
