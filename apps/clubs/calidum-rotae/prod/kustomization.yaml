@@ -6,5 +6,7 @@ resources:
   - ../base/calidum-rotae-service
   - ../base/email-provider
   - ../base/shell-provider
+  - ../base/cluster-provider
+  - ../base/github-provider
   - httpproxy.yaml
   - certificate.yaml
