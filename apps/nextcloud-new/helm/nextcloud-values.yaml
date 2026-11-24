@@ -24,7 +24,7 @@ ingress:
     cert-manager.io/cluster-issuer: letsencrypt-prod
   tls:
     - secretName: nextcloud-tls
-      hosts: [new-nextcloud.etsmtl.club]
+      hosts: [nextcloud.etsmtl.club]
   labels: {}
   path: /
   pathType: Prefix
@@ -32,7 +32,7 @@ phpClientHttpsFix:
   enabled: true
   protocol: https
 nextcloud:
-  host: new-nextcloud.etsmtl.club
+  host: nextcloud.etsmtl.club
   ## Use an existing secret
   existingSecret:
     enabled: true
@@ -55,10 +55,10 @@ nextcloud:
     # Avoid a full recursive chown of the CephFS RWX volume on every pod
     # (re)start - only fix ownership if the root dir doesn't already match.
     fsGroupChangePolicy: OnRootMismatch
-  # Accept both hostnames during the migration/validation window — remove
-  # new-nextcloud.etsmtl.club once the domain swap (see plan) is complete.
+  # Official hostname after the switchover. The legacy
+  # new-nextcloud.etsmtl.club entry remains in config.php on the PVC during
+  # the rollback window.
   trustedDomains:
-    - new-nextcloud.etsmtl.club
     - nextcloud.etsmtl.club
 
   configs:
