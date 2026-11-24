@@ -11,6 +11,12 @@ resource "authentik_group" "exec" {
   roles    = [authentik_rbac_role.exec[each.key].id]
 }
 
+# Groupes supplémentaires déclarés par club (voir data/authentik-extra-groups.yaml).
+resource "authentik_group" "extra" {
+  for_each = toset(local.authentik_extra_groups)
+  name     = each.key
+}
+
 resource "authentik_group" "proxmox-user" {
   for_each = toset(local.proxmox)
   name     = "proxmox-${each.key}-user"

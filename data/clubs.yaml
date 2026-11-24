@@ -1,38 +1,57 @@
+# Generated from ClubCedille/Plateforme-Cedille clubs/*.yaml. Do not edit manually.
 ---
-- name: cedille
-  external_sites: [planka]
+- name: algoets
+  external_sites: []
   quota: 300
-- name: conjure
-  quota: 300
-- name: chinook
+- name: applets
+  external_sites: []
+  quota: 10
+- name: baja
+  external_sites: []
+  quota: 1000
+- name: canoe
+  external_sites: []
   quota: 1000
 - name: capra
+  external_sites: []
   quota: 300
-- name: pontacier
-  quota: 1000
-- name: raconteursdangle
-  quota: 1000
-- name: veloom
+- name: cedille
+  external_sites:
+    - planka
   quota: 300
+- name: chinook
+  external_sites: []
+  quota: 1000
 - name: comets
+  external_sites: []
   quota: 1000
-- name: lanets
-  quota: 3000
-- name: synapse
-  quota: 500
-- name: musiquets
-  quota: 1000
-- name: baja
-  quota: 1000
+- name: conjure
+  external_sites: []
+  quota: 300
 - name: eclipse
+  external_sites: []
   quota: 8000
-- name: canoe
-  quota: 1000
-- name: applets
-  quota: 10
 - name: jdgets
+  external_sites: []
   quota: 10
+- name: lanets
+  external_sites: []
+  quota: 3000
+- name: musiquets
+  external_sites: []
+  quota: 1000
+- name: pontacier
+  external_sites: []
+  quota: 1000
 - name: quantumets
+  external_sites: []
   quota: 100
-- name: algoets
+- name: raconteursdangle
+  external_sites: []
+  quota: 1000
+- name: synapse
+  external_sites: []
+  quota: 500
+- name: veloom
+  external_sites: []
   quota: 300
