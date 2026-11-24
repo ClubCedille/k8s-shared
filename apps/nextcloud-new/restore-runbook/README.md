@@ -17,6 +17,16 @@ Pour l'état global des migrations : `docs/nextcloud-migration-2026-09/README.md
 Un restore Velero seul ne restaure donc que la configuration et le code applicatif,
 pas les fichiers des utilisateurs.
 
+> **Attention aux `subPath` (piège du 2026-11-24).** Le chart monte le PVC via
+> des `subPath` : dans le pod Nextcloud, `/var/www/html/config` est le `subPath`
+> `config` du PVC, `/var/www/html/custom_apps` est `custom_apps`, etc. Si on monte
+> le PVC directement sur `/var/www` dans un pod de diagnostic/backup, le vrai
+> `config.php` est donc à `/var/www/config/config.php` (et **pas**
+> `/var/www/html/config/config.php`, répertoire vide hérité du clone de
+> l'ancienne instance). Une archive qui ne contient que `html/` perd le
+> `config.php` et les `custom_apps/`. Voir le compte rendu de l'incident dans
+> `docs/nextcloud-migration-2026-09/README.md`.
+
 ## Restauration des fichiers utilisateurs (bucket Garage)
 
 Le CronJob de backup ne restaure rien automatiquement. Si des objets manquent

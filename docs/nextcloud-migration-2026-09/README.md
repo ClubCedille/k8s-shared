@@ -69,6 +69,49 @@ comme le service de production.
   ajout d'un CronJob `rclone` quotidien répliquant `nextcloud-data` (Garage) vers
   B2, avec une rétention de 7 jours alignée sur Velero, et d'un Job de
   restauration manuel. Voir `apps/nextcloud-new/restore-runbook/`.
+- **2026-11-24 (incident PVC).** Le PVC `nextcloud-pvc` de `nextcloud-new` était
+  un clone de l'ancienne instance, dimensionné à 30 Ti alors que le manifeste
+  demande 20 Gi — ArgoCD bouclait sur un patch de réduction interdit. Le volume
+  a été sauvegardé puis supprimé/recréé à 20 Gi. Voir la section dédiée ci-dessous.
+
+## Incident du 2026-11-24 — recréation du PVC `nextcloud-new`
+
+**Contexte.** Le sync ArgoCD (bloqué depuis le 18/11 sur la santé CNPG) a
+finalement échoué sur
+`PersistentVolumeClaim "nextcloud-pvc" is invalid: spec.resources.requests.storage:
+Forbidden: field can not be less than status.capacity` : le PVC live faisait
+30 Ti (clone de l'ancienne instance, données de 2025 à la racine) alors que le
+manifeste n'a jamais demandé que 20 Gi depuis #347. Le merge de #726 (30 Ti)
+avait débloqué le sync, puis #727 a restauré 20 Gi avant l'opération.
+
+**Piège rencontré.** Le chart Nextcloud monte le PVC avec des `subPath` :
+dans un pod qui monte directement le PVC sur `/var/www`, le `config.php` actif
+est dans `/var/www/config/` (monté à `/var/www/html/config` dans le pod
+Nextcloud), **pas** dans `/var/www/html/config/` (qui est un répertoire vide
+hérité du clone). La première archive ne contenait que `html/` et `tmp/` et a
+donc manqué `config.php` et `custom_apps`. Ils ont été récupérés sur l'ancienne
+instance (encore en service jusqu'au 2026-12-01) avant sa suppression :
+`instanceid` identique (`ocxmn448j6gf`), donc les chemins S3 restent valides.
+
+**Actions réalisées.**
+1. Sync ArgoCD mis en manuel, `deploy/nextcloud` à 0 répliques, cron suspendu.
+2. Archive de `/var/www` (hors caches `preview`, inaccessibles sur CephFS) vers
+   `s3://k8s-shared-bucket/nextcloud-new-pvc-backup/2026-11-24-pre-recreate-final.tar.gz`.
+3. Suppression des anciens pods de cron qui retenaient le PVC, puis du PVC
+   (`reclaimPolicy: Delete`), recréation à **20 Gi** depuis le manifeste.
+4. Restauration de `html/` et `tmp/` depuis l'archive, copie de `config.php` et
+   `custom_apps/` depuis l'ancienne instance. `config.php` réécrit avec
+   `dbhost` sur `nextcloud-new`, `trusted_domains` à jour, `version` forcé à
+   `35.0.3.2` (le schéma DB était déjà en 35, l'upgrade 33 → 35 direct est refusé).
+5. `occ upgrade`, régénération du `data-fingerprint`, correction du `wopi_url`
+   resté sur `new-collabora-nextcloud` (le setup Job n'avait pas été rejoué au
+   switchover), puis reprise du deploy (3/3 Ready) et du sync ArgoCD.
+
+**État final :** ArgoCD `Synced / Healthy`, 3/3 pods Ready, CNPG 3/3 healthy et
+`ContinuousArchiving=True`, `version=35.0.3.2`, `maintenance=false`,
+`needsDbUpgrade=false`. Les 6 backups CNPG du 18→23/11 ont échoué (plugin
+barman absent du pod jusqu'au rolling restart du 24/11) ; le premier backup
+réussi est attendu le 24/11 à 06:40 UTC.
 
 ## Fenêtre de rollback — ferme le 2026-11-30
 
