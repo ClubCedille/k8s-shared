@@ -18,13 +18,13 @@ resource "authentik_group" "extra" {
 }
 
 resource "authentik_group" "proxmox-user" {
-  for_each = toset(local.proxmox)
-  name     = "proxmox-${each.key}-user"
+  for_each = { for c in local.proxmox : c.name => c.group }
+  name     = "${each.value}-user"
 }
 
 resource "authentik_group" "proxmox-exec" {
-  for_each = toset(local.proxmox)
-  name     = "proxmox-${each.key}-admin"
+  for_each = { for c in local.proxmox : c.name => c.group }
+  name     = "${each.value}-admin"
 }
 
 # Autres groupes

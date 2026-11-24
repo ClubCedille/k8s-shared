@@ -1,12 +1,23 @@
 ---
 - name: k8s-cedille-sandbox
+  group: k8s-pmx-cedille-sandbox
 - name: k8s-cedille-prod
+  group: k8s-pmx-cedille-prod
 - name: k8s-poc
+  group: k8s-pmx-poc
 - name: k8s-shared
+  group: k8s-pmx-shared
 - name: cedille-apps
+  group: pmx-cedille-apps
 - name: dci
+  group: pmx-dci
 - name: eclipse
+  group: pmx-eclipse
 - name: lanets
+  group: pmx-lanets
 - name: gameservers
+  group: pmx-gameservers
 - name: management-infra
+  group: pmx-management-infra
 - name: networking-core
+  group: pmx-networking-core
