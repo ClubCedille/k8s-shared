@@ -104,6 +104,13 @@ data "grafana_folder" "k8s_app_logs" {
 resource "grafana_folder_permission" "k8s_app_logs" {
   folder_uid = data.grafana_folder.k8s_app_logs.uid
 
+  # Viewer est indispensable : cette ressource remplace l'intégralité des
+  # permissions du dossier. Sans elle, tout compte Authentik Viewer
+  # (allow_sign_up: true) ne voit plus le dossier ni ses dashboards.
+  permissions {
+    role       = "Viewer"
+    permission = "View"
+  }
   permissions {
     role       = "Editor"
     permission = "View"
