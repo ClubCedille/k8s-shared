@@ -80,6 +80,12 @@ resource "authentik_application" "application" {
   protocol_provider = authentik_provider_oauth2.provider.id
   meta_launch_url   = var.meta_launch_url
   open_in_new_tab   = var.open_in_new_tab
+
+  # `group` (dossier du portail) et `meta_icon` sont geres manuellement dans
+  # l'interface Authentik ; ne pas les effacer a chaque apply.
+  lifecycle {
+    ignore_changes = [group, meta_icon]
+  }
 }
 
 resource "authentik_policy_binding" "access" {
