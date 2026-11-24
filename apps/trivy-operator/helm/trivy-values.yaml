@@ -259,7 +259,13 @@ serviceMonitor:
   # -- HonorLabels chooses the metric’s labels on collisions with target labels
   honorLabels: true
   # -- EndpointAdditionalProperties allows setting additional properties on the endpoint such as relabelings, metricRelabelings etc.
-  endpointAdditionalProperties: {}
+  # Le timeout par défaut (10s) est atteint quand l'operator régénère son
+  # cache de ~11 000 séries : up=0 sur ~2/3 des scrapes, ce qui laisse des
+  # trous de plusieurs minutes dans trivy_* et fait afficher "No data" aux
+  # panneaux stat (requêtes instantanées, lookback 5m). Même correctif que
+  # kube-state-metrics en PR #709.
+  endpointAdditionalProperties:
+    scrapeTimeout: 30s
 
 trivyOperator:
   # -- vulnerabilityReportsPlugin the name of the plugin that generates vulnerability reports `Trivy`
