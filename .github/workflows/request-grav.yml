@@ -146,7 +146,7 @@ jobs:
           #   deploiement
           labels: |
             automated
-            grav
+            app:grav
             ${{ env.CLUB }}
             workflow:grav
             ${{ inputs.id && format('userid:{0}', inputs.id) || '' }}

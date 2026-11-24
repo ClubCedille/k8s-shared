@@ -120,7 +120,7 @@ jobs:
           #   deploiement
           labels: |
             automated
-            s3-bucket
+            app:s3-bucket
             workflow:s3-bucket
             ${{ inputs.id && format('userid:{0}', inputs.id) || '' }}
             ${{ env.CLUB }}

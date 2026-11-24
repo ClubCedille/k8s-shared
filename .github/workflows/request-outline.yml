@@ -169,7 +169,7 @@ jobs:
           #   deploiement
           labels: |
             automated
-            outlinewiki
+            app:outline
             workflow:outlinewiki
             ${{ inputs.id && format('userid:{0}', inputs.id) || '' }}
             ${{ env.CLUB }}
