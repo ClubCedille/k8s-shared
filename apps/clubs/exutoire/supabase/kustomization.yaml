@@ -4,6 +4,8 @@ kind: Kustomization
 resources:
   - resources/namespace.yaml
   - resources/configMap.yaml
+  - resources/bucket-limits.configMap.yaml
+  - resources/bucket-limits.job.yaml
 helmCharts:
   - name: supabase
     version: "0.8.0"
