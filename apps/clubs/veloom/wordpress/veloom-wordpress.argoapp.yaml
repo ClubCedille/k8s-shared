@@ -4,6 +4,7 @@ metadata:
   name: veloom-wordpress
   namespace: argocd
   annotations:
+    k8s.cedille.club/club: "veloom"
     argocd.argoproj.io/sync-wave: "2"
 spec:
   project: k8s-shared

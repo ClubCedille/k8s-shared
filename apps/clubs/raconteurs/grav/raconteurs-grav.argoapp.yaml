@@ -4,6 +4,7 @@ metadata:
   name: raconteurs-grav
   namespace: argocd
   annotations:
+    k8s.cedille.club/club: "raconteursdangle"
     argocd.argoproj.io/sync-wave: "2"
     argocd-image-updater.argoproj.io/image-list: website=ghcr.io/clubcedille/grav:latest
     argocd-image-updater.argoproj.io/website.update-strategy: digest

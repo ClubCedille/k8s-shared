@@ -4,6 +4,7 @@ metadata:
   name: capra-wikijs
   namespace: argocd
   annotations:
+    k8s.cedille.club/club: "capra"
     argocd.argoproj.io/sync-wave: "2"
 spec:
   project: k8s-shared

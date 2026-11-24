@@ -4,6 +4,7 @@ metadata:
   name: cedille-shared
   namespace: argocd
   annotations:
+    k8s.cedille.club/club: "cedille"
     argocd.argoproj.io/sync-wave: "2"
     argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/clubcedille/cedille.etsmtl.ca:latest
     argocd-image-updater.argoproj.io/webapp.update-strategy: digest
