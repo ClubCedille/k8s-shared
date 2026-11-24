@@ -5,8 +5,24 @@ Chaque dossier sous `terraform/` est un **root Terraform indépendant**
 Kubernetes partagé via `~/.kube/config`:
 
 - `authentik/` — groupes, rôles et config de marque Authentik (`state-authentik`);
-- `outline/authentik-vault/`, `nodered/authentik-vault/`, `coder/authentik-vault/`,
-  `matomo/authentik-vault/`, `penpot/authentik-vault/`, `hi-events/authentik-vault/`, `policy-reporter/authentik-vault/` — applications OIDC + secrets Vault.
+- `*/authentik-vault/` — applications OIDC + secrets Vault (`outline`,
+  `nodered`, `coder`, `dependency-track`, `grafana`, `hi-events`, `inventree`,
+  `matomo`, `penpot`, `policy-reporter`).
+
+## Module partagé `modules/oidc-app`
+
+Les roots `*/authentik-vault` ne déclarent plus chacun leur provider OAuth2,
+
+leur application Authentik et leurs data sources : le squelette commun vit
+dans `terraform/modules/oidc-app` (client secret, provider, application,
+policy binding optionnel, scope `groups` optionnel). Un root ne garde que ses
+spécificités (URI de redirection, validité des tokens, secrets Vault, groupes
+et ressources propres à l'application).
+
+Les roots restent des states séparés. Lorsqu'un root est migré vers le
+module, ses anciennes adresses de ressources sont redirigées avec des blocs
+`moved` (et `removed` pour les objets désormais gérés par `terraform/authentik`),
+afin de ne rien détruire ni régénérer de client secret.
 
 Le workflow `.github/workflows/apply-tf.yml` détecte les changements et
 applique les modules concernés lorsqu'un changement est intégré à `main`.

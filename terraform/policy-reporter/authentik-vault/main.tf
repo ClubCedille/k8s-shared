@@ -1,5 +1,6 @@
 terraform {
   required_version = ">=1.14"
+
   backend "kubernetes" {
     secret_suffix = "state-policy-reporter"
     namespace     = "terraform"
@@ -47,10 +48,25 @@ resource "authentik_group" "policy_reporter_users" {
   name = "policy-reporter-users"
 }
 
-resource "random_password" "policy_reporter_client_secret" {
-  length           = 48
-  special          = true
-  override_special = "!-_="
+module "oidc" {
+  source = "../../modules/oidc-app"
+
+  app_slug            = local.app_slug
+  app_name            = local.app_name
+  grant_types         = ["authorization_code", "refresh_token"]
+  signing_key_name    = "authentik Self-signed Certificate"
+  create_groups_scope = true
+
+  access_token_validity  = "hours=12"
+  refresh_token_validity = "days=30"
+
+  access_group_id = authentik_group.policy_reporter_users.id
+
+  redirect_uris = [
+    {
+      url = "https://${local.hostname}/callback"
+    },
+  ]
 }
 
 resource "vault_kv_secret" "policy_reporter_oidc_secret" {
@@ -60,84 +76,32 @@ resource "vault_kv_secret" "policy_reporter_oidc_secret" {
   # discoveryUrl, clientId, clientSecret.
   data_json = jsonencode({
     discoveryUrl = "https://auth.etsmtl.club/application/o/${local.app_slug}/.well-known/openid-configuration"
-    clientId     = authentik_provider_oauth2.policy_reporter.client_id
-    clientSecret = authentik_provider_oauth2.policy_reporter.client_secret
+    clientId     = module.oidc.client_id
+    clientSecret = module.oidc.client_secret
   })
 }
 
-data "authentik_flow" "default_authorization_flow" {
-  slug = "default-provider-authorization-explicit-consent"
+moved {
+  from = random_password.policy_reporter_client_secret
+  to   = module.oidc.random_password.client_secret[0]
 }
 
-data "authentik_flow" "default_invalidation_flow" {
-  slug = "default-provider-invalidation-flow"
+moved {
+  from = authentik_property_mapping_provider_scope.groups
+  to   = module.oidc.authentik_property_mapping_provider_scope.groups[0]
 }
 
-data "authentik_property_mapping_provider_scope" "openid" {
-  managed = "goauthentik.io/providers/oauth2/scope-openid"
+moved {
+  from = authentik_provider_oauth2.policy_reporter
+  to   = module.oidc.authentik_provider_oauth2.provider
 }
 
-# Le mapping "email" manage par defaut d'Authentik ne pose pas
-# email_verified: true (pas de flow de verification courriel) -- reutilise le
-# mapping partage de terraform/authentik/main.tf comme les autres apps.
-data "authentik_property_mapping_provider_scope" "email" {
-  name = "cedille-scope-email-verified"
+moved {
+  from = authentik_application.policy_reporter
+  to   = module.oidc.authentik_application.application
 }
 
-data "authentik_property_mapping_provider_scope" "profile" {
-  managed = "goauthentik.io/providers/oauth2/scope-profile"
-}
-
-# Les property mappings sont rattachees par-provider : Policy Reporter a
-# besoin de sa propre copie (les membres du groupe policy-reporter-users
-# sont attribues via le claim "groups", groupClaim dans le config UI).
-resource "authentik_property_mapping_provider_scope" "groups" {
-  name       = "policy-reporter-scope-groups"
-  scope_name = "groups"
-  expression = "return {\"groups\": [group.name for group in user.ak_groups.all()]}"
-}
-
-# Authentik signe l'id_token en HS256 si `signing_key` n'est pas defini.
-# Le backend OIDC du UI (goth) ne valide pas HS256 de maniere symetrique --
-# force la signature RS256 avec le certificat auto-signe de l'instance.
-data "authentik_certificate_key_pair" "default" {
-  name = "authentik Self-signed Certificate"
-}
-
-resource "authentik_provider_oauth2" "policy_reporter" {
-  name               = local.app_slug
-  client_id          = local.app_slug
-  client_secret      = random_password.policy_reporter_client_secret.result
-  grant_types        = ["authorization_code", "refresh_token"]
-  authorization_flow = data.authentik_flow.default_authorization_flow.id
-  invalidation_flow  = data.authentik_flow.default_invalidation_flow.id
-  signing_key        = data.authentik_certificate_key_pair.default.id
-
-  access_token_validity  = "hours=12"
-  refresh_token_validity = "days=30"
-  property_mappings = [
-    data.authentik_property_mapping_provider_scope.openid.id,
-    data.authentik_property_mapping_provider_scope.email.id,
-    data.authentik_property_mapping_provider_scope.profile.id,
-    authentik_property_mapping_provider_scope.groups.id,
-  ]
-  allowed_redirect_uris = [
-    {
-      matching_mode     = "strict"
-      redirect_uri_type = "authorization"
-      url               = "https://${local.hostname}/callback"
-    },
-  ]
-}
-
-resource "authentik_application" "policy_reporter" {
-  name              = local.app_name
-  slug              = local.app_slug
-  protocol_provider = authentik_provider_oauth2.policy_reporter.id
-}
-
-resource "authentik_policy_binding" "policy_reporter_access" {
-  target = authentik_application.policy_reporter.uuid
-  group  = authentik_group.policy_reporter_users.id
-  order  = 0
+moved {
+  from = authentik_policy_binding.policy_reporter_access
+  to   = module.oidc.authentik_policy_binding.access[0]
 }

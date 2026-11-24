@@ -1,5 +1,6 @@
 terraform {
   required_version = ">=1.14"
+
   backend "kubernetes" {
     secret_suffix = "state-outlinewiki"
     namespace     = "terraform"
@@ -36,14 +37,6 @@ locals {
   clubs = jsondecode(file("${path.module}/clubs.json"))
 }
 
-resource "random_password" "outline_client_secret" {
-  for_each = toset(local.clubs)
-
-  length           = 48
-  special          = true
-  override_special = "!-_="
-}
-
 resource "random_id" "outline_secret_key" {
   for_each    = toset(local.clubs)
   byte_length = 32
@@ -54,14 +47,38 @@ resource "random_id" "outline_utils_secret" {
   byte_length = 32
 }
 
+data "authentik_property_mapping_provider_scope" "offline_access" {
+  managed = "goauthentik.io/providers/oauth2/scope-offline_access"
+}
+
+module "oidc" {
+  source   = "../../modules/oidc-app"
+  for_each = toset(local.clubs)
+
+  app_slug                = "outlinewiki-${each.key}"
+  app_name                = "Wiki ${each.key}"
+  grant_types             = ["authorization_code", "refresh_token"]
+  use_default_email_scope = true
+
+  extra_property_mapping_ids = [
+    data.authentik_property_mapping_provider_scope.offline_access.id,
+  ]
+
+  redirect_uris = [
+    {
+      url = "https://wiki.${each.key}.etsmtl.club/auth/oidc.callback"
+    },
+  ]
+}
+
 resource "vault_kv_secret" "outline-secrets" {
   for_each = toset(local.clubs)
 
   path = "kv/data/${each.key}-outlinewiki/default/outline-secrets"
 
   data_json = jsonencode({
-    OIDC_CLIENT_ID     = authentik_provider_oauth2.outline_provider[each.key].client_id
-    OIDC_CLIENT_SECRET = authentik_provider_oauth2.outline_provider[each.key].client_secret
+    OIDC_CLIENT_ID     = module.oidc[each.key].client_id
+    OIDC_CLIENT_SECRET = module.oidc[each.key].client_secret
     SECRET_KEY         = random_id.outline_secret_key[each.key].hex
     UTILS_SECRET       = random_id.outline_utils_secret[each.key].hex
     DATABASE_URL       = "postgres://${var.db_user}:${var.db_password}@postgresql-outline-${each.key}-rw.${each.key}-outlinewiki.svc.cluster.local:5432/outline"
@@ -79,58 +96,62 @@ resource "vault_kv_secret" "outline-postgresql" {
   })
 }
 
-data "authentik_flow" "default-authorization-flow" {
-  slug = "default-provider-authorization-explicit-consent"
+moved {
+  from = random_password.outline_client_secret["capra"]
+  to   = module.oidc["capra"].random_password.client_secret[0]
 }
 
-data "authentik_flow" "default-invalidation-flow" {
-  slug = "default-provider-invalidation-flow"
+moved {
+  from = authentik_provider_oauth2.outline_provider["capra"]
+  to   = module.oidc["capra"].authentik_provider_oauth2.provider
 }
 
-data "authentik_property_mapping_provider_scope" "openid" {
-  managed = "goauthentik.io/providers/oauth2/scope-openid"
+moved {
+  from = authentik_application.outline_app["capra"]
+  to   = module.oidc["capra"].authentik_application.application
 }
 
-data "authentik_property_mapping_provider_scope" "email" {
-  managed = "goauthentik.io/providers/oauth2/scope-email"
+moved {
+  from = random_password.outline_client_secret["conjure"]
+  to   = module.oidc["conjure"].random_password.client_secret[0]
 }
 
-data "authentik_property_mapping_provider_scope" "profile" {
-  managed = "goauthentik.io/providers/oauth2/scope-profile"
+moved {
+  from = authentik_provider_oauth2.outline_provider["conjure"]
+  to   = module.oidc["conjure"].authentik_provider_oauth2.provider
 }
 
-data "authentik_property_mapping_provider_scope" "offline_access" {
-  managed = "goauthentik.io/providers/oauth2/scope-offline_access"
+moved {
+  from = authentik_application.outline_app["conjure"]
+  to   = module.oidc["conjure"].authentik_application.application
 }
 
-resource "authentik_provider_oauth2" "outline_provider" {
-  for_each = toset(local.clubs)
-
-  name               = "outlinewiki-${each.key}"
-  client_id          = "outlinewiki-${each.key}"
-  client_secret      = random_password.outline_client_secret[each.key].result
-  grant_types        = ["authorization_code", "refresh_token"]
-  authorization_flow = data.authentik_flow.default-authorization-flow.id
-  invalidation_flow  = data.authentik_flow.default-invalidation-flow.id
-  property_mappings = [
-    data.authentik_property_mapping_provider_scope.openid.id,
-    data.authentik_property_mapping_provider_scope.email.id,
-    data.authentik_property_mapping_provider_scope.profile.id,
-    data.authentik_property_mapping_provider_scope.offline_access.id,
-  ]
-  allowed_redirect_uris = [
-    {
-      "matching_mode"     = "strict"
-      "redirect_uri_type" = "authorization"
-      "url"               = "https://wiki.${each.key}.etsmtl.club/auth/oidc.callback"
-    },
-  ]
+moved {
+  from = random_password.outline_client_secret["dci"]
+  to   = module.oidc["dci"].random_password.client_secret[0]
 }
 
-resource "authentik_application" "outline_app" {
-  for_each = toset(local.clubs)
+moved {
+  from = authentik_provider_oauth2.outline_provider["dci"]
+  to   = module.oidc["dci"].authentik_provider_oauth2.provider
+}
 
-  name              = "Wiki ${each.key}"
-  slug              = "outlinewiki-${each.key}"
-  protocol_provider = authentik_provider_oauth2.outline_provider[each.key].id
+moved {
+  from = authentik_application.outline_app["dci"]
+  to   = module.oidc["dci"].authentik_application.application
+}
+
+moved {
+  from = random_password.outline_client_secret["piranha"]
+  to   = module.oidc["piranha"].random_password.client_secret[0]
+}
+
+moved {
+  from = authentik_provider_oauth2.outline_provider["piranha"]
+  to   = module.oidc["piranha"].authentik_provider_oauth2.provider
+}
+
+moved {
+  from = authentik_application.outline_app["piranha"]
+  to   = module.oidc["piranha"].authentik_application.application
 }

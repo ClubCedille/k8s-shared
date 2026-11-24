@@ -1,5 +1,6 @@
 terraform {
   required_version = ">=1.14"
+
   backend "kubernetes" {
     secret_suffix = "state-hi-events"
     namespace     = "terraform"
@@ -40,70 +41,41 @@ locals {
   vault_secret = "kv/data/${local.namespace}/default/hi-events-oidc-secret"
 }
 
-resource "random_password" "hi_events_client_secret" {
-  length           = 48
-  special          = true
-  override_special = "!-_="
+module "oidc" {
+  source = "../../modules/oidc-app"
+
+  app_slug         = local.app_slug
+  app_name         = local.app_name
+  grant_types      = ["authorization_code", "refresh_token"]
+  signing_key_name = "authentik Self-signed Certificate"
+
+  redirect_uris = [
+    {
+      url = "https://${local.hostname}/sso/callback"
+    },
+  ]
 }
 
 resource "vault_kv_secret" "hi_events_oidc_secret" {
   path = local.vault_secret
 
   data_json = jsonencode({
-    SSO_OIDC_CLIENT_ID     = authentik_provider_oauth2.hi_events.client_id
-    SSO_OIDC_CLIENT_SECRET = authentik_provider_oauth2.hi_events.client_secret
+    SSO_OIDC_CLIENT_ID     = module.oidc.client_id
+    SSO_OIDC_CLIENT_SECRET = module.oidc.client_secret
   })
 }
 
-data "authentik_flow" "default_authorization_flow" {
-  slug = "default-provider-authorization-explicit-consent"
+moved {
+  from = random_password.hi_events_client_secret
+  to   = module.oidc.random_password.client_secret[0]
 }
 
-data "authentik_flow" "default_invalidation_flow" {
-  slug = "default-provider-invalidation-flow"
+moved {
+  from = authentik_provider_oauth2.hi_events
+  to   = module.oidc.authentik_provider_oauth2.provider
 }
 
-data "authentik_property_mapping_provider_scope" "openid" {
-  managed = "goauthentik.io/providers/oauth2/scope-openid"
-}
-
-data "authentik_property_mapping_provider_scope" "email" {
-  name = "cedille-scope-email-verified"
-}
-
-data "authentik_property_mapping_provider_scope" "profile" {
-  managed = "goauthentik.io/providers/oauth2/scope-profile"
-}
-
-# RS256 : id_token validé via JWKS.
-data "authentik_certificate_key_pair" "default" {
-  name = "authentik Self-signed Certificate"
-}
-
-resource "authentik_provider_oauth2" "hi_events" {
-  name               = local.app_slug
-  client_id          = local.app_slug
-  client_secret      = random_password.hi_events_client_secret.result
-  grant_types        = ["authorization_code", "refresh_token"]
-  authorization_flow = data.authentik_flow.default_authorization_flow.id
-  invalidation_flow  = data.authentik_flow.default_invalidation_flow.id
-  signing_key        = data.authentik_certificate_key_pair.default.id
-  property_mappings = [
-    data.authentik_property_mapping_provider_scope.openid.id,
-    data.authentik_property_mapping_provider_scope.email.id,
-    data.authentik_property_mapping_provider_scope.profile.id,
-  ]
-  allowed_redirect_uris = [
-    {
-      matching_mode     = "strict"
-      redirect_uri_type = "authorization"
-      url               = "https://${local.hostname}/sso/callback"
-    },
-  ]
-}
-
-resource "authentik_application" "hi_events" {
-  name              = local.app_name
-  slug              = local.app_slug
-  protocol_provider = authentik_provider_oauth2.hi_events.id
+moved {
+  from = authentik_application.hi_events
+  to   = module.oidc.authentik_application.application
 }

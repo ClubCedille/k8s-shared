@@ -1,11 +1,6 @@
-# Terraform dependency-track -- provisionne :
-#   1. l'application OIDC Authentik (SSO de l'UI Dependency-Track) ;
-#   2. les secrets Vault lus par les VaultStaticSecret de apps/dependency-track.
-#
-# A appliquer AVANT le premier sync ArgoCD de l'app, sinon les secrets
-# Kubernetes n'existent pas et les pods restent en attente.
 terraform {
   required_version = ">=1.14"
+
   backend "kubernetes" {
     secret_suffix = "state-dependency-track"
     namespace     = "terraform"
@@ -53,15 +48,15 @@ locals {
 #-------------------------------------------------------------------------------
 
 resource "random_password" "db_password" {
-  length           = 32
-  special          = false
+  length  = 32
+  special = false
 }
 
 resource "random_password" "kek" {
   # 32 octets aleatoires, puis base64 : format attendu par
   # secretManagement.database.kek.mode=config de Dependency-Track.
-  length           = 32
-  special          = false
+  length  = 32
+  special = false
 }
 
 resource "vault_kv_secret" "db_secret" {
@@ -83,18 +78,6 @@ resource "vault_kv_secret" "kek_secret" {
   })
 }
 
-resource "vault_kv_secret" "oidc_secret" {
-  path = "${local.vault_base}/dependency-track-oidc-secret"
-
-  # Le frontend Dependency-Track est un SPA public (code flow + PKCE) : il
-  # n'envoie que client_id au token endpoint. Aucun clientSecret n'est requis
-  # ni utilise ; le secret Vault ne contient donc que l'issuer et le clientId.
-  data_json = jsonencode({
-    issuer   = local.issuer
-    clientId = authentik_provider_oauth2.dependency_track.client_id
-  })
-}
-
 #-------------------------------------------------------------------------------
 # SSO Authentik -- client public (PKCE), provisioning des utilisateurs et
 # synchronisation des equipes via le claim `groups`.
@@ -104,83 +87,63 @@ resource "authentik_group" "dependency_track_users" {
   name = "dependency-track-users"
 }
 
-data "authentik_flow" "default_authorization_flow" {
-  slug = "default-provider-authorization-explicit-consent"
-}
+module "oidc" {
+  source = "../../modules/oidc-app"
 
-data "authentik_flow" "default_invalidation_flow" {
-  slug = "default-provider-invalidation-flow"
-}
+  app_slug    = local.app_slug
+  app_name    = local.app_name
+  client_type = "public"
+  grant_types = ["authorization_code", "refresh_token"]
 
-data "authentik_property_mapping_provider_scope" "openid" {
-  managed = "goauthentik.io/providers/oauth2/scope-openid"
-}
-
-# Le mapping "email" manage par defaut ne pose pas email_verified: true ;
-# on reutilise le mapping partage de terraform/authentik/main.tf.
-data "authentik_property_mapping_provider_scope" "email" {
-  name = "cedille-scope-email-verified"
-}
-
-data "authentik_property_mapping_provider_scope" "profile" {
-  managed = "goauthentik.io/providers/oauth2/scope-profile"
-}
-
-# Dependency-Track lit le claim `groups` pour creer les equipes (team sync).
-resource "authentik_property_mapping_provider_scope" "groups" {
-  name       = "dependency-track-scope-groups"
-  scope_name = "groups"
-  expression = "return {\"groups\": [group.name for group in user.ak_groups.all()]}"
-}
-
-# RS256 : le backend OIDC de Dependency-Track verifie la signature avec la
-# cle publique du provider ; ne pas laisser Authentik signer en HS256.
-data "authentik_certificate_key_pair" "default" {
-  name = "authentik Self-signed Certificate"
-}
-
-resource "authentik_provider_oauth2" "dependency_track" {
-  name      = local.app_slug
-  client_id = local.app_slug
-  # SPA : client public, authentification par PKCE uniquement. Avec le defaut
-  # `confidential` et un client_secret, le token endpoint renvoie 400
-  # (auth_via=unauthenticated) car le frontend n'envoie pas de secret.
-  client_type        = "public"
-  grant_types        = ["authorization_code", "refresh_token"]
-  authorization_flow = data.authentik_flow.default_authorization_flow.id
-  invalidation_flow  = data.authentik_flow.default_invalidation_flow.id
-  signing_key        = data.authentik_certificate_key_pair.default.id
+  # RS256 : le backend OIDC de Dependency-Track verifie la signature avec la
+  # cle publique du provider ; ne pas laisser Authentik signer en HS256.
+  signing_key_name = "authentik Self-signed Certificate"
 
   access_token_validity  = "hours=12"
   refresh_token_validity = "days=30"
 
-  property_mappings = [
-    data.authentik_property_mapping_provider_scope.openid.id,
-    data.authentik_property_mapping_provider_scope.email.id,
-    data.authentik_property_mapping_provider_scope.profile.id,
-    authentik_property_mapping_provider_scope.groups.id,
-  ]
+  # Dependency-Track lit le claim `groups` pour creer les equipes (team sync).
+  create_groups_scope = true
+
+  access_group_id = authentik_group.dependency_track_users.id
 
   # SPA (code flow + PKCE) : le frontend Dependency-Track envoie
-  # redirect_uri=https://<host>/static/oidc-callback.html (observe dans les
-  # logs Authentik : cause=redirect_uri_no_match avec la racine seule).
-  allowed_redirect_uris = [
+  # redirect_uri=https://<host>/static/oidc-callback.html.
+  redirect_uris = [
     {
-      matching_mode     = "strict"
-      redirect_uri_type = "authorization"
-      url               = "https://${local.hostname}/static/oidc-callback.html"
+      url = "https://${local.hostname}/static/oidc-callback.html"
     },
   ]
 }
 
-resource "authentik_application" "dependency_track" {
-  name              = local.app_name
-  slug              = local.app_slug
-  protocol_provider = authentik_provider_oauth2.dependency_track.id
+resource "vault_kv_secret" "oidc_secret" {
+  path = "${local.vault_base}/dependency-track-oidc-secret"
+
+  # Le frontend Dependency-Track est un SPA public (code flow + PKCE) : il
+  # n'envoie que client_id au token endpoint. Aucun clientSecret n'est requis
+  # ni utilise ; le secret Vault ne contient donc que l'issuer et le clientId.
+  data_json = jsonencode({
+    issuer   = local.issuer
+    clientId = module.oidc.client_id
+  })
 }
 
-resource "authentik_policy_binding" "dependency_track_access" {
-  target = authentik_application.dependency_track.uuid
-  group  = authentik_group.dependency_track_users.id
-  order  = 0
+moved {
+  from = authentik_property_mapping_provider_scope.groups
+  to   = module.oidc.authentik_property_mapping_provider_scope.groups[0]
+}
+
+moved {
+  from = authentik_provider_oauth2.dependency_track
+  to   = module.oidc.authentik_provider_oauth2.provider
+}
+
+moved {
+  from = authentik_application.dependency_track
+  to   = module.oidc.authentik_application.application
+}
+
+moved {
+  from = authentik_policy_binding.dependency_track_access
+  to   = module.oidc.authentik_policy_binding.access[0]
 }
