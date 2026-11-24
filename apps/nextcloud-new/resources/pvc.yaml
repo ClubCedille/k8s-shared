@@ -10,9 +10,5 @@ spec:
   accessModes: [ReadWriteMany]
   resources:
     requests:
-      # Aligné sur le PVC réel du cluster (30Ti, créé ainsi lors de la mise en
-      # place de l'instance parallèle). Kubernetes interdit de réduire un PVC :
-      # garder 20Gi ici faisait échouer chaque sync ArgoCD sur ce patch.
-      # Les fichiers utilisateurs sont dans Garage (S3), pas dans ce volume.
-      storage: 30Ti
+      storage: 20Gi
   storageClassName: cephfs
