@@ -114,6 +114,7 @@ resource "authentik_application" "nodered" {
   name              = local.app_name
   slug              = local.app_slug
   protocol_provider = authentik_provider_oauth2.nodered.id
+  meta_icon         = "https://www.stackhero.io/images/servicesLogos/openGraphVersions/node-red.png"
 }
 
 resource "authentik_policy_binding" "nodered_summercamp_access" {

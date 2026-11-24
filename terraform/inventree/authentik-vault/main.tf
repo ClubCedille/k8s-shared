@@ -126,6 +126,7 @@ resource "authentik_application" "inventree" {
   protocol_provider = authentik_provider_oauth2.inventree.id
   meta_launch_url   = "https://${local.hostname}"
   open_in_new_tab   = true
+  meta_icon         = "https://avatars.githubusercontent.com/u/26612639?s=280&v=4"
 }
 
 resource "authentik_policy_binding" "inventree_comets_access" {

@@ -112,4 +112,5 @@ resource "authentik_application" "penpot" {
   name              = local.app_name
   slug              = local.app_slug
   protocol_provider = authentik_provider_oauth2.penpot.id
+  meta_icon         = "https://avatars.githubusercontent.com/u/30179644?s=200&v=4"
 }

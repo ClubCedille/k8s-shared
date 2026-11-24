@@ -106,4 +106,5 @@ resource "authentik_application" "hi_events" {
   name              = local.app_name
   slug              = local.app_slug
   protocol_provider = authentik_provider_oauth2.hi_events.id
+  meta_icon         = "https://avatars.githubusercontent.com/u/148843671?s=200&v=4"
 }

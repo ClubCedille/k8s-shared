@@ -151,4 +151,5 @@ resource "authentik_application" "grafana" {
   name              = local.app_name
   slug              = local.app_slug
   protocol_provider = authentik_provider_oauth2.grafana.id
+  meta_icon         = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/grafana.png"
 }

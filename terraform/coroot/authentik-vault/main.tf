@@ -119,7 +119,5 @@ resource "authentik_application" "coroot" {
   # Pas de policy binding par defaut : tout utilisateur Authentik peut se
   # connecter et arrive avec le role Coroot "Viewer". Ajouter un groupe +
   # policy binding ici si l'acces doit etre restreint.
-  lifecycle {
-    ignore_changes = [group, meta_icon]
-  }
+  meta_icon = "https://coroot.com/static/img/coroot_512.png"
 }
