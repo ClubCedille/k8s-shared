@@ -68,13 +68,13 @@ resource "grafana_organization" "lan_ets" {
 
 # Le dossier est créé par le sidecar de dashboards du chart Grafana (voir
 # apps/grafana/resources/dashboards/k8s-app-logs-overview.yaml, annotation
-# k8s-sidecar-target-directory: "Kubernetes/App-Logs"), pas par Terraform --
-# on le référence ici plutôt que de le créer. `terraform apply` sur ce
-# module doit donc arriver APRÈS que ce ConfigMap soit synchronisé par
-# ArgoCD (la recherche par titre échoue tant que le dossier n'existe pas
-# encore côté Grafana).
+# k8s-sidecar-target-directory: "Kubernetes"), pas par Terraform -- on le
+# référence ici plutôt que de le créer. `terraform apply` sur ce module doit
+# donc arriver APRÈS que ce ConfigMap soit synchronisé par ArgoCD (la
+# recherche par titre échoue tant que le dossier n'existe pas encore côté
+# Grafana).
 data "grafana_folder" "k8s_app_logs" {
-  title = "App-Logs"
+  title = "Kubernetes"
 }
 
 # role_attribute_path (apps/grafana/helm/values.yaml) accorde déjà le rôle

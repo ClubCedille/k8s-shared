@@ -40,13 +40,23 @@ Les modules `terraform/grafana/*` ne font **pas** partie de la matrice
 
 Le compte local `admin` du chart Grafana est Server Admin. Son mot de passe
 est fourni sous forme `admin:<password>` via la variable d'environnement
-`TF_VAR_GRAFANA_ADMIN_AUTH` (aucun secret de ce type n'est encore stocké dans
-Vault dans ce dépôt — à ajouter si tu veux le centraliser).
+`TF_VAR_GRAFANA_ADMIN_AUTH`. Les deux identifiants sont centralisés dans
+Vault :
+
+```bash
+vault kv get kv/data/monitoring/default/grafana-terraform
+# GRAFANA_ADMIN_AUTH, GRAFANA_SERVICE_ACCOUNT_TOKEN
+```
+
+`grafana-terraform` est un service account Grafana (rôle Admin) créé une
+fois manuellement. Le mot de passe admin doit rester identique à celui du
+Secret Kubernetes `monitoring/grafana` (`admin-password`), sinon le sidecar
+de dashboards reçoit un 401 sur l'API de reload.
 
 ```bash
 cd terraform/grafana/access
-export TF_VAR_GRAFANA_SERVICE_ACCOUNT_TOKEN='<token du service account Admin>'
-export TF_VAR_GRAFANA_ADMIN_AUTH='admin:<mot de passe admin local>'
+export TF_VAR_GRAFANA_SERVICE_ACCOUNT_TOKEN="$(vault kv get -field=GRAFANA_SERVICE_ACCOUNT_TOKEN kv/data/monitoring/default/grafana-terraform)"
+export TF_VAR_GRAFANA_ADMIN_AUTH="$(vault kv get -field=GRAFANA_ADMIN_AUTH kv/data/monitoring/default/grafana-terraform)"
 tofu init
 
 # Import unique de l'org existante : sans ça Terraform voudrait créer
@@ -56,6 +66,11 @@ tofu import grafana_organization.cedille 1
 tofu plan   # doit montrer : rename Main Org. -> Cedille, create Lan_ETS, rien d'autre
 tofu apply
 ```
+
+Le dossier référencé par `grafana_folder_permission` est le dossier
+`Kubernetes` (annotation `k8s-sidecar-target-directory: "Kubernetes"` sur
+`grafana-dashboard-k8s-app-logs-overview`). Si ce dossier est renommé, la
+data source `grafana_folder.k8s_app_logs` doit suivre.
 
 `ignore_changes` sur les listes de membres est volontaire : les utilisateurs
 sont ajoutés aux orgs par OIDC, Terraform ne doit pas les retirer à chaque
