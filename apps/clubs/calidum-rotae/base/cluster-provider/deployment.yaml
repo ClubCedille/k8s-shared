@@ -14,6 +14,8 @@ spec:
       labels:
         app: cluster-provider
     spec:
+      serviceAccountName: cluster-provider
+      automountServiceAccountToken: true
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
