@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: calidum-rotae
-          image: ghcr.io/clubcedille/calidum-rotae-service:2.0.2
+          image: ghcr.io/clubcedille/calidum-rotae-service:3.0.0
           imagePullPolicy: Always
           env:
             - name: CALIDUM_ROTAE_SERVICE_API_KEY
