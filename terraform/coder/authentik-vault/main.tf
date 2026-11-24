@@ -128,4 +128,8 @@ resource "authentik_application" "coder" {
   slug              = local.app_slug
   protocol_provider = authentik_provider_oauth2.coder.id
   meta_icon         = "https://avatars.githubusercontent.com/u/95932066?s=200&v=4"
+  # The portal folder is managed manually in Authentik.
+  lifecycle {
+    ignore_changes = [group]
+  }
 }

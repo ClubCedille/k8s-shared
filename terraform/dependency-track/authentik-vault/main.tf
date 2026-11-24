@@ -178,6 +178,10 @@ resource "authentik_application" "dependency_track" {
   slug              = local.app_slug
   protocol_provider = authentik_provider_oauth2.dependency_track.id
   meta_icon         = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/dependency-track.png"
+  # The portal folder is managed manually in Authentik.
+  lifecycle {
+    ignore_changes = [group]
+  }
 }
 
 resource "authentik_policy_binding" "dependency_track_access" {

@@ -135,6 +135,10 @@ resource "authentik_application" "policy_reporter" {
   slug              = local.app_slug
   protocol_provider = authentik_provider_oauth2.policy_reporter.id
   meta_icon         = "https://media.licdn.com/dms/image/v2/D4E0BAQFLkmuLbRcEQg/company-logo_200_200/company-logo_200_200/0/1720637147139/policyreporter1_logo?e=2147483647&v=beta&t=2Tdn-Kb3p4cttuq-XRcV6z8zJ-H7pRtPLBtW68qY1yc"
+  # The portal folder is managed manually in Authentik.
+  lifecycle {
+    ignore_changes = [group]
+  }
 }
 
 resource "authentik_policy_binding" "policy_reporter_access" {

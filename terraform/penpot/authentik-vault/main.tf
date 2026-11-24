@@ -113,4 +113,8 @@ resource "authentik_application" "penpot" {
   slug              = local.app_slug
   protocol_provider = authentik_provider_oauth2.penpot.id
   meta_icon         = "https://avatars.githubusercontent.com/u/30179644?s=200&v=4"
+  # The portal folder is managed manually in Authentik.
+  lifecycle {
+    ignore_changes = [group]
+  }
 }

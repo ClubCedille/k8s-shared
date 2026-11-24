@@ -143,4 +143,8 @@ resource "authentik_application" "outline_app" {
   slug              = "outlinewiki-${each.key}"
   protocol_provider = authentik_provider_oauth2.outline_provider[each.key].id
   meta_icon         = lookup(local.outline_icons, each.key, null)
+  # The portal folder is managed manually in Authentik.
+  lifecycle {
+    ignore_changes = [group]
+  }
 }

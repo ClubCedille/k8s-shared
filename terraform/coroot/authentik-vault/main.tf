@@ -120,4 +120,8 @@ resource "authentik_application" "coroot" {
   # connecter et arrive avec le role Coroot "Viewer". Ajouter un groupe +
   # policy binding ici si l'acces doit etre restreint.
   meta_icon = "https://coroot.com/static/img/coroot_512.png"
+  # The portal folder is managed manually in Authentik.
+  lifecycle {
+    ignore_changes = [group]
+  }
 }
