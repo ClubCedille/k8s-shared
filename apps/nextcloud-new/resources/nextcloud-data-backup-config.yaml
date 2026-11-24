@@ -1,0 +1,23 @@
+# Configuration non secrète partagée entre le CronJob de backup S3
+# (resources/nextcloud-data-backup-cronjob.yaml) et le Job de restauration
+# manuel (restore-runbook/restore-job.yaml). Les credentials restent dans les
+# secrets nextcloud-garage-credentials et b2-creds.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nextcloud-data-backup-config
+data:
+  RCLONE_CONFIG_GARAGE_TYPE: s3
+  RCLONE_CONFIG_GARAGE_PROVIDER: Other
+  RCLONE_CONFIG_GARAGE_ENDPOINT: http://10.0.21.50:3900
+  RCLONE_CONFIG_GARAGE_REGION: garage
+  RCLONE_CONFIG_GARAGE_FORCE_PATH_STYLE: "true"
+
+  RCLONE_CONFIG_B2_TYPE: s3
+  RCLONE_CONFIG_B2_PROVIDER: Other
+  RCLONE_CONFIG_B2_ENDPOINT: https://s3.ca-east-006.backblazeb2.com
+  RCLONE_CONFIG_B2_FORCE_PATH_STYLE: "true"
+
+  BACKUP_PREFIX: nextcloud-data-backup
+  CHANGES_PREFIX: nextcloud-data-backup-changes
+  RETENTION_DAYS: "7"

@@ -1,0 +1,21 @@
+# Backup du PVC config/apps de l'instance Nextcloud autoritative.
+# Schedule dédié (calqué sur nextcloud.yaml) pour garder des restores non
+# ambigus pendant la fenêtre de rollback. À conserver après le 2026-12-01 ;
+# c'est nextcloud.yaml (ancienne instance) qui sera alors supprimé.
+# Les fichiers utilisateurs ne sont PAS ici : ils vivent dans le bucket Garage
+# `nextcloud-data` (voir apps/nextcloud-new/helm/nextcloud-values.yaml).
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: nextcloud-new-velero-schedule
+  namespace: velero
+spec:
+  schedule: "35 6 * * *"
+  template:
+    ttl: 168h
+    includedNamespaces:
+      - nextcloud-new
+    snapshotVolumes: true
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/backup: velero

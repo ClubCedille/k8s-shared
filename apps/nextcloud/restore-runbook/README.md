@@ -1,5 +1,17 @@
 # Disaster Recovery Process
 
+> **Portée (mise à jour 2026-11-23).** Cette procédure cible l'**ancienne**
+> instance Nextcloud (namespace `nextcloud`, désormais servie sur
+> `old-nextcloud.etsmtl.club`). L'instance autoritative est `nextcloud-new`
+> (`nextcloud.etsmtl.club`, namespace `nextcloud-new`) : utiliser
+> `apps/nextcloud-new/restore-runbook/README.md` pour cette dernière.
+> Voir `docs/nextcloud-migration-2026-09/README.md` pour l'état global.
+> **Décommissionnement prévu le 2026-12-01** : ce runbook et le schedule Velero
+> `nextcloud-velero-schedule` seront alors supprimés. D'ici là, noter que
+> l'étape 7 référence un namespace de test `nextcloud-bk` qui n'existe plus dans
+> ce repo, et que le schedule Velero de l'instance autoritative est désormais
+> `nextcloud-new-velero-schedule`.
+
 ## Restoring Nextcloud
 
 Restore a fully functional Nextcloud instance including:
@@ -100,7 +112,8 @@ Restore a fully functional Nextcloud instance including:
     kubectl exec -n nextcloud $(kubectl get pod -n nextcloud -l app.kubernetes.io/name=nextcloud -o jsonpath="{.items[0].metadata.name}") -- php occ maintenance:mode --off
     ```
 
-7. If testing on nextcloud-bk instance, use this one liner to update trusted domain that gets overwritten by restoring the backup:
+7. *(Historique — le namespace `nextcloud-bk` n'existe plus dans ce repo.)*
+   If testing on nextcloud-bk instance, use this one liner to update trusted domain that gets overwritten by restoring the backup:
 
     ```bash
     kubectl exec -n nextcloud-bk $(kubectl get pod -n nextcloud-bk -l app.kubernetes.io/name=nextcloud -o jsonpath="{.items[0].metadata.name}") -- sed -i "/'trusted_domains' =>/,/),/c\  'trusted_domains' => \n  array (\n    0 => 'nextcloud.bk.shared.cedille.club',\n  )," /var/www/html/config/config.php

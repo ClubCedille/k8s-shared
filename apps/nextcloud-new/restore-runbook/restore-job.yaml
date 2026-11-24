@@ -1,0 +1,93 @@
+# Job de restauration manuelle du bucket Nextcloud (B2 -> Garage).
+# Ce fichier n'est PAS référencé par apps/nextcloud-new/kustomization.yaml :
+# il ne doit pas être appliqué par ArgoCD au sync, seulement en cas de restore.
+#
+#   kubectl -n nextcloud-new apply -f apps/nextcloud-new/restore-runbook/restore-job.yaml
+#   kubectl -n nextcloud-new logs -f job/nextcloud-data-restore
+#
+# Par défaut, recopie le miroir courant B2 `nextcloud-data-backup/` vers
+# `garage:nextcloud-data`. `rclone copy` est non destructif : les fichiers
+# présents dans Garage mais absents de B2 ne sont pas supprimés.
+# Pour récupérer une version supprimée/modifiée, changer RESTORE_SOURCE pour
+# `nextcloud-data-backup-changes/<date>` avant d'appliquer.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nextcloud-data-restore
+  namespace: nextcloud-new
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 86400
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app: nextcloud-data-restore
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: rclone
+          image: rclone/rclone:1.68.2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+              ephemeral-storage: 4Gi
+          envFrom:
+            - configMapRef:
+                name: nextcloud-data-backup-config
+          env:
+            - name: RESTORE_SOURCE
+              value: nextcloud-data-backup
+            - name: RCLONE_CONFIG_GARAGE_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: nextcloud-garage-credentials
+                  key: nextcloud_s3_key
+            - name: RCLONE_CONFIG_GARAGE_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nextcloud-garage-credentials
+                  key: nextcloud_s3_secret
+            - name: RCLONE_CONFIG_B2_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: b2-creds
+                  key: ACCESS_KEY_ID
+            - name: RCLONE_CONFIG_B2_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: b2-creds
+                  key: ACCESS_SECRET_KEY
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              echo "== Restauration B2:${RESTORE_SOURCE} -> Garage:nextcloud-data =="
+              rclone copy "b2:k8s-shared-bucket/${RESTORE_SOURCE}" "garage:nextcloud-data" \
+                --s3-no-check-bucket \
+                --transfers=4 --checkers=8 \
+                --stats=1h --stats-one-line-date
+      volumes:
+        - name: tmp
+          emptyDir: {}

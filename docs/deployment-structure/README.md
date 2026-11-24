@@ -12,6 +12,16 @@ with the outliers called out and a target layout to converge on.
   by shape; results cross-checked against the 131 `Application` objects actually
   registered in the k8s-shared ArgoCD.
 
+> **Mise à jour du 2026-11-23 :** cet audit est un instantané du 2026-09-30.
+> Plusieurs constats ont été résolus depuis et ne doivent plus être lus comme
+> l'état courant :
+> - les six `*.argoapp.yaml` cités en §4.2 existent désormais dans le repo ;
+> - la question « quelle copie Nextcloud est autoritative » (§4.7, §7.4) est
+>   tranchée : `apps/nextcloud-new` sert `nextcloud.etsmtl.club` et
+>   `apps/nextcloud` sert `old-nextcloud.etsmtl.club` depuis #719 (2026-11-23) ;
+> - la conversion Ingress → HTTPProxy décrite en §6 est désormais commitée ;
+> - voir `docs/nextcloud-migration-2026-09/README.md` pour l'état détaillé.
+
 ---
 
 ## 1. The clusters and their repos
@@ -142,6 +152,10 @@ Registered in ArgoCD, with real namespaces serving traffic, but no
 These are unreproducible: a fresh ArgoCD, or a rebuild from the repo alone,
 would not bring them back. This is the highest-severity finding in the audit.
 
+> **Résolu depuis l'audit :** les six fichiers `.argoapp.yaml` sont maintenant
+> présents dans le repo, y compris `apps/nextcloud/nextcloud.argoapp.yml` et
+> `apps/nextcloud-new/nextcloud-new.argoapp.yml`.
+
 ### 4.3 Application name suffix `-shared` applied to 30 of 72 apps
 `markets-shared`, `trema-shared`, `esports-shared`… versus `littlelink`,
 `grafana`, `forgejo`, `netbox` with no suffix. The suffix does not disambiguate
@@ -174,8 +188,11 @@ they have a reason). Everything else goes through kustomize.
 - `apps/forgejo/base`, `apps/matomo/prod/mariadb`, `apps/kubero-ui/{base,prod}`
   are not referenced by any Application. `apps/kubero-operator` and
   `system/backups` likewise (`velero-backup` exists only in-cluster, see §4.2).
-- `apps/nextcloud` and `apps/nextcloud-new` both present, both live, no marker of
-  which is authoritative.
+- `apps/nextcloud` et `apps/nextcloud-new` were both live with no marker of which
+  was authoritative. **Résolu le 2026-11-23 (#719) :** `apps/nextcloud-new` est
+  l'instance autoritative (`nextcloud.etsmtl.club`) ; `apps/nextcloud` est
+  l'ancienne instance, conservée sur `old-nextcloud.etsmtl.club`. Voir
+  `docs/nextcloud-migration-2026-09/README.md`.
 
 ### 4.8 `etsmtl.ca` is not covered by any external-dns instance
 `k8s-base/common/external-dns` is scoped to `etsmtl.club` and
@@ -251,8 +268,9 @@ and `outlinewiki`.
    segments. Mechanical `git mv`, one PR per repo, no manifest edits.
 3. **Rename the misleading `ingress.yaml` files** (§4.5). Trivial.
 4. **Collapse the Helm shapes** (§3) onto Shape A. Largest change; do it app by
-   app, starting with the two `nextcloud` copies and deciding which is
-   authoritative at the same time.
+   app. La question Nextcloud n'est plus ouverte : conserver `apps/nextcloud-new`
+   comme copie autoritative et traiter `apps/nextcloud` comme legacy (voir
+   `docs/nextcloud-migration-2026-09/README.md`).
 5. **Normalise ArgoCD projects and drop `-shared`** (§4.3, §4.4).
 6. **Decide `etsmtl.ca`** (§4.8): add an external-dns instance for the zone, or
    document the manual step in the app README.

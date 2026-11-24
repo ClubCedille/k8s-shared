@@ -6,6 +6,8 @@ resources:
   - resources/certificate.yaml
   - resources/pvc.yaml
   - resources/cronjob.yaml
+  - resources/nextcloud-data-backup-config.yaml
+  - resources/nextcloud-data-backup-cronjob.yaml
   - resources/vault.yaml
   - resources/nextcloud-setup-job.yaml
 
