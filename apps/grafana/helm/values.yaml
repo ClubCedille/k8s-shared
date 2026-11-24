@@ -51,6 +51,13 @@ envValueFrom:
     secretKeyRef:
       name: grafana-oidc-secret
       key: OIDC_CLIENT_SECRET
+  # Discord webhook used by the alerting provisioning below. Stored in Vault
+  # (kv/data/monitoring/default/grafana-alerting) and interpolated into
+  # contactpoints.yaml as $DISCORD_WEBHOOK_URL.
+  DISCORD_WEBHOOK_URL:
+    secretKeyRef:
+      name: grafana-alerting
+      key: DISCORD_WEBHOOK_URL
 
 grafana.ini:
   server:
@@ -140,3 +147,639 @@ sidecar:
       # dépôt (dossiers, titres, requêtes) n'atteignent jamais l'instance.
       # On veut que Git reste la source de vérité.
       allowUiUpdates: true
+
+# Grafana-managed alerting. Rules query Mimir through the UID Grafana
+# generates for the provisioned "Mimir" datasource. Every query is written to
+# return only the series that are in a bad state, so a threshold of > 0 means
+# "firing". The Discord webhook comes from Vault via $DISCORD_WEBHOOK_URL.
+alerting:
+  contactpoints.yaml:
+    apiVersion: 1
+    contactPoints:
+      - orgId: 1
+        name: discord-cluster
+        receivers:
+          - uid: discord-cluster
+            type: discord
+            settings:
+              url: $DISCORD_WEBHOOK_URL
+  policies.yaml:
+    apiVersion: 1
+    policies:
+      - orgId: 1
+        receiver: discord-cluster
+        group_by:
+          - alertname
+          - namespace
+          - node
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 4h
+  rules.yaml:
+    apiVersion: 1
+    groups:
+      - orgId: 1
+        name: kubernetes
+        folder: Cluster
+        interval: 1m
+        rules:
+          - uid: node-not-ready
+            title: Node not ready
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 600
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 5m
+            annotations:
+              summary: A Kubernetes node has been NotReady for more than 5 minutes.
+            labels:
+              severity: critical
+              component: node
+          - uid: node-pressure
+            title: Node resource pressure
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 600
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: kube_node_status_condition{condition=~"DiskPressure|MemoryPressure|PIDPressure",status="true"} == 1
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 10m
+            annotations:
+              summary: A Kubernetes node reports DiskPressure, MemoryPressure or PIDPressure.
+            labels:
+              severity: warning
+              component: node
+          - uid: target-down
+            title: Monitoring target down
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 600
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: up{job=~"kube-state-metrics|coredns|loki|prometheus|prometheus-kube-prometheus-operator|garagehq|trivy-operator|policy-reporter"} == 0
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 10m
+            annotations:
+              summary: An in-cluster monitoring target has been down for more than 10 minutes.
+            labels:
+              severity: critical
+              component: monitoring
+          - uid: pod-restarting
+            title: Pod restarting repeatedly
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 900
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: increase(kube_pod_container_status_restarts_total[15m]) > 5
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 10m
+            annotations:
+              summary: A container restarted more than 5 times in the last 15 minutes.
+            labels:
+              severity: warning
+              component: workload
+          - uid: container-oom
+            title: Container OOM killed
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 600
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: increase(container_oom_events_total[10m]) > 0
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 5m
+            annotations:
+              summary: A container was OOM killed in the last 10 minutes.
+            labels:
+              severity: warning
+              component: workload
+          - uid: deployment-unavailable
+            title: Deployment has unavailable replicas
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 900
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: kube_deployment_status_replicas_unavailable > 0
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 15m
+            annotations:
+              summary: A Deployment has had unavailable replicas for more than 15 minutes.
+            labels:
+              severity: warning
+              component: workload
+          - uid: statefulset-not-ready
+            title: StatefulSet not fully ready
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 900
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: kube_statefulset_status_replicas_ready < kube_statefulset_status_replicas
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 15m
+            annotations:
+              summary: A StatefulSet has fewer ready replicas than desired for more than 15 minutes.
+            labels:
+              severity: warning
+              component: workload
+          - uid: pvc-pending
+            title: PersistentVolumeClaim pending
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 900
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: kube_persistentvolumeclaim_status_phase{phase="Pending"} == 1
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 15m
+            annotations:
+              summary: A PersistentVolumeClaim has been Pending for more than 15 minutes.
+            labels:
+              severity: warning
+              component: storage
+          - uid: host-filesystem-low
+            title: Host filesystem low on space
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 1800
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|ramfs|squashfs|fuse.*"} / node_filesystem_size_bytes{fstype!~"tmpfs|ramfs|squashfs|fuse.*"}) < 0.10 and node_filesystem_readonly == 0
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 30m
+            annotations:
+              summary: A host filesystem has less than 10% free space.
+            labels:
+              severity: warning
+              component: storage
+          - uid: host-memory-high
+            title: Host memory almost exhausted
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 900
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.95
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 15m
+            annotations:
+              summary: A host has used more than 95% of its memory for 15 minutes.
+            labels:
+              severity: warning
+              component: host
