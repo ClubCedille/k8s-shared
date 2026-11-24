@@ -5,3 +5,4 @@ resources:
   - deployment.yaml
   - network.yaml
   - networkPolicy.yaml
+  - rbac.yaml
