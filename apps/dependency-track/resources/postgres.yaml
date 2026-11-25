@@ -22,7 +22,12 @@ spec:
       secret:
         name: dependency-track-db-secret
   storage:
-    size: 20Gi
+    # Le replica 1 a sature son PVC (20Gi pleins, 3,2M libres) : CNPG
+    # refusait de demarrer l'instance ("Not enough disk space") et
+    # l'API restait sans base (alerte deployment-unavailable). Le
+    # storageClass ceph-rbd autorise l'extension en place ; CNPG
+    # redimensionne les 3 PVC via resizeInUseVolumes: true.
+    size: 30Gi
     storageClass: ceph-rbd
   plugins:
     - name: barman-cloud.cloudnative-pg.io
