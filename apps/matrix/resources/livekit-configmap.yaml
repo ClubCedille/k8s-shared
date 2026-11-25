@@ -16,7 +16,7 @@ data:
       udp_port: 50000
       # Les nodes ont des IP privées : on annonce explicitement le VIP public.
       use_external_ip: false
-      node_ip: 142.137.247.77
+      node_ip: 142.137.247.79
 
     room:
       # Seul lk-jwt-service peut créer une room (évite l'abus du SFU).

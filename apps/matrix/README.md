@@ -15,7 +15,7 @@ supplémentaire, ni NAT** à ajouter pour le média WebRTC :
   - `/livekit/jwt/` → lk-jwt-service `:8080` (prefix stripping inclus)
 - **Média + TURN** : `livekit` tourne en `Deployment` (pas de `hostNetwork`, le
   namespace applique PSA `baseline`) derrière un `Service LoadBalancer` sur
-  **`142.137.247.77`** (pool `matrix-rtc-ip` dans `system/metallb-extra`) :
+  **`142.137.247.79`** (pool `matrix-rtc-ip` dans `system/metallb-extra`) :
   - TCP `7881` (ICE sur TCP)
   - TCP `443` (TURN/TLS, hostname `turn.etsmtl.club`, certificat `turn-rtc-tls`)
     — temporaire : le port `5349` sera réutilisé dès que les ITs de l'Université
@@ -29,9 +29,9 @@ le débit devient insuffisant, passer `rtc.udp_port: 50000-50007` et ajouter les
 ports correspondants dans le Service.
 
 Les nodes ont des IP privées : les IP publiques sont des VIP MetalLB en DMZ.
-On annonce donc explicitement `rtc.node_ip: 142.137.247.77` (avec
+On annonce donc explicitement `rtc.node_ip: 142.137.247.79` (avec
 `use_external_ip: false`) comme candidate ICE. Le A record
-`turn.etsmtl.club -> 142.137.247.77` est créé par external-dns via l'annotation
+`turn.etsmtl.club -> 142.137.247.79` est créé par external-dns via l'annotation
 sur le Service.
 
 ## Secret à créer manuellement

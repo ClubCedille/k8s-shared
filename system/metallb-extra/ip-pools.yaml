@@ -29,7 +29,7 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-    - 142.137.247.77/32
+    - 142.137.247.79/32
   serviceAllocation:
     namespaces:
       - matrix
