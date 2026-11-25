@@ -46,6 +46,19 @@ spec:
       kind: '*'
   orphanedResources:
     warn: true
+    # Ressources générées par des contrôleurs (cert-manager, Helm) et non
+    # adoptées : on ne veut pas de warning d'orphelin pour elles.
+    ignore:
+      - kind: Secret
+        name: 'sh.helm.release.*'
+      - kind: Secret
+        name: 'matrix-tls'
+      - kind: Secret
+        name: 'matrix-rtc-tls'
+      - kind: Secret
+        name: 'turn-rtc-tls'
+      - kind: PersistentVolumeClaim
+        name: 'data-matrix-stack-postgresql-0'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject

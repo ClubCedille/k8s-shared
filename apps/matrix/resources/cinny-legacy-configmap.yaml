@@ -1,0 +1,15 @@
+# ConfigMap historique (l'actif est "cinny-config"). Conservé/adopté pour ne
+# pas supprimer une ressource utilisée par un éventuel déploiement externe.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cinny-deployment
+  namespace: matrix
+data:
+  config.json: |
+    {
+      "defaultHomeserver": 0,
+      "homeserverList": [
+        "matrix.etsmtl.club"
+      ]
+    }

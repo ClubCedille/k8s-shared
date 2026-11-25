@@ -6,6 +6,9 @@ resources:
   - resources/cinny-configmap.yaml
   - resources/cinny-deployment.yaml
   - resources/cinny-service.yaml
+  - resources/cinny-legacy-configmap.yaml
+  - resources/coturn-configmap.yaml
+  - resources/coturn-deployment.yaml
   - resources/httpproxy.yaml
   - resources/livekit-configmap.yaml
   - resources/livekit-deployment.yaml
@@ -15,7 +18,12 @@ resources:
   - resources/lk-jwt-service.yaml
   - resources/matrix-rtc-certificate.yaml
   - resources/matrix-rtc-httpproxy.yaml
+  - resources/manual-secrets.yaml
   - resources/matrix-rtc-networkpolicy.yaml
+  - resources/mautrix-discord-configmap.yaml
+  - resources/mautrix-discord-deployment.yaml
+  - resources/mautrix-discord-pvc.yaml
+  - resources/mautrix-discord-service.yaml
   - resources/pvc.yaml
   - resources/turn-certificate.yaml
 helmCharts:

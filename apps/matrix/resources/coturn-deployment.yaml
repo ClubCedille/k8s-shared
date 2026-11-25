@@ -1,0 +1,72 @@
+# Legacy : TURN remplacé par le TURN intégré de LiveKit. Le deployment est
+# adopte par ArgoCD mais maintenu a 0 replica (il utilise hostNetwork, interdit
+# par PodSecurity baseline sur le namespace matrix).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coturn
+  namespace: matrix
+  annotations:
+    kube-score/ignore: pod-networkpolicy,pod-probes,container-security-context-user-group-id,container-image-tag,container-image-pull-policy,container-resources,container-ephemeral-storage-request-and-limit,container-security-context
+spec:
+  replicas: 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: coturn
+  template:
+    metadata:
+      labels:
+        app: coturn
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: coturn
+              topologyKey: kubernetes.io/hostname
+      containers:
+        - name: coturn
+          image: coturn/coturn:4.6.3
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          args:
+            - -c
+            - /etc/coturn/turnserver.conf
+            - --static-auth-secret=$(STATIC_AUTH_SECRET)
+          env:
+            - name: STATIC_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: coturn-secret
+                  key: shared-secret
+          volumeMounts:
+            - name: config
+              mountPath: /etc/coturn
+              readOnly: true
+            - name: certs
+              mountPath: /certs
+              readOnly: true
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+      nodeSelector:
+        etsmtl.club/external-network: "true"
+      volumes:
+        - name: config
+          configMap:
+            name: coturn-config
+        - name: certs
+          secret:
+            secretName: matrix-tls

@@ -67,6 +67,17 @@ Les mêmes valeurs `as_token` / `hs_token` sont lues par Synapse (fichier
 monté) et par lk-jwt-service (`LIVEKIT_AS_REGISTRATION_FILE`), donc elles ne
 doivent apparaître que dans ce secret.
 
+## Ressources adoptées
+
+Les objets créés à la main dans le namespace `matrix` sont désormais versionnés ici :
+
+- `coturn-*` : legacy TURN (inutilisé depuis LiveKit). Le Deployment est adopté mais maintenu à **0 replica** (hostNetwork interdit par PodSecurity baseline).
+- `mautrix-discord-*` : bridge Discord (Deployment, Service, ConfigMap, PVC).
+- `manual-secrets.yaml` : stubs des secrets créés à la main. Leurs valeurs ne sont **pas** versionnées : `matrix.argoapp.yml` ignore `/data` et `/stringData` pour chacun d'eux.
+- `cinny-legacy-configmap.yaml` : ConfigMap historique (l'active est `cinny-config`).
+
+Les secrets générés par des contrôleurs (`matrix-tls`, `matrix-rtc-tls`, `turn-rtc-tls`, `sh.helm.release.*`) et le PVC Bitnami sont ignorés via `orphanedResources.ignore` dans l'AppProject `k8s-shared` — ils ne sont pas adoptés.
+
 ## Vérifications
 
 ```sh
