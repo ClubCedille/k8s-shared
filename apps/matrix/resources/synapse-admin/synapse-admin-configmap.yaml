@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: synapse-admin-config
+  namespace: matrix
+data:
+  config.json: |
+    {
+      "restrictBaseUrl": "https://matrix.etsmtl.club"
+    }

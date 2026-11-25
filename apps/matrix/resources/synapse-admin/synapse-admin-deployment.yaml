@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: synapse-admin-deployment
+  namespace: matrix
+  labels:
+    app: synapse-admin-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: synapse-admin-deployment
+  template:
+    metadata:
+      labels:
+        app: synapse-admin-deployment
+    spec:
+      containers:
+        - name: synapse-admin
+          image: ghcr.io/etkecc/ketesa:v1.5.2
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          volumeMounts:
+            - name: config-volume
+              mountPath: /var/public/config.json
+              subPath: config.json
+      volumes:
+        - name: config-volume
+          configMap:
+            name: synapse-admin-config

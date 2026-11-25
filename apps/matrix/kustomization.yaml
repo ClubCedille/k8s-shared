@@ -3,25 +3,33 @@ kind: Kustomization
 namespace: matrix
 resources:
   - resources/certificate.yaml
-  - resources/cinny-configmap.yaml
-  - resources/cinny-deployment.yaml
-  - resources/cinny-service.yaml
+  # Client web Cinny
+  - resources/cinny/cinny-configmap.yaml
+  - resources/cinny/cinny-deployment.yaml
+  - resources/cinny/cinny-service.yaml
   - resources/httpproxy.yaml
-  - resources/livekit-configmap.yaml
-  - resources/livekit-deployment.yaml
-  - resources/livekit-media-service.yaml
-  - resources/livekit-service.yaml
-  - resources/lk-jwt-deployment.yaml
-  - resources/lk-jwt-service.yaml
-  - resources/matrix-rtc-certificate.yaml
-  - resources/matrix-rtc-httpproxy.yaml
-  - resources/matrix-rtc-networkpolicy.yaml
+  # MatrixRTC (LiveKit SFU + lk-jwt-service)
+  - resources/livekit-rtc/livekit-configmap.yaml
+  - resources/livekit-rtc/livekit-deployment.yaml
+  - resources/livekit-rtc/livekit-media-service.yaml
+  - resources/livekit-rtc/livekit-service.yaml
+  - resources/livekit-rtc/lk-jwt-deployment.yaml
+  - resources/livekit-rtc/lk-jwt-service.yaml
+  - resources/livekit-rtc/matrix-rtc-certificate.yaml
+  - resources/livekit-rtc/matrix-rtc-httpproxy.yaml
+  - resources/livekit-rtc/matrix-rtc-networkpolicy.yaml
   - resources/pvc.yaml
   - resources/turn-certificate.yaml
   # Bridge mautrix-discord
-  - resources/mautrix-discord-configmap.yaml
-  - resources/mautrix-discord-deployment.yaml
-  - resources/mautrix-service.yaml
+  - resources/mautrix/mautrix-discord-configmap.yaml
+  - resources/mautrix/mautrix-discord-deployment.yaml
+  - resources/mautrix/mautrix-service.yaml
+  # Synapse Admin
+  - resources/synapse-admin/synapse-admin-certificate.yaml
+  - resources/synapse-admin/synapse-admin-configmap.yaml
+  - resources/synapse-admin/synapse-admin-deployment.yaml
+  - resources/synapse-admin/synapse-admin-httpproxy.yaml
+  - resources/synapse-admin/synapse-admin-services.yaml
 helmCharts:
   - name: matrix-synapse
     repo: https://ananace.gitlab.io/charts
