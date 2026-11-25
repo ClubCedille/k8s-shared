@@ -17,6 +17,10 @@ resource "authentik_group" "extra" {
   name     = each.key
 }
 
+resource "authentik_group" "event_mgmt" {
+  name = "pmx-event-mgmt"
+}
+
 resource "authentik_group" "proxmox-user" {
   for_each = { for c in local.proxmox : c.name => c.group }
   name     = "${each.value}-user"
