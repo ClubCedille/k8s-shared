@@ -22,8 +22,6 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
-            :q
-            :q
           volumeMounts:
             - name: nginx-temp
               mountPath: /var/cache/nginx
