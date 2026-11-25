@@ -21,85 +21,29 @@ spec:
       port: 7881
       targetPort: 7881
       protocol: TCP
-    # Média WebRTC (UDP). Une entrée par port : Kubernetes ne sait pas
-    # exposer une plage UDP dans un Service.
-    - name: rtc-50000
+    # UDP mux : 50000 porte tout le média WebRTC (rtc.udp_port).
+    - name: rtc-udp
       port: 50000
       targetPort: 50000
       protocol: UDP
-    - name: rtc-50001
+    # TURN/UDP et ses relais (une entrée par port, pas de plage côté Service).
+    - name: turn-udp
       port: 50001
       targetPort: 50001
       protocol: UDP
-    - name: rtc-50002
+    - name: relay-50002
       port: 50002
       targetPort: 50002
       protocol: UDP
-    - name: rtc-50003
+    - name: relay-50003
       port: 50003
       targetPort: 50003
       protocol: UDP
-    - name: rtc-50004
+    - name: relay-50004
       port: 50004
       targetPort: 50004
       protocol: UDP
-    - name: rtc-50005
+    - name: relay-50005
       port: 50005
       targetPort: 50005
-      protocol: UDP
-    - name: rtc-50006
-      port: 50006
-      targetPort: 50006
-      protocol: UDP
-    - name: rtc-50007
-      port: 50007
-      targetPort: 50007
-      protocol: UDP
-    - name: rtc-50008
-      port: 50008
-      targetPort: 50008
-      protocol: UDP
-    - name: rtc-50009
-      port: 50009
-      targetPort: 50009
-      protocol: UDP
-    - name: turn-udp
-      port: 50010
-      targetPort: 50010
-      protocol: UDP
-    - name: relay-50011
-      port: 50011
-      targetPort: 50011
-      protocol: UDP
-    - name: relay-50012
-      port: 50012
-      targetPort: 50012
-      protocol: UDP
-    - name: relay-50013
-      port: 50013
-      targetPort: 50013
-      protocol: UDP
-    - name: relay-50014
-      port: 50014
-      targetPort: 50014
-      protocol: UDP
-    - name: relay-50015
-      port: 50015
-      targetPort: 50015
-      protocol: UDP
-    - name: relay-50016
-      port: 50016
-      targetPort: 50016
-      protocol: UDP
-    - name: relay-50017
-      port: 50017
-      targetPort: 50017
-      protocol: UDP
-    - name: relay-50018
-      port: 50018
-      targetPort: 50018
-      protocol: UDP
-    - name: relay-50019
-      port: 50019
-      targetPort: 50019
       protocol: UDP

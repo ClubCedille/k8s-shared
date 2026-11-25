@@ -18,7 +18,13 @@ supplémentaire, ni NAT** à ajouter pour le média WebRTC :
   **`142.137.247.77`** (pool `matrix-rtc-ip` dans `system/metallb-extra`) :
   - TCP `7881` (ICE sur TCP)
   - TCP `5349` (TURN/TLS, hostname `turn.etsmtl.club`, certificat `turn-rtc-tls`)
-  - UDP `50000-50009` (média), `50010` (TURN/UDP), `50011-50019` (relais TURN)
+  - UDP `50000` (média, via le **UDP mux** de LiveKit : `rtc.udp_port`, un seul
+    port au lieu d'une plage), `50001` (TURN/UDP), `50002-50005` (relais TURN)
+
+Kubernetes ne sait pas exposer une plage UDP dans un `Service` : il faut une
+entrée par port. Le UDP mux permet de réduire le média à **un seul port** ; si
+le débit devient insuffisant, passer `rtc.udp_port: 50000-50007` et ajouter les
+ports correspondants dans le Service.
 
 Les nodes ont des IP privées : les IP publiques sont des VIP MetalLB en DMZ.
 On annonce donc explicitement `rtc.node_ip: 142.137.247.77` (avec

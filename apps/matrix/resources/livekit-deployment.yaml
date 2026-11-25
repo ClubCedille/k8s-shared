@@ -122,10 +122,10 @@ spec:
               containerPort: 50000
               protocol: UDP
             - name: turn-udp
-              containerPort: 50010
+              containerPort: 50001
               protocol: UDP
             - name: turn-relay
-              containerPort: 50011
+              containerPort: 50002
               protocol: UDP
           volumeMounts:
             - name: config

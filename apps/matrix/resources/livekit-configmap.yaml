@@ -10,9 +10,10 @@ data:
 
     rtc:
       tcp_port: 7881
-      # La plage UDP est exposée via le Service LoadBalancer sur 142.137.247.77.
-      port_range_start: 50000
-      port_range_end: 50009
+      # UDP mux : tout le média passe par un seul port. (Ne pas définir
+      # port_range_start/end en même temps.) Passer à une plage courte
+      # ex. 50000-50007 si besoin de plus de débit.
+      udp_port: 50000
       # Les nodes ont des IP privées : on annonce explicitement le VIP public.
       use_external_ip: false
       node_ip: 142.137.247.77
@@ -35,9 +36,9 @@ data:
       enabled: true
       domain: turn.etsmtl.club
       tls_port: 5349
-      udp_port: 50010
-      relay_range_start: 50011
-      relay_range_end: 50019
+      udp_port: 50001
+      relay_range_start: 50002
+      relay_range_end: 50005
       cert_file: /etc/livekit/turn-tls/tls.crt
       key_file: /etc/livekit/turn-tls/tls.key
 
