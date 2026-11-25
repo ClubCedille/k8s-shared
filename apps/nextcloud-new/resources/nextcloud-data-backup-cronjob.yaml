@@ -55,14 +55,16 @@ spec:
                 capabilities:
                   drop: ["ALL"]
               resources:
+                # Le listing de millions d'objets (>8 To) a fait OOMKiller
+                # la limite precedente de 4Gi.
                 requests:
                   cpu: 250m
-                  memory: 512Mi
+                  memory: 2Gi
                   ephemeral-storage: 1Gi
                 limits:
                   cpu: "2"
-                  memory: 4Gi
-                  ephemeral-storage: 4Gi
+                  memory: 12Gi
+                  ephemeral-storage: 8Gi
               envFrom:
                 - configMapRef:
                     name: nextcloud-data-backup-config
@@ -102,12 +104,24 @@ spec:
                   CUTOFF=$(date -u -d "@$(( $(date +%s) - RETENTION_DAYS * 86400 ))" +%Y-%m-%d)
 
                   echo "== Miroir Garage:nextcloud-data -> B2:${BACKUP_PREFIX} =="
+                  # --ignore-errors rend le Job successful malgre les 404 des
+                  # references orphelines, mais ne doit PAS masquer une erreur
+                  # de quota B2 : on grep explictement ce cas et on echoue.
+                  set +e
                   rclone sync "garage:nextcloud-data" "b2:k8s-shared-bucket/${BACKUP_PREFIX}" \
                     --backup-dir "b2:k8s-shared-bucket/${CHANGES_PREFIX}/${DATE}" \
                     --s3-no-check-bucket \
-                    --transfers=4 --checkers=8 \
+                    --transfers=4 --checkers=4 \
                     --stats=1h --stats-one-line-date \
-                    --ignore-errors
+                    --ignore-errors > /tmp/rclone-sync.log 2>&1
+                  RC=$?
+                  set -e
+                  cat /tmp/rclone-sync.log
+                  if grep -qi 'storage cap exceeded' /tmp/rclone-sync.log; then
+                    echo "ERREUR: quota de stockage B2 depasse — verifier Caps & Alerts" >&2
+                    exit 1
+                  fi
+                  echo "rclone sync exit code: ${RC} (404 orphelins ignores)"
 
                   echo "== Purge des jeux de changements anterieurs a ${CUTOFF} =="
                   for dir in $(rclone lsd "b2:k8s-shared-bucket/${CHANGES_PREFIX}" \
