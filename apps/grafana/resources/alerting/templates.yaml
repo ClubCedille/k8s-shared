@@ -9,12 +9,12 @@ data:
       - orgId: 1
         name: k8s-alerts
         template: |
-          {{- define "k8s.title" -}}
+          {{ define "k8s.title" -}}
           {{ if eq .Status "firing" }}ALERTE {{ else }}RÉSOLUE {{ end -}}
           · {{ if .CommonLabels.cluster }}{{ .CommonLabels.cluster }}{{ else }}cluster inconnu{{ end }}
           {{- end -}}
 
-          {{- define "k8s.message" -}}
+          {{ define "k8s.message" -}}
           {{- range $i, $alert := .Alerts -}}
           {{- if $i }}
 
@@ -42,11 +42,11 @@ data:
           {{- end -}}
           {{- end -}}
 
-          {{- define "k8s.links" -}}
+          {{ define "k8s.links" -}}
           {{ if .DashboardURL }}[Voir le dashboard]({{ .DashboardURL }}){{ else }}[Voir la règle]({{ .GeneratorURL }}){{ end }} · [Ignorer]({{ .SilenceURL }}){{ with .Annotations.runbook_url }} · [Runbook]({{ . }}){{ end }}{{ template "k8s.logs" . }}
           {{- end -}}
 
-          {{- define "k8s.logs" -}}
+          {{ define "k8s.logs" -}}
           {{- $expr := "{" -}}
           {{- $sep := "" -}}
           {{- with .Labels.namespace }}{{ $expr = printf "%s%snamespace=%q" $expr $sep . }}{{ $sep = "," }}{{ end -}}
