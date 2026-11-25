@@ -43,7 +43,12 @@ data:
           {{- end -}}
 
           {{ define "k8s.links" -}}
-          {{ if .DashboardURL }}[Voir le dashboard]({{ .DashboardURL }}){{ else }}[Voir la règle]({{ .GeneratorURL }}){{ end }} · [Ignorer]({{ .SilenceURL }}){{ with .Annotations.runbook_url }} · [Runbook]({{ . }}){{ end }}{{ template "k8s.logs" . }}
+          {{- /* .SilenceURL contient un matcher par label : Discord ne rend pas
+                 un lien markdown dont la destination est trop longue. On ne
+                 garde que le premier matcher (__alert_rule_uid__), suffisant
+                 pour silencer la règle entière. */ -}}
+          {{- $silence := reReplaceAll "^([^?]*\\?[^&]*&matcher=[^&]*).*" "$1" .SilenceURL -}}
+          {{ if .DashboardURL }}[Voir le dashboard]({{ .DashboardURL }}){{ else }}[Voir la règle]({{ .GeneratorURL }}){{ end }} · [Ignorer]({{ $silence }}){{ with .Annotations.runbook_url }} · [Runbook]({{ . }}){{ end }}{{ template "k8s.logs" . }}
           {{- end -}}
 
           {{ define "k8s.logs" -}}
