@@ -110,3 +110,9 @@ En cas d'erreur de template, les logs du pod contiennent un message
 `failed to template ...` et la notification n'est pas envoyée ; le premier
 réflexe est de revenir au template par défaut (`{{ template "default.message" . }}`)
 le temps de corriger.
+
+> Piège de provisioning : Grafana détecte un groupe de templates via une regex
+> `{{ define` (avec l'espace après `{{`). Écrire `{{- define` (trim à gauche)
+> empêche la détection : Grafana ré-enveloppe alors tout le fichier dans un
+> `define` et échoue au démarrage avec
+> `alerting.notifications.templates.invalidFormat`.
