@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: -shared
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/gdg-ets/gdg-ets-hub:latest
+    argocd-image-updater.argoproj.io/webapp.update-strategy: digest
+spec:
+  project: k8s-shared
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gdg
+  source:
+    repoURL: https://github.com/ClubCedille/k8s-shared
+    path: apps/clubs/gdg/website/prod
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
