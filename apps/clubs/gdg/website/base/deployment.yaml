@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: gdg
-          image: ghcr.io/gdg-ets/gdg-ets-hub:latest 
+          image: ghcr.io/gdg-ets/gdg-ets-hub:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
