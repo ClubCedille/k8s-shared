@@ -80,10 +80,22 @@ Chaque alerte se termine par une ligne de liens courts, sans emoji :
 | `[Logs]` | Explore/Loki | Uniquement si `namespace`, `pod` ou `container` est présent dans les labels |
 
 Le lien `[Logs]` ouvre Explore sur le datasource Loki avec un sélecteur LogQL
-construit à partir des labels de l'alerte, par exemple
-`{namespace="default",pod="gdq-7d9f6c8d4-x2abc",container="gdq"}`, et une
-fenêtre allant d'une heure avant `StartsAt` jusqu'à `StartsAt` (ou `EndsAt` si
-l'alerte est résolue). Les paramètres `panes` sont encodés avec `urlquery`.
+et une fenêtre allant d'une heure avant `StartsAt` jusqu'à `StartsAt` (ou
+`EndsAt` si l'alerte est résolue).
+
+Le sélecteur privilégie le **workload** : pour une alerte sur
+`deployment=commandes` dans `namespace=patchets`, il produit
+`{namespace="patchets",pod=~"commandes.*"}`. C'est important parce que les
+labels `pod` et `container` des règles kube-state-metrics sont ceux du
+**scrapeur** (`prometheus-kube-state-metrics-…`, `kube-state-metrics`), pas de
+la charge en faute. On ne replie sur `pod` / `container` que si aucun label de
+workload (`deployment`, `statefulset`, `job_name`, `cronjob`) n'est présent.
+
+L'URL Explore respecte le format v1 de Grafana 13 : `schemaVersion=1`, un ID de
+panneau de 3 caractères (`p11`) et des bornes `from` / `to` encodées en chaînes
+(epoch ms). Sans `schemaVersion=1`, Grafana ignore `panes` et ouvre Explore sur
+le datasource par défaut avec une requête vide. Les paramètres sont encodés
+avec `urlquery`.
 
 > L'UID du datasource Loki (`P8E80F9AEF21F6940`) est codé en dur dans
 > `k8s.logs`. Il provient de `GET /api/datasources` sur l'instance Grafana. Si le
