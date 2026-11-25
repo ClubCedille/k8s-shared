@@ -17,7 +17,8 @@ supplémentaire, ni NAT** à ajouter pour le média WebRTC :
   namespace applique PSA `baseline`) derrière un `Service LoadBalancer` sur
   **`142.137.247.77`** (pool `matrix-rtc-ip` dans `system/metallb-extra`) :
   - TCP `7881` (ICE sur TCP)
-  - TCP `5349` (TURN/TLS, hostname `turn.etsmtl.club`, certificat `turn-rtc-tls`)
+  - TCP `443` (TURN/TLS, hostname `turn.etsmtl.club`, certificat `turn-rtc-tls`)
+    — le `5349` reste bloqué par le firewall Université
   - UDP `50000` (média, via le **UDP mux** de LiveKit : `rtc.udp_port`, un seul
     port au lieu d'une plage), `50001` (TURN/UDP), `50002-50005` (relais TURN)
 

@@ -35,7 +35,8 @@ data:
     turn:
       enabled: true
       domain: turn.etsmtl.club
-      tls_port: 5349
+      # 443 autorisé par le firewall Université (5349 bloqué).
+      tls_port: 443
       udp_port: 50001
       relay_range_start: 50002
       relay_range_end: 50005
