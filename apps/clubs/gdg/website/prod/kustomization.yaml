@@ -5,3 +5,4 @@ resources:
   - ../base
   - httpproxy.yaml
   - certificate.yaml
+  - vault-secret.yaml
