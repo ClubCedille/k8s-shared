@@ -4,9 +4,11 @@ kind: Kustomization
 resources:
   - resources/namespace.yaml
   - resources/configMap.yaml
+  - resources/bucket-limits.configMap.yaml
+  - resources/bucket-limits.job.yaml
 helmCharts:
   - name: supabase
-    version: "0.5.0"
+    version: "0.8.0"
     repo: "https://supabase-community.github.io/supabase-kubernetes"
     releaseName: "supabase"
     namespace: exutoire

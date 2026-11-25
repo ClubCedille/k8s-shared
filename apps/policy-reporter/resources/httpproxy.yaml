@@ -1,0 +1,19 @@
+# Exposition externe -- l'acces est protege par le SSO OIDC natif du UI
+# Policy Reporter (voir helm/policy-reporter-values.yaml + terraform/policy-reporter).
+# Sans ce SSO, ce proxy donnerait un acces non authentifie aux CVE/findings du cluster.
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: policy-reporter
+spec:
+  virtualhost:
+    fqdn: policy-reporter.etsmtl.club
+    tls:
+      secretName: policy-reporter-tls
+      minimumProtocolVersion: "1.3"
+  routes:
+    - conditions:
+        - prefix: /
+      services:
+        - name: policy-reporter-ui
+          port: 8080

@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cluster-provider
+  namespace: calidum-rotae
+# Le provider lit l'API Kubernetes avec le token projeté du pod.
+automountServiceAccountToken: true
+---
+# Lecture seule, cluster-wide : GetUserResources(UserUID) doit lister les
+# ressources de tous les namespaces. Le filtrage par label club/id se fait
+# cote provider (RBAC ne filtre pas par label).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cluster-provider-read
+rules:
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - projectcontour.io
+    resources:
+      - httpproxies
+    verbs:
+      - get
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cluster-provider-read
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-provider-read
+subjects:
+  - kind: ServiceAccount
+    name: cluster-provider
+    namespace: calidum-rotae

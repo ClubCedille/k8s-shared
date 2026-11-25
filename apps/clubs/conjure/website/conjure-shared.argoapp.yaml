@@ -4,6 +4,7 @@ metadata:
   name: conjure-shared
   namespace: argocd
   annotations:
+    k8s.cedille.club/club: "conjure"
     argocd.argoproj.io/sync-wave: "2"
     argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/conjureets/conjure-site:latest
     argocd-image-updater.argoproj.io/webapp.update-strategy: digest

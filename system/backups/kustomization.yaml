@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - nextcloud.yaml
+  - nextcloud-new.yaml
   - vaultwarden.yaml
   - outline.yaml
   - outline-cedille.yaml

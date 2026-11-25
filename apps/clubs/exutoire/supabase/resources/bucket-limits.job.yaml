@@ -1,0 +1,76 @@
+---
+# Applique les limites de taille par bucket dans la DB Supabase après chaque
+# sync ArgoCD. Le chart Helm ne gère que la limite globale (FILE_SIZE_LIMIT) ;
+# les lignes de storage.buckets, elles, peuvent avoir été modifiées à la main
+# (cf. #654, #710) et leur valeur prime via min(global, bucket) — d'où un hook
+# idempotent plutôt qu'une migration initdb (qui ne joue que sur DB vide).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: exutoire-supabase-bucket-limits
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 300
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 70
+        runAsGroup: 70
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: bucket-limits
+          image: postgres:15-alpine
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          env:
+            - name: HOME
+              value: /tmp
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: supabase-secret
+                  key: pg_password
+            - name: PGDATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: supabase-secret
+                  key: pg_database
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              psql -v ON_ERROR_STOP=1 \
+                -h supabase-supabase-db -U postgres \
+                -f /sql/bucket-limits.sql
+          volumeMounts:
+            - name: sql
+              mountPath: /sql
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+              ephemeral-storage: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+      volumes:
+        - name: sql
+          configMap:
+            name: exutoire-supabase-bucket-limits
+        - name: tmp
+          emptyDir: {}

@@ -60,6 +60,23 @@ resource "authentik_group" "grafana_metrics_explorers" {
   name = "grafana-metrics-explorers"
 }
 
+# Ces trois groupes ne donnent pas un rôle dans l'org par défaut (Cedille)
+# mais l'accès à l'org séparée "Lan_ETS" : org_mapping dans
+# apps/grafana/helm/values.yaml les mappe vers Admin/Editor/Viewer dans
+# cette org au prochain login OIDC. Les groupes ci-dessus restent les
+# seuls à élever le rôle dans Cedille.
+resource "authentik_group" "grafana_lanets_admin" {
+  name = "grafana-lanets-admin"
+}
+
+resource "authentik_group" "grafana_lanets_editor" {
+  name = "grafana-lanets-editor"
+}
+
+resource "authentik_group" "grafana_lanets_viewer" {
+  name = "grafana-lanets-viewer"
+}
+
 resource "random_password" "grafana_client_secret" {
   length           = 48
   special          = true
@@ -134,4 +151,9 @@ resource "authentik_application" "grafana" {
   name              = local.app_name
   slug              = local.app_slug
   protocol_provider = authentik_provider_oauth2.grafana.id
+  meta_icon         = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/grafana.png"
+  # The portal folder is managed manually in Authentik.
+  lifecycle {
+    ignore_changes = [group]
+  }
 }

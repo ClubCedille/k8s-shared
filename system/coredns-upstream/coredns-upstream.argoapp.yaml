@@ -1,0 +1,24 @@
+# Patches the Talos-managed kube-system/coredns ConfigMap so the catch-all
+# `forward` zone resolves via Cloudflare (1.1.1.1 / 1.0.0.1) instead of the
+# FortiGuard-filtered ETS resolvers the nodes inherit from DHCP. See
+# resources/coredns-configmap.yaml for the full rationale and caveats.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: coredns-upstream
+  namespace: argocd
+spec:
+  project: k8s-shared
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  source:
+    repoURL: https://github.com/ClubCedille/k8s-shared
+    path: system/coredns-upstream
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=false

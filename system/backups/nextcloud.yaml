@@ -1,4 +1,7 @@
 # Backing all nextcloud pv folders
+# Ancienne instance (old-nextcloud.etsmtl.club). Conservé jusqu'au 2026-12-01
+# (décommissionnement prévu) ; le schedule de l'instance autoritative est
+# nextcloud-new.yaml. Les deux schedules coexistent pendant la fenêtre de rollback.
 apiVersion: velero.io/v1
 kind: Schedule
 metadata:

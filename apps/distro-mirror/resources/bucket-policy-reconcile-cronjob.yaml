@@ -1,0 +1,100 @@
+# Weekly belt-and-suspenders re-apply of the same two S3-API-level settings
+# the ArgoCD PostSync hook (bucket-setup-job.yaml) applies on every sync:
+# the anonymous public-read bucket policy and the GARAGE_COLD lifecycle
+# transition. The hook alone proved insufficient: the policy silently
+# disappeared from RGW around 2026-11-07 (likely a Ceph/RGW-side event --
+# nothing in this repo or in ArgoCD's history removed it), and with no sync
+# happening nothing re-applied it, leaving https://mirror.etsmtl.club/
+# returning RGW 403 AccessDenied until the next manual intervention. Both
+# aws calls below are idempotent puts, so a weekly run is cheap and safe.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: distro-mirror-bucket-policy-reconcile
+spec:
+  schedule: "0 3 * * 1"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 3600
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      template:
+        metadata:
+          labels:
+            app: distro-mirror-bucket-reconcile
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: bucket-policy-reconcile
+              image: amazon/aws-cli:2.24.11
+              imagePullPolicy: Always
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                  ephemeral-storage: 64Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+                  ephemeral-storage: 128Mi
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  cat > /tmp/policy.json <<EOF
+                  {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Principal": "*",
+                        "Action": "s3:GetObject",
+                        "Resource": "arn:aws:s3:::${BUCKET_NAME}/*"
+                      }
+                    ]
+                  }
+                  EOF
+                  aws --endpoint-url "http://${BUCKET_HOST}:${BUCKET_PORT}" \
+                    s3api put-bucket-policy --bucket "${BUCKET_NAME}" --policy file:///tmp/policy.json
+
+                  cat > /tmp/lifecycle.json <<EOF
+                  {
+                    "Rules": [
+                      {
+                        "ID": "cold-tier-after-7d",
+                        "Status": "Enabled",
+                        "Filter": {"Prefix": ""},
+                        "Transitions": [
+                          {"Days": 7, "StorageClass": "GARAGE_COLD"}
+                        ]
+                      }
+                    ]
+                  }
+                  EOF
+                  aws --endpoint-url "http://${BUCKET_HOST}:${BUCKET_PORT}" \
+                    s3api put-bucket-lifecycle-configuration --bucket "${BUCKET_NAME}" --lifecycle-configuration file:///tmp/lifecycle.json
+              envFrom:
+                - configMapRef:
+                    name: distro-mirror
+                - secretRef:
+                    name: distro-mirror
+          volumes:
+            - name: tmp
+              emptyDir: {}

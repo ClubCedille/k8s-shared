@@ -7,6 +7,27 @@ resources:
   - ../../../../../bases/grav
   - vault-secret.yaml
 
+{%- if (id is defined and id) or (club is defined and club) %}
+labels:
+  - pairs:
+{%- if club is defined and club %}
+      k8s.cedille.club/club: {{ club | tojson }}
+{%- endif %}
+{%- if id is defined and id %}
+      k8s.cedille.club/id: {{ id[:63] | tojson }}
+{%- endif %}
+    includeSelectors: false
+    includeTemplates: true
+
+commonAnnotations:
+{%- if id is defined and id %}
+  k8s.cedille.club/id: {{ id | tojson }}
+{%- endif %}
+{%- if club is defined and club %}
+  k8s.cedille.club/club: {{ club | tojson }}
+{%- endif %}
+{%- endif %}
+
 patches:
   - path: vault-patch.yaml
   - target:

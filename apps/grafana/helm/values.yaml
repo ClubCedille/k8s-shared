@@ -5,6 +5,13 @@
 
 replicas: 1
 
+# Identifiants admin stables, lus depuis Vault (cf. resources/vault.yaml).
+# Sans existingSecret, le chart regénère un mot de passe aléatoire à chaque
+# rendu Helm/Argo (helm template ne peut pas utiliser lookup), ce qui casse
+# le sidecar de dashboards : son POST de reload reçoit un 401.
+admin:
+  existingSecret: grafana-admin
+
 # Le chart n'a pas de resources par défaut -- pas de problème tant que
 # Grafana ne fait que le trafic infra (bas volume), mais apps/alloy-logs
 # ajoute Explore/dashboards sur un volume de logs bien plus large (proxy de
@@ -51,6 +58,13 @@ envValueFrom:
     secretKeyRef:
       name: grafana-oidc-secret
       key: OIDC_CLIENT_SECRET
+  # Discord webhook used by the alerting provisioning below. Stored in Vault
+  # (kv/data/monitoring/default/grafana-alerting) and interpolated into
+  # contactpoints.yaml as $DISCORD_WEBHOOK_URL.
+  DISCORD_WEBHOOK_URL:
+    secretKeyRef:
+      name: grafana-alerting
+      key: DISCORD_WEBHOOK_URL
 
 grafana.ini:
   server:
@@ -71,14 +85,32 @@ grafana.ini:
     api_url: "https://auth.etsmtl.club/application/o/userinfo/"
     signout_redirect_url: "https://auth.etsmtl.club/application/o/grafana/end-session/"
     login_attribute_path: preferred_username
-    # Members of either Authentik group (see terraform/grafana/
-    # authentik-vault) get Editor (dashboard creation + Explore/
-    # Drilldown) on next login. Everyone else falls through to
-    # auto_assign_org_role (Viewer, chart default). Grafana OSS has no
-    # Team Sync (Enterprise-only), so both groups currently grant the
-    # same role -- see the comment on the group resources in
-    # authentik-vault for why they're still kept separate.
+    # L'org par défaut (id 1) est renommée "Cedille" via Terraform
+    # (terraform/grafana/access/main.tf) : les dashboards et datasources
+    # existants restent où ils sont. Tout compte Authentik y est ajouté
+    # automatiquement (auto_assign_org, défaut true) avec le rôle Viewer
+    # (celui de auto_assign_org_role à la création, puis celui de
+    # "*:Cedille:Viewer" ci-dessous aux logins suivants), sauf les deux
+    # groupes staff ci-dessous qui reçoivent Editor (création de dashboards + Explore/
+    # Drilldown) au prochain login. Grafana OSS n'a pas de Team Sync
+    # (Enterprise-only), d'où l'absence de granularité entre ces deux
+    # groupes.
     role_attribute_path: "contains(groups, 'grafana-dashboard-creators') && 'Editor' || contains(groups, 'grafana-metrics-explorers') && 'Editor' || 'Viewer'"
+    # org_attribute_path doit évaluer un TABLEAU : le claim "groups" est
+    # produit par grafana-scope-groups (terraform/grafana/
+    # authentik-vault). org_mapping ajoute l'utilisateur à l'org Lan_ETS
+    # (créée par Terraform) avec le rôle de son groupe Authentik. Sans
+    # appartenance à l'un de ces trois groupes, Lan_ETS reste inaccessible.
+    #
+    # "*:Cedille:Viewer" est indispensable : dès qu'org_mapping est
+    # renseigné, Grafana remplace TOUS les rôles d'org de l'utilisateur
+    # par ceux du mapping (et retire l'appartenance aux orgs absentes).
+    # Sans cette entrée, les membres des groupes Lan_ETS perdraient
+    # l'accès à Cedille. Le rôle issu de role_attribute_path est ensuite
+    # fusionné en prenant le plus élevé : les groupes staff restent
+    # Editor dans Cedille.
+    org_attribute_path: "groups"
+    org_mapping: "*:Cedille:Viewer grafana-lanets-admin:Lan_ETS:Admin grafana-lanets-editor:Lan_ETS:Editor grafana-lanets-viewer:Lan_ETS:Viewer"
     # New OAuth sign-ups land as Viewer by default (Grafana's normal OAuth
     # default) -- promote the first admin manually via the local admin
     # account (admin/admin, see chart default adminUser/adminPassword)
@@ -117,3 +149,644 @@ sidecar:
     resource: configmap
     provider:
       foldersFromFilesStructure: true
+      # Sans ça, Grafana refuse de réécraser un dashboard marqué "modifié
+      # dans l'UI" (dashboard_provisioning.updated > 0) : les changements du
+      # dépôt (dossiers, titres, requêtes) n'atteignent jamais l'instance.
+      # On veut que Git reste la source de vérité.
+      allowUiUpdates: true
+
+# Grafana-managed alerting. Rules query Mimir through the UID Grafana
+# generates for the provisioned "Mimir" datasource. Every query is written to
+# return only the series that are in a bad state, so a threshold of > 0 means
+# "firing". The Discord webhook comes from Vault via $DISCORD_WEBHOOK_URL.
+alerting:
+  contactpoints.yaml:
+    apiVersion: 1
+    contactPoints:
+      - orgId: 1
+        name: discord-cluster
+        receivers:
+          - uid: discord-cluster
+            type: discord
+            settings:
+              url: $DISCORD_WEBHOOK_URL
+  policies.yaml:
+    apiVersion: 1
+    policies:
+      - orgId: 1
+        receiver: discord-cluster
+        group_by:
+          - alertname
+          - namespace
+          - node
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 4h
+  rules.yaml:
+    apiVersion: 1
+    groups:
+      - orgId: 1
+        name: kubernetes
+        folder: Cluster
+        interval: 1m
+        rules:
+          - uid: node-not-ready
+            title: Node not ready
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 600
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 5m
+            annotations:
+              summary: A Kubernetes node has been NotReady for more than 5 minutes.
+            labels:
+              severity: critical
+              component: node
+          - uid: node-pressure
+            title: Node resource pressure
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 600
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: kube_node_status_condition{condition=~"DiskPressure|MemoryPressure|PIDPressure",status="true"} == 1
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 10m
+            annotations:
+              summary: A Kubernetes node reports DiskPressure, MemoryPressure or PIDPressure.
+            labels:
+              severity: warning
+              component: node
+          - uid: target-down
+            title: Monitoring target down
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 600
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: up{job=~"kube-state-metrics|coredns|loki|prometheus|prometheus-kube-prometheus-operator|garagehq|trivy-operator|policy-reporter"} == 0
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 10m
+            annotations:
+              summary: An in-cluster monitoring target has been down for more than 10 minutes.
+            labels:
+              severity: critical
+              component: monitoring
+          - uid: pod-restarting
+            title: Pod restarting repeatedly
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 900
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: increase(kube_pod_container_status_restarts_total[15m]) > 5
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 10m
+            annotations:
+              summary: A container restarted more than 5 times in the last 15 minutes.
+            labels:
+              severity: warning
+              component: workload
+          - uid: container-oom
+            title: Container OOM killed
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 600
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: increase(container_oom_events_total[10m]) > 0
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 5m
+            annotations:
+              summary: A container was OOM killed in the last 10 minutes.
+            labels:
+              severity: warning
+              component: workload
+          - uid: deployment-unavailable
+            title: Deployment has unavailable replicas
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 900
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: kube_deployment_status_replicas_unavailable > 0
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 15m
+            annotations:
+              summary: A Deployment has had unavailable replicas for more than 15 minutes.
+            labels:
+              severity: warning
+              component: workload
+          - uid: statefulset-not-ready
+            title: StatefulSet not fully ready
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 900
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: kube_statefulset_status_replicas_ready < kube_statefulset_status_replicas
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 15m
+            annotations:
+              summary: A StatefulSet has fewer ready replicas than desired for more than 15 minutes.
+            labels:
+              severity: warning
+              component: workload
+          - uid: pvc-pending
+            title: PersistentVolumeClaim pending
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 900
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: kube_persistentvolumeclaim_status_phase{phase="Pending"} == 1
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 15m
+            annotations:
+              summary: A PersistentVolumeClaim has been Pending for more than 15 minutes.
+            labels:
+              severity: warning
+              component: storage
+          - uid: host-filesystem-low
+            title: Host filesystem low on space
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 1800
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|ramfs|squashfs|fuse.*"} / node_filesystem_size_bytes{fstype!~"tmpfs|ramfs|squashfs|fuse.*"}) < 0.10 and node_filesystem_readonly == 0
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 30m
+            annotations:
+              summary: A host filesystem has less than 10% free space.
+            labels:
+              severity: warning
+              component: storage
+          - uid: host-memory-high
+            title: Host memory almost exhausted
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 900
+                  to: 0
+                datasourceUid: PAE45454D0EDB9216
+                model:
+                  editorMode: code
+                  expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.95
+                  instant: true
+                  range: false
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: B
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  reducer: last
+                  refId: B
+                  type: reduce
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params:
+                          - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                          - C
+                      reducer:
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: B
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: C
+                  type: threshold
+            noDataState: OK
+            execErrState: Error
+            for: 15m
+            annotations:
+              summary: A host has used more than 95% of its memory for 15 minutes.
+            labels:
+              severity: warning
+              component: host

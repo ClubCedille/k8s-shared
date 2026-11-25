@@ -27,6 +27,32 @@ spec:
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultStaticSecret
 metadata:
+  name: grafana-admin
+spec:
+  vaultAuthRef: grafana-auth
+  type: kv-v1
+  mount: kv
+  path: data/monitoring/default/grafana-admin
+  destination:
+    name: grafana-admin
+    create: true
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: grafana-alerting
+spec:
+  vaultAuthRef: grafana-auth
+  type: kv-v1
+  mount: kv
+  path: data/monitoring/default/grafana-alerting
+  destination:
+    name: grafana-alerting
+    create: true
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
   name: b2-creds
 spec:
   vaultAuthRef: grafana-auth

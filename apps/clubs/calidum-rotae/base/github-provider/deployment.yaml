@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github-provider
+  annotations:
+    kube-score/ignore: pod-probes-identical
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: github-provider
+  template:
+    metadata:
+      labels:
+        app: github-provider
+    spec:
+      automountServiceAccountToken: false
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - github-provider
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: github-provider
+          image: ghcr.io/clubcedille/github-provider:latest
+          imagePullPolicy: Always
+          command:
+            ['/bin/sh', '-c', '/github_provider --port 8000']
+          ports:
+            - containerPort: 8000
+          env:
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: calidum-rotae-secrets
+                  key: GITHUB_TOKEN
+                  # Add GITHUB_TOKEN to calidum-rotae-secrets to enable GitHub routes.
+                  optional: true
+          livenessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+              ephemeral-storage: 1Gi
+          securityContext:
+            runAsUser: 10001
+            runAsGroup: 10001
+            readOnlyRootFilesystem: true
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: github-provider-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: github-provider

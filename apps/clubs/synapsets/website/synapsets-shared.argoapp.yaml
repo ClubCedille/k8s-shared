@@ -4,6 +4,7 @@ metadata:
   name: synapsets-shared
   namespace: argocd
   annotations:
+    k8s.cedille.club/club: "synapsets"
     argocd.argoproj.io/sync-wave: "2"
     argocd-image-updater.argoproj.io/image-list: app=ghcr.io/clubcedille/synapsets.etsmtl.ca:latest
     argocd-image-updater.argoproj.io/app.update-strategy: digest

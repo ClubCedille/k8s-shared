@@ -2,6 +2,22 @@ apiVersion: redhatcop.redhat.io/v1alpha1
 kind: GitHubSecretEngineRole
 metadata:
   name: {{ deployment_prefix }}-grav
+{%- if (id is defined and id) or (club is defined and club) %}
+  labels:
+{%- if club is defined and club %}
+    k8s.cedille.club/club: {{ club | tojson }}
+{%- endif %}
+{%- if id is defined and id %}
+    k8s.cedille.club/id: {{ id[:63] | tojson }}
+{%- endif %}
+  annotations:
+{%- if id is defined and id %}
+    k8s.cedille.club/id: {{ id | tojson }}
+{%- endif %}
+{%- if club is defined and club %}
+    k8s.cedille.club/club: {{ club | tojson }}
+{%- endif %}
+{%- endif %}
 spec:
   authentication:
     path: kubernetes

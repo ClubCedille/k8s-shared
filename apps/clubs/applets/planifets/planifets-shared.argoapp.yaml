@@ -4,6 +4,7 @@ metadata:
   name: planifets-shared
   namespace: argocd
   annotations:
+    k8s.cedille.club/club: "applets"
     argocd.argoproj.io/sync-wave: "2"
     argocd-image-updater.argoproj.io/image-list: website=ghcr.io/applets/planifets-frontend:latest, backend=ghcr.io/applets/planifets-backend:latest
     argocd-image-updater.argoproj.io/website.update-strategy: digest
@@ -30,6 +31,7 @@ metadata:
   name: planifets-staging-shared
   namespace: argocd
   annotations:
+    k8s.cedille.club/club: "applets"
     argocd.argoproj.io/sync-wave: "2"
     argocd-image-updater.argoproj.io/image-list: website=ghcr.io/applets/planifets-frontend:staging, backend=ghcr.io/applets/planifets-backend:staging
     argocd-image-updater.argoproj.io/website.update-strategy: digest
@@ -57,6 +59,7 @@ metadata:
   name: planifets-dev-shared
   namespace: argocd
   annotations:
+    k8s.cedille.club/club: "applets"
     argocd.argoproj.io/sync-wave: "2"
     argocd-image-updater.argoproj.io/image-list: website=ghcr.io/applets/planifets-frontend:dev, backend=ghcr.io/applets/planifets-backend:dev
     argocd-image-updater.argoproj.io/website.update-strategy: digest

@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: metrics-server
+  namespace: kube-system
+helmCharts:
+  - name: metrics-server
+    version: "3.14.0"
+    repo: "https://kubernetes-sigs.github.io/metrics-server/"
+    releaseName: metrics-server
+    namespace: kube-system
+    valuesFile: helm/values.yaml
+
+# kube-score flags checks on the upstream chart's templates that the club
+# doesn't control (no CPU limit by design, missing NetworkPolicy, uid/gid,
+# ephemeral-storage, pull policy). Même approche que les autres charts du
+# repo (ex. apps/authentik).
+patches:
+  - target:
+      kind: Deployment
+      name: metrics-server
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: metrics-server
+        annotations:
+          kube-score/ignore: container-resources, container-ephemeral-storage-request-and-limit, container-security-context-user-group-id, pod-networkpolicy, container-image-pull-policy

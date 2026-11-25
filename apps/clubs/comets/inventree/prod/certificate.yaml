@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: inventree-cert-tls
+spec:
+  secretName: inventree-cert-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: inventree.prodv2.cedille.club
+  dnsNames:
+    - inventree.prodv2.cedille.club

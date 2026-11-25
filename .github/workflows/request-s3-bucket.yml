@@ -11,6 +11,14 @@ on:
         type: string
         required: false
         description: "Nom du domaine qui accède le bucket (par défaut: {nom_club}.etsmtl.club)"
+      id:
+        type: string
+        required: false
+        description: "Identifiant du propriétaire de la ressource (fourni par Calidum Rotae)"
+      club:
+        type: string
+        required: false
+        description: "Club propriétaire de la ressource (fourni par Calidum Rotae)"
 jobs:
   create_pr:
     runs-on: ubuntu-latest
@@ -26,6 +34,8 @@ jobs:
       j2_vars: |
         nom_club=${{ inputs.nom_club }}
         domaine=${{ inputs.domaine || format('{0}.etsmtl.club', inputs.nom_club) }}
+        id=${{ inputs.id }}
+        club=${{ inputs.club }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,6 +44,8 @@ jobs:
         env:
           NOM_CLUB: ${{ inputs.nom_club }}
           DOMAINE: ${{ inputs.domaine || format('{0}.etsmtl.club', inputs.nom_club) }}
+          USER_ID: ${{ inputs.id }}
+          CLUB_LABEL: ${{ inputs.club }}
         run: |
           if [[ ! "$NOM_CLUB" =~ ^[a-z0-9-]+$ ]]; then
             echo "::error::ERREUR: Le nom du club '$NOM_CLUB' est invalide."
@@ -42,6 +54,22 @@ jobs:
           fi
           if [[ ! "$DOMAINE" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]]; then
             echo "::error::ERREUR: Le nom du domaine '$DOMAINE' est invalide."
+            exit 1
+          fi
+          if [[ -n "$USER_ID" && ! "$USER_ID" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+            echo "::error::ERREUR: L'identifiant '$USER_ID' contient des caractères invalides pour un label."
+            exit 1
+          fi
+          if [[ -n "$USER_ID" && "${#USER_ID}" -gt 43 ]]; then
+            echo "::error::ERREUR: L'identifiant '$USER_ID' est trop long pour le label 'userid:<id>' (maximum 43 caractères, limite GitHub de 50 avec le préfixe)."
+            exit 1
+          fi
+          if [[ -n "$CLUB_LABEL" && ! "$CLUB_LABEL" =~ ^[A-Za-z0-9]([-A-Za-z0-9_.]*[A-Za-z0-9])?$ ]]; then
+            echo "::error::ERREUR: Le club '$CLUB_LABEL' contient des caractères invalides pour un label Kubernetes."
+            exit 1
+          fi
+          if [[ -n "$CLUB_LABEL" && "${#CLUB_LABEL}" -gt 63 ]]; then
+            echo "::error::ERREUR: Le club '$CLUB_LABEL' est trop long pour un label Kubernetes (maximum 63 caractères)."
             exit 1
           fi
 
@@ -92,12 +120,16 @@ jobs:
           #   deploiement
           labels: |
             automated
-            s3-bucket
+            app:s3-bucket
+            workflow:s3-bucket
+            ${{ inputs.id && format('userid:{0}', inputs.id) || '' }}
             ${{ env.CLUB }}
           title: "Créer un S3 Bucket pour ${{ env.CLUB }}"
           body: |
             PR automatisée pour la création d'un S3 Bucket..
             Nom du club: `${{ env.CLUB }}`
+            Identifiant du propriétaire: `${{ inputs.id }}`
+            Club propriétaire: `${{ inputs.club }}`
 
             **Changements inclus:**
             - Génération des manifestes K8s via Jinja2.

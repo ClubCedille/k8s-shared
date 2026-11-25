@@ -1,0 +1,1558 @@
+# Dashboard de recensement des ressources Kubernetes (requests/limits/usage)
+# et de détection des OOM kills / sur-provisionnement.
+#
+# Généré et maintenu sous forme de JSON dans ce ConfigMap ; le sidecar Grafana
+# (grafana_dashboard: "1") le provisionne dans le dossier Kubernetes/Resources.
+# Voir docs/k8s-resource-dashboard/README.md pour les prérequis de collecte
+# (kube-state-metrics + /metrics/cadvisor) et l'interprétation des ratios.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-k8s-resources-oom-risk
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    k8s-sidecar-target-directory: "Kubernetes"
+data:
+  k8s-resources-oom-risk.json: |
+    {
+      "annotations": {
+        "list": []
+      },
+      "description": "Recensement des requests/limits et de l'usage CPU/mémoire de tous les conteneurs du cluster, avec détection des OOM kills (cAdvisor) et des demandes disproportionnées. PRÉREQUIS : kube-state-metrics et le scrape /metrics/cadvisor des kubelets doivent être actifs dans apps/prometheus/helm/values.yaml (voir docs/k8s-resource-dashboard).",
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Nombre de conteneurs avec requests CPU (tous namespaces / filtres).",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 1,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 0,
+            "y": 0
+          },
+          "id": 1,
+          "options": {
+            "colorMode": "none",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "count(avg by (namespace, pod, container) (kube_pod_container_resource_requests{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",resource=\"cpu\"}))",
+              "format": "time_series",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "range": false,
+              "refId": "A"
+            }
+          ],
+          "title": "Conteneurs observés",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Somme des requests CPU — le plancher garanti à l'ordonnanceur.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 2,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 6,
+            "y": 0
+          },
+          "id": 2,
+          "options": {
+            "colorMode": "none",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum(avg by (namespace, pod, container) (kube_pod_container_resource_requests{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",resource=\"cpu\"}))",
+              "format": "time_series",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "range": false,
+              "refId": "A"
+            }
+          ],
+          "title": "CPU demandé (cores)",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Somme des requests mémoire.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 1,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "bytes"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 12,
+            "y": 0
+          },
+          "id": 3,
+          "options": {
+            "colorMode": "none",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum(avg by (namespace, pod, container) (kube_pod_container_resource_requests{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",resource=\"memory\"}))",
+              "format": "time_series",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "range": false,
+              "refId": "A"
+            }
+          ],
+          "title": "Mémoire demandée",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Total des événements OOM rapportés par cAdvisor sur la période.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 0,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 18,
+            "y": 0
+          },
+          "id": 4,
+          "options": {
+            "colorMode": "none",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum(increase(container_oom_events_total{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",container!=\"\",pod!=\"\"}[$window]))",
+              "format": "time_series",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "range": false,
+              "refId": "A"
+            }
+          ],
+          "title": "OOM kills sur $window",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Recensement de tous les conteneurs avec requests/limits (kube-state-metrics), usage moyen et pic sur $window (cAdvisor) et nombre de OOM kills sur $window. req/use élevé = sur-provisionnement (gaspillage) ; % limite / pic % limite élevé = service stressé. Cliquez sur un en-tête de colonne pour trier (ex. OOM kills ou RAM pic % limite).",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "left",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "displayMode": "color-text",
+                "filterable": true,
+                "inspect": true
+              },
+              "decimals": 2,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Namespace / Pod / Conteneur"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 420
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "CPU req (cores)"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 3
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "CPU limite (cores)"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 3
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "CPU moy. (cores)"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 3
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "CPU req/use (x)"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "green",
+                          "value": 2
+                        },
+                        {
+                          "color": "yellow",
+                          "value": 5
+                        },
+                        {
+                          "color": "orange",
+                          "value": 10
+                        },
+                        {
+                          "color": "red",
+                          "value": 20
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "CPU % limite"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "green",
+                          "value": 0.7
+                        },
+                        {
+                          "color": "yellow",
+                          "value": 0.85
+                        },
+                        {
+                          "color": "orange",
+                          "value": 0.95
+                        },
+                        {
+                          "color": "red",
+                          "value": 1
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "RAM req"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "bytes"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "RAM limite"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "bytes"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "RAM moy."
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "bytes"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "RAM pic"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "bytes"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "RAM req/use (x)"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "green",
+                          "value": 2
+                        },
+                        {
+                          "color": "yellow",
+                          "value": 5
+                        },
+                        {
+                          "color": "orange",
+                          "value": 10
+                        },
+                        {
+                          "color": "red",
+                          "value": 20
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "RAM % limite"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "green",
+                          "value": 0.7
+                        },
+                        {
+                          "color": "yellow",
+                          "value": 0.85
+                        },
+                        {
+                          "color": "orange",
+                          "value": 0.95
+                        },
+                        {
+                          "color": "red",
+                          "value": 1
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "RAM pic % limite"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "green",
+                          "value": 0.7
+                        },
+                        {
+                          "color": "yellow",
+                          "value": 0.85
+                        },
+                        {
+                          "color": "orange",
+                          "value": 0.95
+                        },
+                        {
+                          "color": "red",
+                          "value": 1
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "OOM kills"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 0
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "green",
+                          "value": 1
+                        },
+                        {
+                          "color": "yellow",
+                          "value": 3
+                        },
+                        {
+                          "color": "orange",
+                          "value": 10
+                        },
+                        {
+                          "color": "red",
+                          "value": 100
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 16,
+            "w": 24,
+            "x": 0,
+            "y": 4
+          },
+          "id": 5,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": true
+            },
+            "showHeader": true,
+            "sortBy": [
+              {
+                "field": "OOM kills",
+                "displayName": "OOM kills",
+                "desc": true
+              }
+            ]
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "label_join(avg by (namespace, pod, container) (kube_pod_container_resource_requests{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",resource=\"cpu\"}), \"key\", \" / \", \"namespace\", \"pod\", \"container\")",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "range": false,
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "label_join(avg by (namespace, pod, container) (kube_pod_container_resource_limits{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",resource=\"cpu\"}), \"key\", \" / \", \"namespace\", \"pod\", \"container\")",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "range": false,
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "label_join(avg by (namespace, pod, container) (rate(container_cpu_usage_seconds_total{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",container!=\"\",pod!=\"\",cpu=\"total\"}[$window])), \"key\", \" / \", \"namespace\", \"pod\", \"container\")",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "range": false,
+              "refId": "C"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "label_join(avg by (namespace, pod, container) (kube_pod_container_resource_requests{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",resource=\"cpu\"}) / clamp_min(avg by (namespace, pod, container) (rate(container_cpu_usage_seconds_total{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",container!=\"\",pod!=\"\",cpu=\"total\"}[$window])), 0.001), \"key\", \" / \", \"namespace\", \"pod\", \"container\")",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "range": false,
+              "refId": "D"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "label_join(avg by (namespace, pod, container) (rate(container_cpu_usage_seconds_total{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",container!=\"\",pod!=\"\",cpu=\"total\"}[$window])) / clamp_min(avg by (namespace, pod, container) (kube_pod_container_resource_limits{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",resource=\"cpu\"}), 0.001), \"key\", \" / \", \"namespace\", \"pod\", \"container\")",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "range": false,
+              "refId": "E"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "label_join(avg by (namespace, pod, container) (kube_pod_container_resource_requests{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",resource=\"memory\"}), \"key\", \" / \", \"namespace\", \"pod\", \"container\")",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "range": false,
+              "refId": "F"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "label_join(avg by (namespace, pod, container) (kube_pod_container_resource_limits{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",resource=\"memory\"}), \"key\", \" / \", \"namespace\", \"pod\", \"container\")",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "range": false,
+              "refId": "G"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "label_join(avg by (namespace, pod, container) (avg_over_time(container_memory_working_set_bytes{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",container!=\"\",pod!=\"\"}[$window])), \"key\", \" / \", \"namespace\", \"pod\", \"container\")",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "range": false,
+              "refId": "H"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "label_join(max by (namespace, pod, container) (max_over_time(container_memory_working_set_bytes{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",container!=\"\",pod!=\"\"}[$window])), \"key\", \" / \", \"namespace\", \"pod\", \"container\")",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "range": false,
+              "refId": "I"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "label_join(avg by (namespace, pod, container) (kube_pod_container_resource_requests{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",resource=\"memory\"}) / clamp_min(avg by (namespace, pod, container) (avg_over_time(container_memory_working_set_bytes{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",container!=\"\",pod!=\"\"}[$window])), 1), \"key\", \" / \", \"namespace\", \"pod\", \"container\")",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "range": false,
+              "refId": "J"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "label_join(avg by (namespace, pod, container) (avg_over_time(container_memory_working_set_bytes{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",container!=\"\",pod!=\"\"}[$window])) / clamp_min(avg by (namespace, pod, container) (kube_pod_container_resource_limits{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",resource=\"memory\"}), 1), \"key\", \" / \", \"namespace\", \"pod\", \"container\")",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "range": false,
+              "refId": "K"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "label_join(max by (namespace, pod, container) (max_over_time(container_memory_working_set_bytes{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",container!=\"\",pod!=\"\"}[$window])) / clamp_min(avg by (namespace, pod, container) (kube_pod_container_resource_limits{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",resource=\"memory\"}), 1), \"key\", \" / \", \"namespace\", \"pod\", \"container\")",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "range": false,
+              "refId": "L"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "label_join(sum by (namespace, pod, container) (increase(container_oom_events_total{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",container!=\"\",pod!=\"\"}[$window])), \"key\", \" / \", \"namespace\", \"pod\", \"container\")",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "range": false,
+              "refId": "M"
+            }
+          ],
+          "title": "Ressources & ratios par conteneur (triables)",
+          "transformations": [
+            {
+              "id": "filterFieldsByName",
+              "options": {
+                "include": {
+                  "names": [
+                    "key",
+                    "Value #A",
+                    "Value #B",
+                    "Value #C",
+                    "Value #D",
+                    "Value #E",
+                    "Value #F",
+                    "Value #G",
+                    "Value #H",
+                    "Value #I",
+                    "Value #J",
+                    "Value #K",
+                    "Value #L",
+                    "Value #M"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "seriesToColumns",
+              "options": {
+                "byField": "key"
+              }
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {},
+                "indexByName": {
+                  "Namespace / Pod / Conteneur": 0,
+                  "CPU req (cores)": 1,
+                  "CPU limite (cores)": 2,
+                  "CPU moy. (cores)": 3,
+                  "CPU req/use (x)": 4,
+                  "CPU % limite": 5,
+                  "RAM req": 6,
+                  "RAM limite": 7,
+                  "RAM moy.": 8,
+                  "RAM pic": 9,
+                  "RAM req/use (x)": 10,
+                  "RAM % limite": 11,
+                  "RAM pic % limite": 12,
+                  "OOM kills": 13
+                },
+                "renameByName": {
+                  "key": "Namespace / Pod / Conteneur",
+                  "Value #A": "CPU req (cores)",
+                  "Value #B": "CPU limite (cores)",
+                  "Value #C": "CPU moy. (cores)",
+                  "Value #D": "CPU req/use (x)",
+                  "Value #E": "CPU % limite",
+                  "Value #F": "RAM req",
+                  "Value #G": "RAM limite",
+                  "Value #H": "RAM moy.",
+                  "Value #I": "RAM pic",
+                  "Value #J": "RAM req/use (x)",
+                  "Value #K": "RAM % limite",
+                  "Value #L": "RAM pic % limite",
+                  "Value #M": "OOM kills"
+                }
+              }
+            }
+          ],
+          "type": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Conteneurs ayant subi le plus de OOM kills sur la période (cAdvisor).",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 0,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 1
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 3
+                  },
+                  {
+                    "color": "orange",
+                    "value": 10
+                  },
+                  {
+                    "color": "red",
+                    "value": 100
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 0,
+            "y": 20
+          },
+          "id": 6,
+          "options": {
+            "displayMode": "gradient",
+            "maxVizHeight": 300,
+            "minVizHeight": 16,
+            "minVizWidth": 8,
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": true,
+            "valueMode": "color"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "topk(10, sum by (namespace, pod, container) (increase(container_oom_events_total{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",container!=\"\",pod!=\"\"}[$window])))",
+              "format": "time_series",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "{{namespace}}/{{pod}}/{{container}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Top 10 — OOM kills ($window)",
+          "type": "bargauge"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Requests mémoire / usage moyen : plus la valeur est haute, plus la demande est disproportionnée.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 1,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 2
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 5
+                  },
+                  {
+                    "color": "orange",
+                    "value": 10
+                  },
+                  {
+                    "color": "red",
+                    "value": 20
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 12,
+            "y": 20
+          },
+          "id": 7,
+          "options": {
+            "displayMode": "gradient",
+            "maxVizHeight": 300,
+            "minVizHeight": 16,
+            "minVizWidth": 8,
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": true,
+            "valueMode": "color"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "topk(10, avg by (namespace, pod, container) (kube_pod_container_resource_requests{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",resource=\"memory\"}) / clamp_min(avg by (namespace, pod, container) (avg_over_time(container_memory_working_set_bytes{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",container!=\"\",pod!=\"\"}[$window])), 1))",
+              "format": "time_series",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "{{namespace}}/{{pod}}/{{container}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Top 10 — sur-provisionnement mémoire (req/use)",
+          "type": "bargauge"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Agrégat cluster sur la plage de temps du dashboard (indépendant de $window).",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "decimals": 2,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 9,
+            "w": 12,
+            "x": 0,
+            "y": 30
+          },
+          "id": 8,
+          "options": {
+            "legend": {
+              "calcs": [
+                "mean",
+                "max"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(avg by (namespace, pod, container) (kube_pod_container_resource_requests{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",resource=\"cpu\"}))",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "legendFormat": "Requests",
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(avg by (namespace, pod, container) (kube_pod_container_resource_limits{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",resource=\"cpu\"}))",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "legendFormat": "Limits",
+              "range": true,
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(rate(container_cpu_usage_seconds_total{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",container!=\"\",pod!=\"\",cpu=\"total\"}[5m]))",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "legendFormat": "Usage",
+              "range": true,
+              "refId": "C"
+            }
+          ],
+          "title": "CPU — requests / limits / usage (cluster)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Agrégat cluster sur la plage de temps du dashboard (indépendant de $window).",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "decimals": 2,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "bytes"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 9,
+            "w": 12,
+            "x": 12,
+            "y": 30
+          },
+          "id": 9,
+          "options": {
+            "legend": {
+              "calcs": [
+                "mean",
+                "max"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(avg by (namespace, pod, container) (kube_pod_container_resource_requests{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",resource=\"memory\"}))",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "legendFormat": "Requests",
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(avg by (namespace, pod, container) (kube_pod_container_resource_limits{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",resource=\"memory\"}))",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "legendFormat": "Limits",
+              "range": true,
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(container_memory_working_set_bytes{cluster=\"k8s-shared\",namespace=~\"$namespace\",pod=~\"$search\",container!=\"\",pod!=\"\"})",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "legendFormat": "Usage (working set)",
+              "range": true,
+              "refId": "C"
+            }
+          ],
+          "title": "Mémoire — requests / limits / usage (cluster)",
+          "type": "timeseries"
+        }
+      ],
+      "refresh": "5m",
+      "schemaVersion": 39,
+      "tags": [
+        "kubernetes",
+        "resources",
+        "capacity",
+        "oom"
+      ],
+      "templating": {
+        "list": [
+          {
+            "current": {},
+            "hide": 2,
+            "includeAll": false,
+            "multi": false,
+            "name": "datasource",
+            "options": [],
+            "query": "prometheus",
+            "refresh": 1,
+            "type": "datasource"
+          },
+          {
+            "current": {
+              "text": "7d",
+              "value": "7d"
+            },
+            "hide": 0,
+            "includeAll": false,
+            "label": "Période d'analyse ($window)",
+            "multi": false,
+            "name": "window",
+            "options": [
+              {
+                "text": "1h",
+                "value": "1h",
+                "selected": false
+              },
+              {
+                "text": "6h",
+                "value": "6h",
+                "selected": false
+              },
+              {
+                "text": "24h",
+                "value": "24h",
+                "selected": false
+              },
+              {
+                "text": "7d",
+                "value": "7d",
+                "selected": true
+              },
+              {
+                "text": "30d",
+                "value": "30d",
+                "selected": false
+              }
+            ],
+            "query": "1h,6h,24h,7d,30d",
+            "refresh": 1,
+            "skipUrlSync": false,
+            "type": "custom"
+          },
+          {
+            "current": {},
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_container_resource_requests{cluster=\"k8s-shared\",resource=\"cpu\"}, namespace)",
+            "hide": 0,
+            "includeAll": true,
+            "allValue": ".*",
+            "label": "Namespace",
+            "multi": true,
+            "name": "namespace",
+            "options": [],
+            "query": "label_values(kube_pod_container_resource_requests{cluster=\"k8s-shared\",resource=\"cpu\"}, namespace)",
+            "refresh": 2,
+            "skipUrlSync": false,
+            "sort": 1,
+            "tagValuesQuery": "",
+            "tags": [],
+            "tagsQuery": "",
+            "type": "query",
+            "useTags": false
+          },
+          {
+            "current": {
+              "text": ".*",
+              "value": ".*"
+            },
+            "hide": 0,
+            "label": "Filtre pod (regex)",
+            "name": "search",
+            "options": [
+              {
+                "selected": true,
+                "text": ".*",
+                "value": ".*"
+              }
+            ],
+            "query": ".*",
+            "skipUrlSync": false,
+            "type": "textbox"
+          }
+        ]
+      },
+      "time": {
+        "from": "now-7d",
+        "to": "now"
+      },
+      "timepicker": {
+        "refresh_intervals": [
+          "30s",
+          "1m",
+          "5m",
+          "15m",
+          "1h"
+        ]
+      },
+      "timezone": "browser",
+      "title": "Kubernetes — Ressources & OOM",
+      "uid": "k8s-resources-oom-risk",
+      "version": 1,
+      "weekStart": ""
+    }

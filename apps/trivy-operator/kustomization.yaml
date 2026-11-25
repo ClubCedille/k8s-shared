@@ -1,10 +1,15 @@
 ---
 namespace: trivy-operator
 
+resources:
+  # VaultSecret -> crée ghcr-clubcedille-secret (credentials registres privés)
+  # utilisé par operator.privateRegistryScanSecretsNames pour les scan jobs
+  - resources
+
 helmCharts:
   - name: trivy-operator
     repo: https://aquasecurity.github.io/helm-charts/
-    version: 0.35.0
+    version: 0.38.1
     releaseName: trivy-operator
     namespace: trivy-operator
     valuesFile: ./helm/trivy-values.yaml

@@ -6,6 +6,8 @@ resources:
   - resources/certificate.yaml
   - resources/pvc.yaml
   - resources/cronjob.yaml
+  - resources/nextcloud-data-backup-config.yaml
+  - resources/nextcloud-data-backup-cronjob.yaml
   - resources/vault.yaml
   - resources/nextcloud-setup-job.yaml
 
@@ -25,110 +27,17 @@ patches:
               app.kubernetes.io/backup: velero
             annotations:
               backup.velero.io/backup-volumes: nextcloud-main
-  # Security maintenance: redirect all Nextcloud/Collabora hosts and stop PHP.
-  - target:
-      kind: HTTPProxy
-      name: nextcloud
-    patch: |-
-      - op: replace
-        path: /spec/routes
-        value:
-          - conditions:
-              - prefix: /
-            requestRedirectPolicy:
-              hostname: maintenance.etsmtl.club
-              scheme: https
-              statusCode: 302
-  - target:
-      kind: HTTPProxy
-      name: 0-nextcloud-internal
-    patch: |-
-      - op: replace
-        path: /spec/routes
-        value:
-          - conditions:
-              - prefix: /
-            requestRedirectPolicy:
-              hostname: maintenance.etsmtl.club
-              scheme: https
-              statusCode: 302
-  - target:
-      kind: HTTPProxy
-      name: collabora
-    patch: |-
-      - op: replace
-        path: /spec/routes
-        value:
-          - conditions:
-              - prefix: /
-            requestRedirectPolicy:
-              hostname: maintenance.etsmtl.club
-              scheme: https
-              statusCode: 302
-  - target:
-      kind: HTTPProxy
-      name: 0-collabora-internal
-    patch: |-
-      - op: replace
-        path: /spec/routes
-        value:
-          - conditions:
-              - prefix: /
-            requestRedirectPolicy:
-              hostname: maintenance.etsmtl.club
-              scheme: https
-              statusCode: 302
-  - target:
-      kind: Deployment
-      name: nextcloud
-    patch: |-
-      - op: add
-        path: /spec/replicas
-        value: 0
-  # The cron jobs run PHP in separate pods; suspend them too.
-  - target:
-      kind: CronJob
-      name: nextcloud-cron
-    patch: |-
-      - op: add
-        path: /spec/suspend
-        value: true
-  - target:
-      kind: CronJob
-      name: enable-maintenance
-    patch: |-
-      - op: add
-        path: /spec/suspend
-        value: true
-  - target:
-      kind: CronJob
-      name: disable-maintenance
-    patch: |-
-      - op: add
-        path: /spec/suspend
-        value: true
-  # The PostSync setup hook execs into the (now scaled-to-zero) deployment.
-  - target:
-      kind: Job
-      name: nextcloud-setup
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/command
-        value:
-          - kubectl
-          - version
-          - --client
 
 helmCharts:
   - name: nextcloud
     repo: https://nextcloud.github.io/helm
-    version: 9.1.3
+    version: 9.4.5
     releaseName: nextcloud
     namespace: nextcloud-new
     valuesFile: ./helm/nextcloud-values.yaml
   - name: collabora-online
     repo: https://collaboraonline.github.io/online
-    version: 1.3.0
+    version: 1.3.9
     releaseName: collabora
     namespace: nextcloud-new
     valuesFile: ./helm/collabora-values.yaml

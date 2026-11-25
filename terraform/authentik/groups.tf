@@ -11,6 +11,22 @@ resource "authentik_group" "exec" {
   roles    = [authentik_rbac_role.exec[each.key].id]
 }
 
+# Groupes supplémentaires déclarés par club (voir data/authentik-extra-groups.yaml).
+resource "authentik_group" "extra" {
+  for_each = toset(local.authentik_extra_groups)
+  name     = each.key
+}
+
+resource "authentik_group" "proxmox-user" {
+  for_each = { for c in local.proxmox : c.name => c.group }
+  name     = "${each.value}-user"
+}
+
+resource "authentik_group" "proxmox-exec" {
+  for_each = { for c in local.proxmox : c.name => c.group }
+  name     = "${each.value}-admin"
+}
+
 # Autres groupes
 resource "authentik_group" "authentik_admins" {
   name         = "authentik Admins"
@@ -80,94 +96,18 @@ resource "authentik_group" "omni-viewer" {
   name = "omni-viewer"
 }
 
-resource "authentik_group" "proxmox-cedille-apps-admin" {
-  name = "proxmox-cedille-apps-admin"
-}
-
-resource "authentik_group" "proxmox-cedille-apps-user" {
-  name = "proxmox-cedille-apps-user"
-}
-
-resource "authentik_group" "proxmox-dci-admin" {
-  name = "proxmox-dci-admin"
-}
-
-resource "authentik_group" "proxmox-dci-user" {
-  name = "proxmox-dci-user"
-}
-
-resource "authentik_group" "proxmox-eclipse-admin" {
-  name = "proxmox-eclipse-admin"
-}
-
-resource "authentik_group" "proxmox-eclipse-user" {
-  name = "proxmox-eclipse-user"
-}
-
-resource "authentik_group" "proxmox-gameservers-admin" {
-  name = "proxmox-gameservers-admin"
-}
-
-resource "authentik_group" "proxmox-gameservers-user" {
-  name = "proxmox-gameservers-user"
-}
-
-resource "authentik_group" "proxmox-k8s-cedille-prod-admin" {
-  name = "proxmox-k8s-cedille-prod-admin"
-}
-
-resource "authentik_group" "proxmox-k8s-cedille-prod-user" {
-  name = "proxmox-k8s-cedille-prod-user"
-}
-
-resource "authentik_group" "proxmox-k8s-cedille-sandbox-admin" {
-  name = "proxmox-k8s-cedille-sandbox-admin"
-}
-
-resource "authentik_group" "proxmox-k8s-cedille-sandbox-user" {
-  name = "proxmox-k8s-cedille-sandbox-user"
-}
-
-resource "authentik_group" "proxmox-k8s-poc-admin" {
-  name = "proxmox-k8s-poc-admin"
-}
-
-resource "authentik_group" "proxmox-k8s-poc-user" {
-  name = "proxmox-k8s-poc-user"
-}
-
-resource "authentik_group" "proxmox-k8s-shared-admin" {
-  name = "proxmox-k8s-shared-admin"
-}
-
-resource "authentik_group" "proxmox-k8s-shared-user" {
-  name = "proxmox-k8s-shared-user"
-}
-
-resource "authentik_group" "proxmox-lanets-admin" {
-  name = "proxmox-lanets-admin"
-}
-
-resource "authentik_group" "proxmox-lanets-user" {
-  name = "proxmox-lanets-user"
-}
-
-resource "authentik_group" "proxmox-management-infra-admin" {
-  name = "proxmox-management-infra-admin"
-}
-
-resource "authentik_group" "proxmox-management-infra-user" {
-  name = "proxmox-management-infra-user"
-}
-
-resource "authentik_group" "proxmox-networking-core-admin" {
-  name = "proxmox-networking-core-admin"
-}
-
-resource "authentik_group" "proxmox-networking-core-user" {
-  name = "proxmox-networking-core-user"
-}
-
 resource "authentik_group" "summercamp" {
   name = "summercamp"
+}
+
+resource "authentik_group" "formulemaster_capitaines" {
+  name = "formulemaster-capitaines"
+}
+
+resource "authentik_group" "formulemaster_gestionnaires_beton" {
+  name = "formulemaster-gestionnaires-beton"
+}
+
+resource "authentik_group" "formulemaster_users" {
+  name = "formulemaster-users"
 }

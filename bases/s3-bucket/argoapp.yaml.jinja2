@@ -3,6 +3,22 @@ kind: Application
 metadata:
   name: {{ nom_club }}-s3-bucket
   namespace: argocd
+{%- if (id is defined and id) or (club is defined and club) %}
+  labels:
+{%- if club is defined and club %}
+    k8s.cedille.club/club: {{ club | tojson }}
+{%- endif %}
+{%- if id is defined and id %}
+    k8s.cedille.club/id: {{ id[:63] | tojson }}
+{%- endif %}
+  annotations:
+{%- if id is defined and id %}
+    k8s.cedille.club/id: {{ id | tojson }}
+{%- endif %}
+{%- if club is defined and club %}
+    k8s.cedille.club/club: {{ club | tojson }}
+{%- endif %}
+{%- endif %}
 spec:
   destination:
     namespace: {{ nom_club }}-s3-bucket
@@ -13,6 +29,23 @@ spec:
     repoURL: https://github.com/ClubCedille/k8s-shared
     targetRevision: HEAD
   syncPolicy:
+{%- if (id is defined and id) or (club is defined and club) %}
+    managedNamespaceMetadata:
+      labels:
+{%- if club is defined and club %}
+        k8s.cedille.club/club: {{ club | tojson }}
+{%- endif %}
+{%- if id is defined and id %}
+        k8s.cedille.club/id: {{ id[:63] | tojson }}
+{%- endif %}
+      annotations:
+{%- if id is defined and id %}
+        k8s.cedille.club/id: {{ id | tojson }}
+{%- endif %}
+{%- if club is defined and club %}
+        k8s.cedille.club/club: {{ club | tojson }}
+{%- endif %}
+{%- endif %}
     automated:
       prune: true
       selfHeal: true

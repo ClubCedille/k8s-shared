@@ -35,7 +35,7 @@ php /var/www/html/occ user_oidc:provider "Authentik" \
 php /var/www/html/occ config:app:set user_oidc allow_multiple_user_backends --value=0
 
 # Collabora config
-php /var/www/html/occ config:app:set richdocuments wopi_url --value https://new-collabora-nextcloud.etsmtl.club
+php /var/www/html/occ config:app:set richdocuments wopi_url --value https://collabora-nextcloud.etsmtl.club
 php /var/www/html/occ config:app:set richdocuments wopi_allowlist --value 10.244.0.0/16
 php /var/www/html/occ config:app:set richdocuments doc_format --value ooxml
 php /var/www/html/occ richdocuments:activate-config

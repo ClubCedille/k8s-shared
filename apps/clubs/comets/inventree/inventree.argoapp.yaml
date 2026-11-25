@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: comets-inventree
+  namespace: argocd
+  annotations:
+    k8s.cedille.club/club: "comets"
+spec:
+  project: k8s-shared
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: comets-inventree
+  source:
+    repoURL: https://github.com/ClubCedille/k8s-shared.git
+    targetRevision: HEAD
+    path: apps/clubs/comets/inventree
+
+  syncPolicy:
+    automated:
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

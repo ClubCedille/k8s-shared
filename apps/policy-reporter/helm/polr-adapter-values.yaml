@@ -1,0 +1,63 @@
+# Trivy Operator PolicyReport Adapter -- convertit les CRDs du trivy-operator
+# (VulnerabilityReport, ConfigAuditReport, RbacAssessmentReport,
+# ExposedSecretReport, InfraAssessmentReport, ...) en PolicyReport /
+# ClusterPolicyReport consommes par Policy Reporter.
+#
+# Docs: https://github.com/fjogeleit/trivy-operator-polr-adapter
+
+crds:
+  # CRDs wgpolicyk8s.io/v1alpha2 (PolicyReport/ClusterPolicyReport) --
+  # lues nativement par policy-reporter 3.x.
+  install: true
+
+# WatchList (client-go, defaut du chart : true) : la ConfigAuditReport n'
+# atteint jamais HasSynced avec ce mode -- le reflector log "Caches
+# populated" mais le controller-runtime attend la sync en vain (2 min) puis
+# le process sort en erreur -> CrashLoopBackOff et 0 ConfigAuditReport
+# ingere. On repasse sur LIST+WATCH classique.
+useWatchList: false
+
+# La sync initiale de ~1070 ConfigAuditReports depasse 256Mi (pod OOMKilled,
+# exit 137). 512Mi comme le pod core.
+
+# CacheSyncTimeout (controller-runtime), PAR adaptateur, en minutes. Le
+# defaut chart est 2 -- insuffisant ici : ~2000 CRDs (1073 ConfigAuditReports
+# + 410 VulnerabilityReports + 194 ClusterRbacAssessment + 249 ExposedSecret
+# + 111 RbacAssessment) n'atteignent jamais HasSynced en 2 min avec le
+# client-side throttling observe (~1 req/s). Le pod sortait en erreur ->
+# CrashLoopBackOff, et la sync progressait d'une tentative a l'autre sans
+# jamais converger. 10 min laissent la marge necessaire a la premiere sync.
+adapters:
+  vulnerabilityReports:
+    enabled: true
+    timeout: 10
+  configAuditReports:
+    enabled: true
+    timeout: 10
+  rbacAssessmentReports:
+    enabled: true
+    timeout: 10
+  exposedSecretReports:
+    enabled: true
+    timeout: 10
+  infraAssessmentReports:
+    enabled: true
+    timeout: 10
+  complianceReports:
+    enabled: true
+    timeout: 10
+  clusterVulnerabilityReports:
+    enabled: true
+    timeout: 10
+  clusterInfraAssessmentReports:
+    enabled: true
+    timeout: 10
+
+resources:
+  # Sync initiale de ~2000 CRDs : 256Mi etait trop juste (OOMKilled).
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi

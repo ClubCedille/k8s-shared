@@ -31,6 +31,9 @@
 ##  2. deployment     - Pod configuration per component
 ##  3. image          - Container image settings per component
 ##  4. environment    - Environment variables per component
+##                      IMPORTANT: chart >= 0.8 expects a LIST of
+##                      { name, value } entries (not a key/value map).
+##                      A map silently breaks `helm template` rendering.
 ##  5. persistence    - PVC configuration per component
 ##  6. service        - Kubernetes Service configuration per component
 ##  7. autoscaling    - HPA configuration per component
@@ -290,6 +293,8 @@ deployment:
     volumeMounts: {}
     volumes: {}
     resources: {}
+    ## Ignored by chart 0.8.x (env vars come from `environment.storage`
+    ## and from the patches in ../../kustomization.yaml). Kept as reference.
     environment:
       GLOBAL_S3_ENDPOINT: http://10.0.21.50:3900
       STORAGE_BACKEND: s3
@@ -406,48 +411,85 @@ image:
 
 environment:
   analytics:
-    LOGFLARE_NODE_HOST: 127.0.0.1
-    DB_USERNAME: supabase_admin
-    DB_DATABASE: _supabase
-    DB_PORT: 5432
-    DB_DRIVER: postgresql
-    DB_SCHEMA: _analytics
-    POSTGRES_BACKEND_SCHEMA: _analytics
-    LOGFLARE_SINGLE_TENANT: "true"
-    LOGFLARE_SUPABASE_MODE: "true"
-    LOGFLARE_FEATURE_FLAG_OVERRIDE: multibackend=true
+    - name: LOGFLARE_NODE_HOST
+      value: "127.0.0.1"
+    - name: DB_USERNAME
+      value: "supabase_admin"
+    - name: DB_DATABASE
+      value: "_supabase"
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_DRIVER
+      value: "postgresql"
+    - name: DB_SCHEMA
+      value: "_analytics"
+    - name: POSTGRES_BACKEND_SCHEMA
+      value: "_analytics"
+    - name: LOGFLARE_SINGLE_TENANT
+      value: "true"
+    - name: LOGFLARE_SUPABASE_MODE
+      value: "true"
+    - name: LOGFLARE_FEATURE_FLAG_OVERRIDE
+      value: "multibackend=true"
 
   auth:
-    DB_USER: supabase_auth_admin
-    DB_PORT: 5432
-    DB_DRIVER: postgres
+    - name: DB_USER
+      value: "supabase_auth_admin"
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_DRIVER
+      value: "postgres"
     ## SSL mode options: disable, allow, prefer, require, verify-ca, verify-full
-    DB_SSL: disable
-    API_EXTERNAL_URL: https://supabase.exutoire.etsmtl.club
-    GOTRUE_API_HOST: "0.0.0.0"
-    GOTRUE_API_PORT: "9999"
-    GOTRUE_SITE_URL: https://supabase.exutoire.etsmtl.club
-    GOTRUE_URI_ALLOW_LIST: "*"
-    GOTRUE_DISABLE_SIGNUP: "false"
-    GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
-    GOTRUE_JWT_ADMIN_ROLES: service_role
-    GOTRUE_JWT_AUD: authenticated
-    GOTRUE_JWT_EXP: "3600"
-    GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
-    GOTRUE_MAILER_AUTOCONFIRM: "true"
-    GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: "false"
+    - name: DB_SSL
+      value: "disable"
+    - name: API_EXTERNAL_URL
+      value: "https://supabase.exutoire.etsmtl.club"
+    - name: GOTRUE_API_HOST
+      value: "0.0.0.0"
+    - name: GOTRUE_API_PORT
+      value: "9999"
+    - name: GOTRUE_SITE_URL
+      value: "https://supabase.exutoire.etsmtl.club"
+    - name: GOTRUE_URI_ALLOW_LIST
+      value: "*"
+    - name: GOTRUE_DISABLE_SIGNUP
+      value: "false"
+    - name: GOTRUE_JWT_DEFAULT_GROUP_NAME
+      value: "authenticated"
+    - name: GOTRUE_JWT_ADMIN_ROLES
+      value: "service_role"
+    - name: GOTRUE_JWT_AUD
+      value: "authenticated"
+    - name: GOTRUE_JWT_EXP
+      value: "3600"
+    - name: GOTRUE_EXTERNAL_EMAIL_ENABLED
+      value: "true"
+    - name: GOTRUE_MAILER_AUTOCONFIRM
+      value: "true"
+    - name: GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED
+      value: "false"
     # GOTRUE_MAILER_SECURE_EMAIL_CHANGE_ENABLED: true
     # GOTRUE_SMTP_MAX_FREQUENCY: 1s
-    GOTRUE_SMTP_ADMIN_EMAIL: "SMTP_ADMIN_MAIL"
-    GOTRUE_SMTP_HOST: "SMTP_HOST"
-    GOTRUE_SMTP_PORT: "123"
-    GOTRUE_EXTERNAL_PHONE_ENABLED: "false"
-    GOTRUE_SMS_AUTOCONFIRM: "false"
-    GOTRUE_SMTP_SENDER_NAME: "SMTP_SENDER_NAME"
-    GOTRUE_MAILER_URLPATHS_INVITE: "/auth/v1/verify"
-    GOTRUE_MAILER_URLPATHS_CONFIRMATION: "/auth/v1/verify"
-    GOTRUE_MAILER_URLPATHS_RECOVERY: "/auth/v1/verify"
-    GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: "/auth/v1/verify"
+    - name: GOTRUE_SMTP_ADMIN_EMAIL
+      value: "SMTP_ADMIN_MAIL"
+    - name: GOTRUE_SMTP_HOST
+      value: "SMTP_HOST"
+    - name: GOTRUE_SMTP_PORT
+      value: "123"
+    - name: GOTRUE_EXTERNAL_PHONE_ENABLED
+      value: "false"
+    - name: GOTRUE_SMS_AUTOCONFIRM
+      value: "false"
+    - name: GOTRUE_SMTP_SENDER_NAME
+      value: "SMTP_SENDER_NAME"
+    - name: GOTRUE_MAILER_URLPATHS_INVITE
+      value: "/auth/v1/verify"
+    - name: GOTRUE_MAILER_URLPATHS_CONFIRMATION
+      value: "/auth/v1/verify"
+    - name: GOTRUE_MAILER_URLPATHS_RECOVERY
+      value: "/auth/v1/verify"
+    - name: GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE
+      value: "/auth/v1/verify"
     ## Uncomment to enable custom access token hook. Please see: https://supabase.com/docs/guides/auth/auth-hooks
     ## for full list of hooks and additional details about custom_access_token_hook
     # GOTRUE_HOOK_CUSTOM_ACCESS_TOKEN_ENABLED: "true"
@@ -465,110 +507,184 @@ environment:
     # GOTRUE_HOOK_SEND_EMAIL_SECRETS: "v1,whsec_VGhpcyBpcyBhbiBleGFtcGxlIG9mIGEgc2hvcnRlciBCYXNlNjQgc3RyaW5n"
 
   db:
-    POSTGRES_HOST: /var/run/postgresql
-    PGPORT: "5432"
-    POSTGRES_PORT: "5432"
-    JWT_EXP: 3600
+    - name: POSTGRES_HOST
+      value: "/var/run/postgresql"
+    - name: PGPORT
+      value: "5432"
+    - name: POSTGRES_PORT
+      value: "5432"
+    - name: JWT_EXP
+      value: "3600"
     # POSTGRES_HOST_AUTH_METHOD: md5
     ## Enable SSL for postgres by specifying paths for mounted certificate key pair
     # POSTGRES_SSL_CERT: /path/to/ssl/server.crt
     # POSTGRES_SSL_KEY: /path/to/ssl/server.key
 
   functions:
-    DB_USERNAME: postgres
-    DB_PORT: 5432
-    DB_DRIVER: postgresql
+    - name: DB_USERNAME
+      value: "postgres"
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_DRIVER
+      value: "postgresql"
     ## SSL mode options: disable, allow, prefer, require, verify-ca, verify-full
-    DB_SSL: disable
-    VERIFY_JWT: false
+    - name: DB_SSL
+      value: "disable"
+    - name: VERIFY_JWT
+      value: "false"
 
   imgproxy:
-    IMGPROXY_BIND: ":5001"
-    IMGPROXY_USE_ETAG: "true"
-    IMGPROXY_ENABLE_WEBP_DETECTION: "true"
-    IMGPROXY_USE_S3: "true"
-    IMGPROXY_S3_ENDPOINT: "http://10.0.21.50:3900"
-    IMGPROXY_S3_REGION: "garage"
+    - name: IMGPROXY_BIND
+      value: ":5001"
+    - name: IMGPROXY_USE_ETAG
+      value: "true"
+    - name: IMGPROXY_ENABLE_WEBP_DETECTION
+      value: "true"
+    - name: IMGPROXY_USE_S3
+      value: "true"
+    - name: IMGPROXY_S3_ENDPOINT
+      value: "http://10.0.21.50:3900"
+    - name: IMGPROXY_S3_REGION
+      value: "garage"
 
   kong:
-    KONG_DATABASE: "off"
-    KONG_DECLARATIVE_CONFIG: /usr/local/kong/kong.yml
+    - name: KONG_DATABASE
+      value: "off"
+    - name: KONG_DECLARATIVE_CONFIG
+      value: "/usr/local/kong/kong.yml"
     ## https://github.com/supabase/cli/issues/14
-    KONG_DNS_ORDER: LAST,A,CNAME
-    KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth
-    KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
-    KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
-    KONG_LOG_LEVEL: warn
+    - name: KONG_DNS_ORDER
+      value: "LAST,A,CNAME"
+    - name: KONG_PLUGINS
+      value: "request-transformer,cors,key-auth,acl,basic-auth"
+    - name: KONG_NGINX_PROXY_PROXY_BUFFER_SIZE
+      value: "160k"
+    - name: KONG_NGINX_PROXY_PROXY_BUFFERS
+      value: "64 160k"
+    - name: KONG_LOG_LEVEL
+      value: "warn"
 
   meta:
-    DB_USER: supabase_admin
-    DB_PORT: 5432
-    DB_DRIVER: postgres
+    - name: DB_USER
+      value: "supabase_admin"
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_DRIVER
+      value: "postgres"
     ## SSL mode options: disable, allow, prefer, require, verify-ca, verify-full
-    DB_SSL: disable
-    PG_META_PORT: "8080"
+    - name: DB_SSL
+      value: "disable"
+    - name: PG_META_PORT
+      value: "8080"
 
-  minio: {}
+  minio: []
 
   realtime:
-    DB_USER: supabase_admin
-    DB_PORT: 5432
+    - name: DB_USER
+      value: "supabase_admin"
+    - name: DB_PORT
+      value: "5432"
     ## Set to true to enforce TLS connections to Postgres
-    DB_SSL: false
-    PORT: "4000"
-    FLY_ALLOC_ID: fly123
-    FLY_APP_NAME: realtime
-    ENABLE_TAILSCALE: "false"
-    DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
-    DB_ENC_KEY: supabaserealtime
-    ERL_AFLAGS: -proto_dist inet_tcp
-    DNS_NODES: "''"
-    RLIMIT_NOFILE: "10000"
-    APP_NAME: realtime
-    SEED_SELF_HOST: true
-    RUN_JANITOR: true
+    - name: DB_SSL
+      value: "false"
+    - name: PORT
+      value: "4000"
+    - name: FLY_ALLOC_ID
+      value: "fly123"
+    - name: FLY_APP_NAME
+      value: "realtime"
+    - name: ENABLE_TAILSCALE
+      value: "false"
+    - name: DB_AFTER_CONNECT_QUERY
+      value: "SET search_path TO _realtime"
+    - name: DB_ENC_KEY
+      value: "supabaserealtime"
+    - name: ERL_AFLAGS
+      value: "-proto_dist inet_tcp"
+    - name: DNS_NODES
+      value: "''"
+    - name: RLIMIT_NOFILE
+      value: "10000"
+    - name: APP_NAME
+      value: "realtime"
+    - name: SEED_SELF_HOST
+      value: "true"
+    - name: RUN_JANITOR
+      value: "true"
 
   rest:
-    DB_USER: authenticator
-    DB_PORT: 5432
-    DB_DRIVER: postgres
+    - name: DB_USER
+      value: "authenticator"
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_DRIVER
+      value: "postgres"
     ## SSL mode options: disable, allow, prefer, require, verify-ca, verify-full
-    DB_SSL: disable
-    PGRST_DB_SCHEMAS: public,storage,graphql_public
-    PGRST_DB_ANON_ROLE: anon
-    PGRST_DB_USE_LEGACY_GUCS: false
-    PGRST_APP_SETTINGS_JWT_EXP: 3600
-    PGRST_DB_USE_LEGACY_GUC_TUPLE_LIMIT: "true"
-    PGRST_SERVER_CORS_ALLOWED_ORIGINS: "http://localhost:5173"
-    PGRST_SERVER_CORS_ALLOWED_METHODS: "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"
-    PGRST_SERVER_CORS_ALLOWED_HEADERS: "Authorization, content-type, accept-profile, apikey, prefer, range, x-requested-with"
+    - name: DB_SSL
+      value: "disable"
+    - name: PGRST_DB_SCHEMAS
+      value: "public,storage,graphql_public"
+    - name: PGRST_DB_ANON_ROLE
+      value: "anon"
+    - name: PGRST_DB_USE_LEGACY_GUCS
+      value: "false"
+    - name: PGRST_APP_SETTINGS_JWT_EXP
+      value: "3600"
+    - name: PGRST_DB_USE_LEGACY_GUC_TUPLE_LIMIT
+      value: "true"
+    - name: PGRST_SERVER_CORS_ALLOWED_ORIGINS
+      value: "http://localhost:5173"
+    - name: PGRST_SERVER_CORS_ALLOWED_METHODS
+      value: "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"
+    - name: PGRST_SERVER_CORS_ALLOWED_HEADERS
+      value: "Authorization, content-type, accept-profile, apikey, prefer, range, x-requested-with"
 
   storage:
-    DB_USER: supabase_storage_admin
-    DB_PORT: 5432
-    DB_DRIVER: postgres
+    - name: DB_USER
+      value: "supabase_storage_admin"
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_DRIVER
+      value: "postgres"
     ## SSL mode options: disable, allow, prefer, require, verify-ca, verify-full
-    DB_SSL: disable
-    REQUEST_ALLOW_X_FORWARDED_PATH: "true"
-    FILE_SIZE_LIMIT: "52428800"
-    FILE_STORAGE_BACKEND_PATH: /var/lib/storage
-    TENANT_ID: stub
-    REGION: garage
-    GLOBAL_S3_BUCKET: exutoire-media
-    ENABLE_IMAGE_TRANSFORMATION: "true"
+    - name: DB_SSL
+      value: "disable"
+    - name: REQUEST_ALLOW_X_FORWARDED_PATH
+      value: "true"
+    # 200 MiB: les journaux étudiants dépassent parfois 50 MiB.
+    - name: FILE_SIZE_LIMIT
+      value: "209715200"
+    - name: FILE_STORAGE_BACKEND_PATH
+      value: "/var/lib/storage"
+    - name: TENANT_ID
+      value: "stub"
+    - name: REGION
+      value: "garage"
+    - name: GLOBAL_S3_BUCKET
+      value: "exutoire-media"
+    - name: ENABLE_IMAGE_TRANSFORMATION
+      value: "true"
 
   studio:
-    HOSTNAME: "::"
-    STUDIO_PORT: "3000"
-    POSTGRES_PORT: 5432
-    DEFAULT_ORGANIZATION_NAME: Default Organization
-    DEFAULT_PROJECT_NAME: Default Project
-    SUPABASE_PUBLIC_URL: http://supabase.local
-    NEXT_PUBLIC_ENABLE_LOGS: true
+    - name: HOSTNAME
+      value: "::"
+    - name: STUDIO_PORT
+      value: "3000"
+    - name: POSTGRES_PORT
+      value: "5432"
+    - name: DEFAULT_ORGANIZATION_NAME
+      value: "Default Organization"
+    - name: DEFAULT_PROJECT_NAME
+      value: "Default Project"
+    - name: SUPABASE_PUBLIC_URL
+      value: "http://supabase.local"
+    - name: NEXT_PUBLIC_ENABLE_LOGS
+      value: "true"
     ## Set value to bigquery to use Big Query backend for analytics (postgres or bigquery)
-    NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
+    - name: NEXT_ANALYTICS_BACKEND_PROVIDER
+      value: "postgres"
 
-  vector: {}
+  vector: []
 
 persistence:
   db:

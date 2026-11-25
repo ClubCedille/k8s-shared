@@ -1,0 +1,123 @@
+# Sauvegarde quotidienne du bucket S3 Garage `nextcloud-data` (données
+# utilisateurs de l'instance autoritative) vers B2.
+#
+# Velero ne peut pas couvrir ce bucket : c'est un S3 externe à Kubernetes, sans
+# PVC. Ce CronJob rclone est le pendant S3 → S3 des schedules Velero (config/apps)
+# et CNPG (base). Même politique de rétention que Velero : 7 jours (TTL 168h).
+#
+# Deux préfixes distincts dans le bucket B2 existant `k8s-shared-bucket` :
+#   nextcloud-data-backup/           miroir courant, mis à jour chaque nuit
+#   nextcloud-data-backup-changes/<date>/  versions remplacées/supprimées, purgées
+#                                          après RETENTION_DAYS jours
+# Les autres préfixes du bucket (postgresql-*, etc.) ne sont jamais touchés.
+# --ignore-errors : le cache Nextcloud contient quelques references urn:oid:*
+# orphelines (objets deja supprimes de Garage) qui renvoient 404 ; elles sont
+# loggees mais ne doivent pas faire echouer le Job ni declencher 2 retries.
+#
+# Secrets : nextcloud-garage-credentials (clés nextcloud_s3_key/nextcloud_s3_secret)
+# et b2-creds (clés ACCESS_KEY_ID/ACCESS_SECRET_KEY), déjà fournis par Vault dans
+# apps/nextcloud-new/resources/vault.yaml. Configuration non secrète dans
+# resources/nextcloud-data-backup-config.yaml.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nextcloud-data-backup
+spec:
+  # Juste avant les schedules Velero (06:35) et CNPG (06:40).
+  schedule: "30 6 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 3600
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 86400
+      template:
+        metadata:
+          labels:
+            app: nextcloud-data-backup
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: rclone
+              image: rclone/rclone:1.68.2
+              imagePullPolicy: IfNotPresent
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 250m
+                  memory: 512Mi
+                  ephemeral-storage: 1Gi
+                limits:
+                  cpu: "2"
+                  memory: 4Gi
+                  ephemeral-storage: 4Gi
+              envFrom:
+                - configMapRef:
+                    name: nextcloud-data-backup-config
+              env:
+                - name: RCLONE_CONFIG_GARAGE_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: nextcloud-garage-credentials
+                      key: nextcloud_s3_key
+                - name: RCLONE_CONFIG_GARAGE_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: nextcloud-garage-credentials
+                      key: nextcloud_s3_secret
+                - name: RCLONE_CONFIG_B2_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: b2-creds
+                      key: ACCESS_KEY_ID
+                - name: RCLONE_CONFIG_B2_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: b2-creds
+                      key: ACCESS_SECRET_KEY
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+
+                  DATE=$(date +%Y-%m-%d)
+                  # BusyBox date (image rclone) ne comprend pas "7 days ago" :
+                  # calculer la date de coupure en secondes depuis l'epoch.
+                  CUTOFF=$(date -u -d "@$(( $(date +%s) - RETENTION_DAYS * 86400 ))" +%Y-%m-%d)
+
+                  echo "== Miroir Garage:nextcloud-data -> B2:${BACKUP_PREFIX} =="
+                  rclone sync "garage:nextcloud-data" "b2:k8s-shared-bucket/${BACKUP_PREFIX}" \
+                    --backup-dir "b2:k8s-shared-bucket/${CHANGES_PREFIX}/${DATE}" \
+                    --s3-no-check-bucket \
+                    --transfers=4 --checkers=8 \
+                    --stats=1h --stats-one-line-date \
+                    --ignore-errors
+
+                  echo "== Purge des jeux de changements anterieurs a ${CUTOFF} =="
+                  for dir in $(rclone lsd "b2:k8s-shared-bucket/${CHANGES_PREFIX}" \
+                      --s3-no-check-bucket | awk '{print $NF}'); do
+                    if [ "$dir" \< "$CUTOFF" ]; then
+                      echo "  purge ${dir}"
+                      rclone purge "b2:k8s-shared-bucket/${CHANGES_PREFIX}/${dir}" \
+                        --s3-no-check-bucket
+                    fi
+                  done
+          volumes:
+            - name: tmp
+              emptyDir: {}

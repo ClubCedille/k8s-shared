@@ -4,18 +4,19 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - 'terraform/**'
-      - 'data/**'
+      - "terraform/**"
+      - "data/**"
   push:
     branches:
       - main
     paths:
-      - 'terraform/**'
-      - 'data/**'
+      - "terraform/**"
+      - "data/**"
 
 permissions:
   contents: read
   pull-requests: write
+  actions: read
   id-token: write
 
 jobs:
@@ -33,10 +34,20 @@ jobs:
             dir: terraform/nodered/authentik-vault
           - name: coder
             dir: terraform/coder/authentik-vault
+          - name: coroot
+            dir: terraform/coroot/authentik-vault
           - name: matomo
             dir: terraform/matomo/authentik-vault
           - name: penpot
             dir: terraform/penpot/authentik-vault
+          - name: inventree
+            dir: terraform/inventree/authentik-vault
+          - name: hi-events
+            dir: terraform/hi-events/authentik-vault
+          - name: policy-reporter
+            dir: terraform/policy-reporter/authentik-vault
+          - name: dependency-track
+            dir: terraform/dependency-track/authentik-vault
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -65,37 +76,66 @@ jobs:
           exportToken: true
 
       - name: Tofu Plan
+        id: plan
+        continue-on-error: true
         env:
           TF_IN_AUTOMATION: "true"
           TF_VAR_AUTHENTIK_API_TOKEN: ${{ secrets.AUTHENTIK_TOKEN }}
           TF_VAR_db_user: ${{ secrets.OUTLINE_DB_USER }}
           TF_VAR_db_password: ${{ secrets.OUTLINE_DB_PASSWORD }}
         run: |
+          set -euo pipefail
           cd "${{ matrix.dir }}"
-          tofu init
-          tofu plan -no-color -out=plan.tfplan
+          tofu init -input=false -no-color 2>&1 | tee plan.log
+          tofu plan -input=false -no-color -lock-timeout=5m -out=plan.tfplan 2>&1 | tee -a plan.log
           tofu show -no-color plan.tfplan > plan.txt
+          tofu show -json plan.tfplan > plan.json
 
       - name: Upload plan
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: tfplan-${{ matrix.name }}
+          if-no-files-found: ignore
           path: |
             ${{ matrix.dir }}/plan.tfplan
             ${{ matrix.dir }}/plan.txt
+            ${{ matrix.dir }}/plan.json
+            ${{ matrix.dir }}/plan.log
 
-      - name: Comment plan summary on PR
-        if: github.event_name == 'pull_request'
-        uses: clubcedille/cedille-workflows/.github/actions/tofu-plan-comment@master
+      - name: Fail if plan failed
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+  summary:
+    needs: plan
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: read
+    steps:
+      - name: Download plan artifacts
+        uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
-          plan-path: ${{ matrix.dir }}/plan.txt
-          module: ${{ matrix.name }}
-          artifact-name: tfplan-${{ matrix.name }}
+          pattern: tfplan-*
+          path: plans
+
+      - name: Post consolidated plan summary
+        uses: clubcedille/cedille-workflows/.github/actions/tofu-plan-summary@master
+        with:
+          plans-dir: plans
+          expected-modules: "authentik,outline,nodered,coder,coroot,matomo,penpot,inventree,hi-events,policy-reporter,dependency-track"
 
   apply:
     needs: plan
-    if: github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
+    concurrency:
+      group: tofu-apply-${{ matrix.name }}
+      cancel-in-progress: false
     strategy:
       fail-fast: false
       matrix:
@@ -108,10 +148,20 @@ jobs:
             dir: terraform/nodered/authentik-vault
           - name: coder
             dir: terraform/coder/authentik-vault
+          - name: coroot
+            dir: terraform/coroot/authentik-vault
           - name: matomo
             dir: terraform/matomo/authentik-vault
           - name: penpot
             dir: terraform/penpot/authentik-vault
+          - name: inventree
+            dir: terraform/inventree/authentik-vault
+          - name: hi-events
+            dir: terraform/hi-events/authentik-vault
+          - name: policy-reporter
+            dir: terraform/policy-reporter/authentik-vault
+          - name: dependency-track
+            dir: terraform/dependency-track/authentik-vault
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -147,8 +197,8 @@ jobs:
           TF_VAR_db_password: ${{ secrets.OUTLINE_DB_PASSWORD }}
         run: |
           cd "${{ matrix.dir }}"
-          tofu init
-          tofu apply -auto-approve
+          tofu init -input=false
+          tofu apply -auto-approve -lock-timeout=5m
 
       - name: Reconcile exec role permissions
         if: matrix.name == 'authentik'

@@ -1,0 +1,90 @@
+# Pont Trivy SbomReport -> Dependency-Track (issue #606).
+# Quotidien a 04h15, apres les scans Trivy et hors heures de pointe.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: dependency-track-sbom-bridge
+  annotations:
+    # Image pinnee par digest : IfNotPresent est voulu ; pas de NetworkPolicy
+    # dans ce namespace (modele Helm/herite du cluster).
+    kube-score/ignore: pod-networkpolicy, container-image-pull-policy
+spec:
+  schedule: "15 4 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 3600
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 3600
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: sbom-bridge
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: sbom-bridge
+              # Image pinnée par digest (issue #606). Python 3.13 slim :
+              # uniquement la stdlib, aucune installation au runtime.
+              image: docker.io/library/python@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
+              imagePullPolicy: IfNotPresent
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                  ephemeral-storage: 64Mi
+                limits:
+                  cpu: 500m
+                  # Le script stream les rapports un par un (~500 Mo au total) ;
+                  # 512Mi laisse de la marge pour les plus gros SBOM.
+                  memory: 512Mi
+                  ephemeral-storage: 128Mi
+              env:
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: CLUSTER_NAME
+                  value: k8s-shared
+                - name: DT_URL
+                  value: http://dependency-track-api-server.dependency-track.svc.cluster.local:8080
+                # 600+ BOM en rafale saturent l'API DT et PostgreSQL (observe
+                # au premier run) : espacer les uploads d'au moins 1s.
+                - name: UPLOAD_DELAY_SEC
+                  value: "1.0"
+              volumeMounts:
+                - name: script
+                  mountPath: /app/sbom-bridge.py
+                  subPath: sbom-bridge.py
+                  readOnly: true
+                - name: dt-token
+                  mountPath: /var/run/secrets/dt
+                  readOnly: true
+                  # `optional: true` est porte par volumes[].secret (voir ci-dessous)
+                - name: tmp
+                  mountPath: /tmp
+              command: ["python", "/app/sbom-bridge.py"]
+          volumes:
+            - name: script
+              configMap:
+                name: sbom-bridge-script
+            - name: dt-token
+              secret:
+                secretName: dependency-track-sbom-token
+                items:
+                  - key: token
+                    path: token
+                optional: true
+            - name: tmp
+              emptyDir: {}

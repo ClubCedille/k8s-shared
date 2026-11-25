@@ -6,18 +6,3 @@ resources:
   - ingress.yaml
 
 namespace: preci
-
-patches:
-  - target:
-      kind: HTTPProxy
-      name: wordpress
-    patch: |-
-      - op: replace
-        path: /spec/routes
-        value:
-          - conditions:
-              - prefix: /
-            requestRedirectPolicy:
-              hostname: maintenance.etsmtl.club
-              scheme: https
-              statusCode: 302

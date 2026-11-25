@@ -1,0 +1,179 @@
+# Prometheus in-cluster dédié aux métriques d'objets Kubernetes (Trivy
+# Operator, et tout autre ServiceMonitor/PodMonitor du cluster). Il
+# remote-write vers Mimir (apps/mimir), qui reste le stockage long terme et
+# la datasource Grafana : ce Prometheus n'est qu'un collecteur avec un buffer
+# local court.
+#
+# kube-prometheus-stack est utilisé pour l'operator (CRDs Prometheus/
+# ServiceMonitor/...), le Prometheus managé, kube-state-metrics et le scrape
+# cAdvisor des kubelets (voir plus bas). Grafana, Alertmanager et node-exporter
+# ne sont pas nécessaires ici : Grafana/Mimir/Loki sont déployés à part dans
+# apps/ (et node-exporter tourne sur les hôtes Proxmox/NAS, pas dans ce cluster).
+
+crds:
+  enabled: true
+  # Le job de mise à jour des CRDs est un Helm hook : kustomize/ArgoCD ne
+  # l'exécutent pas (et le hook échouerait faute de certificats). Les CRDs
+  # sont rendues via includeCRDs et appliquées par ArgoCD (ordre CRDs avant
+  # CRs), ce qui suffit pour les installs et les upgrades de schéma.
+  upgradeJob:
+    enabled: false
+
+# Sous-composants de la stack : désactivés, ils existent déjà (Grafana,
+# Mimir/Loki pour le stockage) ou ne sont pas utilisés (Alertmanager).
+grafana:
+  enabled: false
+alertmanager:
+  enabled: false
+nodeExporter:
+  enabled: false
+# kube-state-metrics fournit les requests/limits (kube_pod_container_resource_*)
+# et l'état des conteneurs. Indispensable au dashboard de recensement des
+# ressources : apps/grafana/resources/dashboards/k8s-resources-oom-risk.yaml.
+kubeStateMetrics:
+  enabled: true
+windowsMonitoring:
+  enabled: false
+
+# Pas de scrape des composants du control-plane : leurs endpoints ne sont pas
+# exposés sur ce cluster (kubeadm managé), ce qui ne produirait que des
+# targets "down" en permanence.
+kubeApiServer:
+  enabled: false
+# Les kubelets, eux, sont scrapés : /metrics/cadvisor expose l'usage réel
+# (container_cpu_usage_seconds_total, container_memory_working_set_bytes) et
+# les OOM (container_oom_events_total), vérifiés via
+#   kubectl get --raw /api/v1/nodes/<noeud>/proxy/metrics/cadvisor
+# Le certificat serving des kubelets Talos est signé par une CA propre à chaque
+# noeud (CN=<noeud>-ca) : KPS pose donc insecureSkipVerify: true par défaut, ce
+# qui est le comportement attendu ici (même raison que --kubelet-insecure-tls
+# dans apps/metrics-server/helm/values.yaml). Le token du ServiceAccount
+# Prometheus a bien l'accès `nodes/metrics` (vérifié via son ClusterRole).
+kubelet:
+  enabled: true
+  serviceMonitor:
+    # On ne veut que /metrics/cadvisor : /metrics et /metrics/probes de kubelet
+    # ne servent pas au dashboard de ressources et ajoutent du volume inutile.
+    kubelet: false
+    probes: false
+    cAdvisor: true
+    # Défaut du chart : 10s. Aligné sur le scrapeInterval global (30s) pour ne
+    # pas multiplier par 3 le nombre de samples remote-writés vers Mimir.
+    cAdvisorInterval: "30s"
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
+kubeEtcd:
+  enabled: false
+
+# Les règles par défaut référencent node-exporter/kube-state-metrics (désactivés)
+# et l'Alertmanager absent : rien à évaluer.
+defaultRules:
+  create: false
+
+prometheusOperator:
+  # Les webhooks d'admission dépendent d'un job Helm (certificats + patch des
+  # webhookconfigurations) qui ne tourne pas sous ArgoCD/kustomize. Sans eux,
+  # l'operator fonctionne normalement.
+  admissionWebhooks:
+    enabled: false
+  # tls.enabled (défaut true) rend le volume tls-secret dans le Deployment de
+  # l'operator : le secret prometheus-kube-prometheus-admission qu'il monte
+  # n'est créé que par ces mêmes hooks Helm, le pod resterait bloqué en
+  # FailedMount. En HTTP, le ServiceMonitor de l'operator s'adapte
+  # automatiquement (scheme http).
+  tls:
+    enabled: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+prometheus:
+  prometheusSpec:
+    # Buffer local uniquement : Mimir est le stockage long terme. 6h couvrent
+    # une indisponibilité de Mimir sans faire grossir le PVC.
+    retention: 6h
+    retentionSize: 5GiB
+    walCompression: true
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+
+    # externalLabels distinguent ces séries de celles remote-writées par le
+    # monitoring01 externe vers le même Mimir.
+    externalLabels:
+      cluster: k8s-shared
+      prometheus: in-cluster
+
+    # Mimir est en single-tenant (multitenancy_enabled: false) : le
+    # distributor direct accepte le push sans auth. Le gateway (basicAuth)
+    # n'est utile qu'au chemin externe mimir.etsmtl.club.
+    remoteWrite:
+      - name: mimir
+        url: http://mimir-distributor.monitoring.svc.cluster.local:8080/api/v1/push
+        remoteTimeout: 30s
+        queueConfig:
+          maxSamplesPerSend: 2000
+          maxShards: 10
+        # Mimir refuse au-delà de 150 000 séries actives par tenant
+        # (err-mimir-max-series-per-user). Ce Prometheus en expose ~213 000,
+        # dont ~69 000 de policy_report_result (policy-reporter, non utilisé
+        # par les dashboards Grafana) et ~12 000 de buckets HTTP/JDBI/Dex.
+        # Sans ce filtre, le distributor rejette ~4 500 samples/s en continu
+        # et les métriques Kubernetes (kube-state-metrics, Trivy) n'arrivent
+        # jamais jusqu'à Mimir -> dashboards entièrement "No data".
+        # policy_report_result est volontairement CONSERVÉ : un dashboard
+        # Policy Reporter est prévu, ses métriques doivent arriver dans Mimir.
+        # Seuls les buckets génériques/hautement cardinals sans dashboard
+        # sont écartés. La montée de la limite Mimir à 600k séries et du
+        # dimensionnement des composants accompagne ce choix.
+        writeRelabelConfigs:
+          - action: drop
+            regex: "http_server_requests_seconds_bucket|jdbi_query_latency_seconds_bucket|dt_dex_engine_task_worker_tasks_polled_bucket"
+            sourceLabels: [__name__]
+
+    # Prometheus était saturé à 500m CPU / 1Gi (scrape KSM à 30s en timeout,
+    # ~291k séries en local, policy-reporter conservé). On quadruple les limites
+    # et les requests pour absorber la charge courante avec de la marge.
+    resources:
+      requests:
+        cpu: 400m
+        memory: 1Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
+
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ceph-rbd
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+
+    # Sélecteurs "tout" : n'importe quel ServiceMonitor/PodMonitor/PrometheusRule
+    # du cluster est pris en compte, quel que soit son namespace ou ses labels
+    # (c'est le pattern documenté par Trivy Operator pour son dashboard).
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {}
+    serviceMonitorNamespaceSelector: {}
+    podMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelector: {}
+    podMonitorNamespaceSelector: {}
+    probeSelectorNilUsesHelmValues: false
+    probeSelector: {}
+    probeNamespaceSelector: {}
+    ruleSelectorNilUsesHelmValues: false
+    ruleSelector: {}
+    ruleNamespaceSelector: {}
+    scrapeConfigSelectorNilUsesHelmValues: false
+    scrapeConfigSelector: {}
+    scrapeConfigNamespaceSelector: {}

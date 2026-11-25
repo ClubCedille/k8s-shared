@@ -4,6 +4,7 @@ metadata:
   name: planifets-chatbot-shared
   namespace: argocd
   annotations:
+    k8s.cedille.club/club: "applets"
     argocd.argoproj.io/sync-wave: "2"
 spec:
   project: applets
@@ -28,6 +29,7 @@ metadata:
   name: planifets-chatbot-staging-shared
   namespace: argocd
   annotations:
+    k8s.cedille.club/club: "applets"
     argocd.argoproj.io/sync-wave: "2"
 spec:
   project: applets
@@ -52,6 +54,7 @@ metadata:
   name: planifets-chatbot-dev-shared
   namespace: argocd
   annotations:
+    k8s.cedille.club/club: "applets"
     argocd.argoproj.io/sync-wave: "2"
 spec:
   project: applets

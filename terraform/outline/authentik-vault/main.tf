@@ -34,6 +34,15 @@ provider "vault" {
 
 locals {
   clubs = jsondecode(file("${path.module}/clubs.json"))
+
+  # Icônes des applications Authentik, gérées dans Terraform pour qu'un
+  # apply ne les remette pas à null.
+  outline_icons = {
+    capra   = "https://www.clubcapra.com/assets/Capra_Cercle_Full-da0fa544.png"
+    conjure = "https://conjure.etsmtl.ca/favicon.ico"
+    dci     = "https://dciets.com/img/blason_dci.png"
+    piranha = "https://lh7-us.googleusercontent.com/sitesv-images-rt/APXyLQc3ggcPY08YXWFHkZaAY6sio81SJU5vsslhy00-pM12Q8RKIJlacNzwDgCnnulBQT2_iAdeEdCW--qaRs_6oAmSjJxdKPZsiZfFM_8aJPv7SM_gkSvExw9NEi1yWRv2Q92E4tps5vTIIJj62BJCgnfLunND2W7kEsiIm0gUZaA-ibR2wKnGPzuw8GBn4nfSwomP2iqieV7HIrj1n2CiLutNDd67lyMwOoD_7DD1=w1280"
+  }
 }
 
 resource "random_password" "outline_client_secret" {
@@ -133,4 +142,9 @@ resource "authentik_application" "outline_app" {
   name              = "Wiki ${each.key}"
   slug              = "outlinewiki-${each.key}"
   protocol_provider = authentik_provider_oauth2.outline_provider[each.key].id
+  meta_icon         = lookup(local.outline_icons, each.key, null)
+  # The portal folder is managed manually in Authentik.
+  lifecycle {
+    ignore_changes = [group]
+  }
 }

@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: outline-cedille-shared
   namespace: argocd
+  annotations:
+    k8s.cedille.club/club: "cedille"
 spec:
   destination:
     namespace: outline-cedille

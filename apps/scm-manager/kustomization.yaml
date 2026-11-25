@@ -11,7 +11,7 @@ resources:
 
 helmCharts:
   - name: scm-manager
-    version: "3.11.10"
+    version: "3.12.2"
     repo: "https://packages.scm-manager.org/repository/helm-v2-releases/"
     releaseName: "scm-manager"
     namespace: scm-manager

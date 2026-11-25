@@ -40,6 +40,17 @@ cold-tiered object restores it to hot storage for at least a day).
 Both calls are idempotent (`put-*` overwrites, no create-if-missing
 ambiguity) so the Job re-runs safely on every ArgoCD sync.
 
+## Weekly reconciliation
+
+The PostSync hook only runs on ArgoCD syncs, so a policy that disappears
+between two syncs stays gone — which is exactly what happened around
+2026-11-07, leaving the mirror serving RGW 403 `AccessDenied` (missing
+`s3:GetObject`) until it was re-applied by hand. The
+`distro-mirror-bucket-policy-reconcile` CronJob (weekly, Monday 03:00) now
+re-runs the same two idempotent `aws` calls, so both settings self-heal
+within a week even without a sync. If the mirror ever starts answering 403
+again, check that CronJob's recent jobs before anything else.
+
 ## Verifying a transition manually
 
 Lifecycle processing runs on RGW's own schedule (not immediate — daily by

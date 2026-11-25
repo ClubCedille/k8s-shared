@@ -1,0 +1,85 @@
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  name: dependency-track-auth
+spec:
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    audiences:
+      - vault
+    role: secret-reader
+    serviceAccount: default
+---
+# Credentials PostgreSQL : memes cles que le secret basic-auth attendu par
+# CNPG (bootstrap.initdb.secret) et par le chart (database.existingSecret).
+# Ecrit par terraform/dependency-track/authentik-vault/.
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  name: dependency-track-db-secret
+spec:
+  vaultAuthRef: dependency-track-auth
+  type: kv-v1
+  mount: kv
+  path: data/dependency-track/default/dependency-track-db-secret
+  destination:
+    name: dependency-track-db-secret
+    type: kubernetes.io/basic-auth
+    create: true
+---
+# Key Encryption Key (base64 de 32 octets) pour le provider de secrets
+# `database` de Dependency-Track. Sans KEK, l'application ne demarre pas.
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  name: dependency-track-kek
+spec:
+  vaultAuthRef: dependency-track-auth
+  type: kv-v1
+  mount: kv
+  path: data/dependency-track/default/dependency-track-kek
+  destination:
+    name: dependency-track-kek
+    create: true
+---
+# Client OIDC Authentik : clientId/clientSecret/issuer. Le clientId et
+# l'issuer sont aussi presents en clair dans helm/values.yaml (donnees
+# publiques) ; seul le clientSecret est reellement sensible.
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  name: dependency-track-oidc-secret
+spec:
+  vaultAuthRef: dependency-track-auth
+  type: kv-v1
+  mount: kv
+  path: data/dependency-track/default/dependency-track-oidc-secret
+  destination:
+    name: dependency-track-oidc-secret
+    create: true
+---
+# Credentials Backblaze B2 pour les sauvegardes WAL CNPG ( ObjectStore ).
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  name: b2-creds
+spec:
+  vaultAuthRef: dependency-track-auth
+  type: kv-v1
+  mount: kv-system
+  path: default_passwords/b2-creds
+  destination:
+    name: b2-creds
+    create: true

@@ -8,7 +8,7 @@ metadata:
     # Dossier dédié (staff uniquement, voir terraform/grafana/access) --
     # distinct de "Infra/Logs" pour ne pas mélanger logs d'infra et logs
     # applicatifs sous la même permission.
-    k8s-sidecar-target-directory: "Kubernetes/App-Logs"
+    k8s-sidecar-target-directory: "Kubernetes"
 data:
   k8s-app-logs-overview.json: |
     {

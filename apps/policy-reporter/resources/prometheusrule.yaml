@@ -1,0 +1,63 @@
+# PrometheusRule policy-reporter -- sante du job `policy-reporter`.
+# Note : kube-prometheus-stack est deploye sans Alertmanager dans ce cluster ;
+# les alertes seront donc visibles via l'UI Prometheus/Grafana mais ne
+# notifieront nulle part tant qu'un Alertmanager (ou un routage Grafana
+# unified alerting) n'est pas ajoute.
+# Pas de kube-state-metrics non plus : pas d'alerte type CrashLoop possible,
+# on se limite aux metriques natives du job.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: policy-reporter
+  labels:
+    app.kubernetes.io/name: policy-reporter
+    app.kubernetes.io/part-of: policy-reporter
+spec:
+  groups:
+    - name: policy-reporter
+      rules:
+        - alert: PolicyReporterDown
+          expr: up{job="policy-reporter"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "policy-reporter est down"
+            description: "Prometheus ne scrape plus job=\"policy-reporter\" depuis 5 min (instance {{ $labels.instance }}). Verifier le pod et le ServiceMonitor `policy-reporter-monitoring`."
+
+        - alert: PolicyReporterMetricsHandlerErrors
+          expr: sum(increase(promhttp_metric_handler_requests_total{job="policy-reporter", code=~"5.."}[10m])) > 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "/metrics renvoie des erreurs 5xx"
+            description: "Le endpoint /metrics a repondu en 5xx au cours des 10 dernieres minutes (instance {{ $labels.instance }})."
+
+        - alert: PolicyReporterScrapeSamplesEmpty
+          expr: scrape_samples_scraped{job="policy-reporter"} == 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Scrape policy-reporter vide"
+            description: "Le dernier scrape du job \"policy-reporter\" n'a ramene aucun sample (instance {{ $labels.instance }}). Verifier que le endpoint /metrics repond du contenu."
+
+        - alert: PolicyReporterScrapeSlow
+          expr: scrape_duration_seconds{job="policy-reporter"} > 8
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Scrape de /metrics lent ({{ $value }}s)"
+            description: "Le scrape du job \"policy-reporter\" prend plus de 8s (budget timeout : 10s). Origine probable : cardinalite des metriques *_policy_report_result (32k series) -- envisager un metric_relabel_configs sur le ServiceMonitor."
+
+        - alert: PolicyReporterMemoryHigh
+          # 0.8 * 512Mi (limite augmentee dans helm/policy-reporter-values.yaml)
+          expr: process_resident_memory_bytes{job="policy-reporter"} > 429496730
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "policy-reporter > 80% de sa limite memoire"
+            description: "RSS observe : {{ $value | humanize1024 }} (limite du conteneur : 512Mi). Risque d'OOMKill ; verifier la cardinalite des metriques et le volume de reports."

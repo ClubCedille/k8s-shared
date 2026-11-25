@@ -2,11 +2,20 @@
 
 Date : 2026-09-04
 
+> **Document historique — solution non retenue.** Cette analyse décrivait une
+> éventuelle *troisième* migration de stockage (Garage → Ceph RGW avec tiering
+> froid), jamais réalisée. Le tiering expérimental a été révoqué en septembre
+> 2026 (voir `apps/nextcloud-new/docs/rgw-tiering-runbook.md`) et les données sont
+> toujours directement sur GarageHQ. Depuis le 2026-11-23, l'instance
+> `nextcloud-new` est l'instance autoritative sur `nextcloud.etsmtl.club`
+> (switchover #719). Pour l'état courant, voir le `README.md` de ce dossier.
+> Les chiffres et le vocabulaire ci-dessous sont ceux de septembre 2026.
+
 ## Résumé
 
-C'est **techniquement faisable et déjà à moitié testé** (un bucket de test existe depuis le 2026-06-17), mais ça implique une **troisième migration** de tout le contenu Nextcloud (CephFS → Garage → Ceph RGW-avec-tier-froid-Garage), et le bénéfice réel dépend de ce qu'on cherche vraiment : performance, coût, ou résilience. Sur ce dernier point — le vrai problème aujourd'hui, c'est que **Garage est un nœud unique sans redondance** — le tiering Ceph n'est pas le bon outil.
+C'est **techniquement faisable et déjà à moitié testé** (un bucket de test existe depuis le 2026-06-17), mais ça implique une **troisième migration** de tout le contenu Nextcloud (CephFS → Garage → Ceph RGW-avec-tier-froid-Garage), et le bénéfice réel dépend de ce qu'on cherche vraiment : performance, coût, ou résilience. Sur ce dernier point — le vrai problème à l'époque, c'était que **Garage est un nœud unique sans redondance** — le tiering Ceph n'est pas le bon outil.
 
-## État actuel des deux systèmes
+## État des systèmes au 2026-09-04 (historique)
 
 ### Garage (nas01, 10.0.21.50)
 - **1 seul nœud**, `replication_factor = 1` → **aucune redondance**. Une panne de disque ou de la machine = perte de données définitive sur les objets touchés.
@@ -19,7 +28,7 @@ C'est **techniquement faisable et déjà à moitié testé** (un bucket de test 
 - 32 OSD **SSD**, 8 mons, `HEALTH_OK`, redondance multi-hôte réelle (bien plus résilient que Garage).
 - 56 TiB brut, **39 TiB déjà utilisés, seulement 17 TiB disponibles** (69% plein) — capacité partagée avec les bases de données de production (CNPG) et les autres workloads du cluster.
 - RGW (radosgw) déjà actif : 4 daemons, endpoint `http://10.0.21.59:7480`.
-- C'est précisément ce cluster (via CephFS) qui causait les corruptions ayant motivé la migration Nextcloud vers S3 — voir [[project_cephfs_rbd_migration]]. Le risque identifié était spécifique au **client kernel CephFS** ; RGW est un chemin de code différent (accès objet, pas POSIX) et n'est pas concerné par ce bug précis.
+- C'est précisément ce cluster (via CephFS) qui causait les corruptions ayant motivé la migration Nextcloud vers S3 — (référence à la note externe `project_cephfs_rbd_migration`, non présente dans ce dépôt). Le risque identifié était spécifique au **client kernel CephFS** ; RGW est un chemin de code différent (accès objet, pas POSIX) et n'est pas concerné par ce bug précis.
 
 ## Ce qui existe déjà : le tiering RGW → Garage
 

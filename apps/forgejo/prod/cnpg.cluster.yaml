@@ -5,6 +5,12 @@ metadata:
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:17.2
   instances: 3
+  # Keep the instances on distinct nodes: losing one node must only take down
+  # one instance and leave the cluster at 2/3 (still Ready).
+  affinity:
+    enablePodAntiAffinity: true
+    topologyKey: kubernetes.io/hostname
+    podAntiAffinityType: required
   bootstrap:
     initdb:
       database: forgejo
@@ -18,9 +24,12 @@ spec:
     size: 20Gi
     storageClass: ceph-rbd
   backup:
-    retentionPolicy: 7d
+    # Align with the ObjectStore retentionPolicy below (30d).
+    retentionPolicy: 30d
     volumeSnapshot:
-      className: csi-cephfsplugin-snapclass
+      # Data PVCs live on ceph-rbd (see storage/walStorage above), so snapshots
+      # must use the RBD snapshot class, not the CephFS one.
+      className: csi-rbdplugin-snapclass
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true

@@ -1,16 +1,36 @@
 ---
 imagePullSecrets:
   - name: dockerhub-pull
+
+# Le chart attend replicaCount/autoscaling/resources à la racine : le bloc
+# `collabora:` ne sert qu'aux paramètres Collabora Online (aliasgroups,
+# extra_params, existingSecret, ...). Sans requests, le HPA ne peut pas
+# calculer d'utilisation et reste bloqué en <unknown>.
+replicaCount: 2
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+  # Usage observé ~0.5-1.1 Gi. À 50 % de 2Gi le HPA scalerait en permanence
+  # au maximum ; 80 % (~1.6 Gi) laisse du headroom sans brider les pics.
+  targetMemoryUtilizationPercentage: 80
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 2Gi
+  limits:
+    memory: 4Gi
+
 collabora:
-  replicaCount: 1
-  autoscaling:
-    enabled: false
   aliasgroups:
-    - host: https://nextcloud.etsmtl.club:443
+    - host: https://old-nextcloud.etsmtl.club:443
   extra_params: --o:ssl.enable=false --o:ssl.termination=true --o:num_prespawn_children=4
-    --o:remote_font_config.url=https://nextcloud.etsmtl.club/apps/richdocuments/settings/fonts.json
+    --o:remote_font_config.url=https://old-nextcloud.etsmtl.club/apps/richdocuments/settings/fonts.json
     --o:allow_update_popup=false
-  server_name: collabora-nextcloud.etsmtl.club
+  server_name: old-collabora-nextcloud.etsmtl.club
   existingSecret:
     enabled: true
     secretName: collabora-admin
@@ -20,15 +40,6 @@ collabora:
     runAsUser: 1000
     runAsGroup: 2000
     fsGroup: 2000
-  resources:
-    requests:
-      cpu: 6000m
-      memory: 12Gi
-      ephemeral-storage: "4Gi"
-    limits:
-      cpu: 8000m
-      memory: 16Gi
-      ephemeral-storage: "5Gi"
   livenessProbe:
     httpGet:
       path: /

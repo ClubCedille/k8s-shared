@@ -1,59 +1,59 @@
-# Nextcloud Ceph RGW hot tier / Garage cold tier runbook
+# Nextcloud — tiering Ceph RGW (chaud) / Garage (froid) — HISTORIQUE
 
-**Status (2026-09-12): disabled.** `nextcloud-values.yaml` was reverted to
-write directly to GarageHQ (`nextcloud-data` bucket) because of the RGW
-cloud-tier crash — see "Known issue" below and
-[tracker.ceph.com/issues/80309](https://tracker.ceph.com/issues/80309). The
-`nextcloud-rgw-bucket` ObjectBucketClaim, its `GARAGE_COLD` lifecycle job,
-and the Garage-side `nextcloud-garage-cold-tier` bucket are left in place
-(not deleted) so the RGW/tiered path can be re-enabled once the upstream bug
-is fixed; they will be cleaned up if tiering is abandoned instead.
+> **Statut : clos.** Expérimentation de septembre 2026, révoquée à la suite du bug Ceph
+> [tracker#80309](https://tracker.ceph.com/issues/80309) (revert #459), puis
+> définitivement nettoyée le 2026-09-19 (#493) : l'`ObjectBucketClaim`
+> `nextcloud-rgw-bucket` et le Job de lifecycle associé ont été supprimés du
+> repo. Le bucket de test ne contenait aucune donnée unique. **Ne pas suivre les
+> indications de ce document sur l'instance actuelle.**
+>
+> Pour l'état courant, voir `docs/nextcloud-migration-2026-09/README.md`.
+> Depuis le 2026-11-23 (#719), cette instance (`nextcloud-new`) est l'instance
+> autoritative, servie sur `nextcloud.etsmtl.club` ; l'ancienne instance est sur
+> `old-nextcloud.etsmtl.club`.
 
-Nextcloud's primary S3 storage (`OBJECTSTORE_S3_*` in `helm/nextcloud-values.yaml`)
-otherwise pointed at Ceph RGW (`10.0.21.59:7480`), not GarageHQ directly. The bucket is
-provisioned via `resources/objectbucketclaim.yaml` (same pattern as
-`distro-mirror`/`loki`/`mimir`), and `resources/bucket-setup-job.yaml` (ArgoCD
-`PostSync` hook) applies a lifecycle policy transitioning objects older than
-1 day to the `GARAGE_COLD` storage class, which physically stores them on
-GarageHQ. Reads of transitioned objects are proxied transparently by RGW
-(`allow_read_through`) — Nextcloud has no awareness of the tiering.
+## Ce qui avait été prévu (abandonné)
 
-See `nextcloud-migration-2026-09/analyse-tiering-ceph-garage.md` (repo root)
-for the full feasibility analysis and rationale, and
-`apps/distro-mirror/docs/lifecycle-runbook.md` for background on `GARAGE_COLD`
-itself (pre-existing zone placement target, shared across apps — not created
-by this app).
+Le stockage S3 principal de Nextcloud (`OBJECTSTORE_S3_*` dans
+`helm/nextcloud-values.yaml`) devait passer par Ceph RGW (`10.0.21.59:7480`),
+avec un bucket provisionné via un `ObjectBucketClaim` et un Job `PostSync`
+appliquant une règle de lifecycle transitionnant les objets de plus d'un jour
+vers la storage class `GARAGE_COLD` (stockage physique sur GarageHQ). Les lectures
+d'objets transitionnés auraient été proxifiées par RGW (`allow_read_through`),
+sans que Nextcloud ait conscience du tiering.
 
-## Why 1 day, not 1 hour
+Ce montage a été révoqué : `OBJECTSTORE_S3_*` pointe **directement** vers le bucket
+GarageHQ `nextcloud-data`, et ni l'`ObjectBucketClaim` ni le Job de lifecycle
+n'existent plus dans `apps/nextcloud-new/`. `GARAGE_COLD` est toujours utilisé
+par d'autres apps (notamment `distro-mirror`) — voir
+`apps/distro-mirror/docs/lifecycle-runbook.md`.
 
-Standard S3 lifecycle `<Days>` granularity is whole days — there is no
-supported per-bucket sub-day transition in RGW. The only way to get shorter
-transitions is `rgw_lc_debug_interval`, a **global RGW daemon** debug setting
-explicitly documented as "do not modify for a production cluster" — it would
-also warp the lifecycle timing of unrelated buckets (`distro-mirror`, Mimir/Loki
-chunk buckets). Decided against it (2026-09-04); 1 day is the practical
-minimum given real usage volume is well under the ~17 TiB free on the Ceph
-SSD pool.
+L'analyse de faisabilité d'origine est conservée dans
+`docs/nextcloud-migration-2026-09/analyse-tiering-ceph-garage.md` (document
+historique, solution non retenue).
 
-## Migration from the old Nextcloud instance
+## Décision sur la fenêtre de transition (historique)
 
-This bucket is filled by a fresh rclone sync from the **original** Nextcloud
-instance (CephFS-backed, `nextcloud` namespace) — not by re-copying the
-Garage-only `nextcloud-data` bucket (10.0.21.50:3900), which is kept
-untouched as a benchmarking reference. See
-`nextcloud-migration-2026-09/` (repo root) for the migration tooling
-(rclone pod pattern, S3-incompatible filename rename script) reused from the
-first migration pass.
+La granularité `<Days>` des lifecycle rules S3 ne permet pas de transition sous
+le jour. La seule option plus courte, `rgw_lc_debug_interval`, est un réglage
+**global** du daemon RGW, explicitement déconseillé en production, qui aurait
+aussi affecté les buckets d'autres apps (`distro-mirror`, Mimir/Loki). Décision
+prise le 2026-09-04 : 1 jour était la valeur minimale acceptable. Cette décision
+n'a plus d'objet puisque le tiering Nextcloud a été abandonné.
 
-## Verifying the tiering
+## Vérification générique de GARAGE_COLD
+
+Ces commandes restent valables pour vérifier la storage class partagée, mais
+**ne vérifient rien sur Nextcloud** (aucun bucket Nextcloud n'y est transitionné) :
 
 ```bash
-# on any RGW host, e.g. ssh root@10.0.21.51 (or any pve0X mon host)
-radosgw-admin zonegroup placement list   # confirm GARAGE_COLD present
-radosgw-admin lc list                    # lifecycle processing status
-radosgw-admin lc process --bucket <bucket-name>   # force a pass
+# sur un hôte RGW, p. ex. ssh root@10.0.21.51 (hôte pve01 du cluster Ceph externe)
+radosgw-admin zonegroup placement list   # confirmer la présence de GARAGE_COLD
+radosgw-admin lc list                    # état du traitement des lifecycle
+radosgw-admin lc process --bucket <bucket-name>   # forcer un passage
 radosgw-admin bucket stats --bucket <bucket-name>
 ```
 
-Lifecycle processing runs on RGW's own daily schedule by default — even at
-1 day, don't expect to observe a transition sooner than ~24-48h passively.
+Le traitement des lifecycle suit le calendrier propre à RGW (quotidien par
+défaut) : même avec une règle à 1 jour, ne pas s'attendre à observer une
+transition passive avant ~24-48 h.

@@ -3,7 +3,22 @@ kind: Application
 metadata:
   name: {{ deployment_prefix }}-grav
   namespace: argocd
+{%- if (id is defined and id) or (club is defined and club) %}
+  labels:
+{%- if club is defined and club %}
+    k8s.cedille.club/club: {{ club | tojson }}
+{%- endif %}
+{%- if id is defined and id %}
+    k8s.cedille.club/id: {{ id[:63] | tojson }}
+{%- endif %}
+{%- endif %}
   annotations:
+{%- if id is defined and id %}
+    k8s.cedille.club/id: {{ id | tojson }}
+{%- endif %}
+{%- if club is defined and club %}
+    k8s.cedille.club/club: {{ club | tojson }}
+{%- endif %}
     argocd.argoproj.io/sync-wave: "2"
     argocd-image-updater.argoproj.io/image-list: website=ghcr.io/clubcedille/grav:latest
     argocd-image-updater.argoproj.io/website.update-strategy: digest
@@ -17,6 +32,23 @@ spec:
     path: apps/clubs/{{ deployment_prefix }}/grav/prod
     targetRevision: HEAD
   syncPolicy:
+{%- if (id is defined and id) or (club is defined and club) %}
+    managedNamespaceMetadata:
+      labels:
+{%- if club is defined and club %}
+        k8s.cedille.club/club: {{ club | tojson }}
+{%- endif %}
+{%- if id is defined and id %}
+        k8s.cedille.club/id: {{ id[:63] | tojson }}
+{%- endif %}
+      annotations:
+{%- if id is defined and id %}
+        k8s.cedille.club/id: {{ id | tojson }}
+{%- endif %}
+{%- if club is defined and club %}
+        k8s.cedille.club/club: {{ club | tojson }}
+{%- endif %}
+{%- endif %}
     syncOptions:
       - CreateNamespace=true
     automated:

@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hi-events
+  annotations:
+    kube-score/ignore: pod-networkpolicy, container-security-context-user-group-id, container-security-context-readonlyrootfilesystem
+spec:
+  serviceName: hi-events
+  # Migrations au démarrage + PVC RWO.
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hi-events
+  template:
+    metadata:
+      labels:
+        app: hi-events
+    spec:
+      containers:
+        - name: hi-events
+          image: daveearley/hi.events-all-in-one:v2.0.0
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: hi-events-secret
+            - secretRef:
+                name: hi-events-oidc-secret
+          env:
+            - name: APP_FRONTEND_URL
+              value: https://events.etsmtl.club
+            - name: APP_CDN_URL
+              value: https://events.etsmtl.club/storage
+            - name: VITE_FRONTEND_URL
+              value: https://events.etsmtl.club
+            - name: VITE_API_URL_CLIENT
+              value: https://events.etsmtl.club/api
+            - name: VITE_APP_NAME
+              value: Événements ÉTS
+            - name: LOG_CHANNEL
+              value: stderr
+            - name: DB_CONNECTION
+              value: pgsql
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: cnpg-app
+                  key: uri
+            - name: QUEUE_CONNECTION
+              value: redis
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"
+            - name: FILESYSTEM_PUBLIC_DISK
+              value: public
+            - name: FILESYSTEM_PRIVATE_DISK
+              value: local
+            - name: APP_SAAS_MODE_ENABLED
+              value: "false"
+            - name: APP_DISABLE_REGISTRATION
+              value: "false"
+            - name: MAIL_MAILER
+              value: smtp
+            - name: MAIL_FROM_NAME
+              value: Événements ÉTS
+            - name: SSO_OIDC_ISSUER
+              value: https://auth.etsmtl.club/application/o/hi-events/
+            - name: SSO_OIDC_NAME
+              value: Authentik
+            - name: SSO_OIDC_TRUST_EMAIL
+              value: "true"
+            - name: SSO_PASSWORD_LOGIN_DISABLED
+              value: "true"
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /app/backend/storage/app
+              name: hi-events-storage
+          securityContext:
+            allowPrivilegeEscalation: false
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+              ephemeral-storage: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+          livenessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 90
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+      imagePullSecrets:
+        - name: dockerhub-pull
+      restartPolicy: Always
+  volumeClaimTemplates:
+    - metadata:
+        name: hi-events-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
+        storageClassName: cephfs
