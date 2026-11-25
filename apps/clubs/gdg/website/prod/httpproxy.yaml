@@ -15,4 +15,3 @@ spec:
       services:
         - name: gdg-service
           port: 80
-
