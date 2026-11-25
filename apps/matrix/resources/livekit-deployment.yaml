@@ -1,9 +1,12 @@
 apiVersion: apps/v1
-kind: DaemonSet
+kind: Deployment
 metadata:
   name: livekit
   namespace: matrix
 spec:
+  replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: livekit
@@ -12,20 +15,14 @@ spec:
       labels:
         app: livekit
     spec:
-      # Les IPs publiques sont directement sur les nodes de la DMZ : le média
-      # WebRTC (UDP) et TURN sont bindés sur l'IP du node, sans MetalLB ni NAT.
-      # Le DaemonSet tourne sur TOUS les nodes DMZ, dont celui qui porte le VIP
-      # Contour : matrix-rtc.etsmtl.club:5349 (TURN) arrive donc toujours sur
-      # un pod LiveKit.
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
+      # Pas de hostNetwork : le namespace matrix applique PSA baseline.
+      # Le média est exposé par un Service LoadBalancer sur une IP publique
+      # dédiée (voir livekit-media-service.yaml).
       securityContext:
         fsGroup: 65534
         runAsNonRoot: true
         runAsUser: 65534
         runAsGroup: 65534
-      nodeSelector:
-        etsmtl.club/external-network: "true"
       initContainers:
         - name: render-config
           image: alpine:3.20
@@ -121,8 +118,6 @@ spec:
             - name: turn-tls
               containerPort: 5349
               protocol: TCP
-            # Listés à titre documentaire : toute la plage 50000-50019 est
-            # bindée sur le node (ports non privilégiés, accessibles en DMZ).
             - name: rtc-udp
               containerPort: 50000
               protocol: UDP
@@ -136,8 +131,8 @@ spec:
             - name: config
               mountPath: /etc/livekit/config
               readOnly: true
-            - name: tls
-              mountPath: /etc/livekit/tls
+            - name: turn-tls
+              mountPath: /etc/livekit/turn-tls
               readOnly: true
             - name: tmp
               mountPath: /tmp
@@ -147,8 +142,8 @@ spec:
             name: livekit-config
         - name: config
           emptyDir: {}
-        - name: tls
+        - name: turn-tls
           secret:
-            secretName: matrix-rtc-tls
+            secretName: turn-rtc-tls
         - name: tmp
           emptyDir: {}

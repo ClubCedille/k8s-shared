@@ -8,7 +8,8 @@ resources:
   - resources/cinny-service.yaml
   - resources/httpproxy.yaml
   - resources/livekit-configmap.yaml
-  - resources/livekit-daemonset.yaml
+  - resources/livekit-deployment.yaml
+  - resources/livekit-media-service.yaml
   - resources/livekit-service.yaml
   - resources/lk-jwt-deployment.yaml
   - resources/lk-jwt-service.yaml
@@ -16,6 +17,7 @@ resources:
   - resources/matrix-rtc-httpproxy.yaml
   - resources/matrix-rtc-networkpolicy.yaml
   - resources/pvc.yaml
+  - resources/turn-certificate.yaml
 helmCharts:
   - name: matrix-synapse
     repo: https://ananace.gitlab.io/charts
