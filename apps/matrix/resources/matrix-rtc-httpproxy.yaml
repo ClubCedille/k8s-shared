@@ -25,8 +25,24 @@ spec:
         response: 120s
         idle: 120s
 
-    # Signalisation LiveKit (WebSocket). Le média WebRTC ne passe PAS par ici :
-    # il est exposé directement sur l'IP publique des nodes DMZ (hostNetwork).
+    # Signalisation LiveKit (WebSocket) : le SDK et lk-jwt-service se
+    # connectent a wss://matrix-rtc.etsmtl.club/livekit/sfu. On retire le
+    # prefixe avant de transmettre a LiveKit, qui ecoute sur "/".
+    - conditions:
+        - prefix: /livekit/sfu
+      pathRewritePolicy:
+        replacePrefix:
+          - prefix: /livekit/sfu
+            replacement: /
+      enableWebsockets: true
+      services:
+        - name: livekit
+          port: 7880
+      timeoutPolicy:
+        response: 600s
+        idle: 600s
+
+    # Catch-all (média WebRTC : voir livekit-media-service.yaml).
     - conditions:
         - prefix: /
       enableWebsockets: true
