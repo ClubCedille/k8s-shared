@@ -35,8 +35,8 @@ data:
     turn:
       enabled: true
       domain: turn.etsmtl.club
-      # 8080 en attendant que les ITs ouvrent 5349/443.
-      tls_port: 8080
+      # 443 autorisé par le firewall Université (le 8080 est bloqué).
+      tls_port: 443
       udp_port: 50001
       relay_range_start: 50002
       relay_range_end: 50005

@@ -14,8 +14,8 @@ spec:
     app: livekit
   ports:
     - name: turn-tls
-      port: 8080
-      targetPort: 8080
+      port: 443
+      targetPort: 443
       protocol: TCP
     - name: ice-tcp
       port: 7881
