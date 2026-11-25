@@ -1,7 +1,6 @@
-# Deux policies minimales pour satisfaire le gate kube-score et documenter
-# les flux MatrixRTC. Note : le pod LiveKit est en hostNetwork, donc les
-# NetworkPolicy ne filtrent pas son trafic réel (le kernel du node reste la
-# frontière) ; celle-ci sert surtout de contrat/visibilité.
+# Policies minimales pour satisfaire le gate kube-score et documenter les
+# flux du namespace. Le média LiveKit passe par un Service LoadBalancer ;
+# ces policies servent surtout de contrat/visibilité.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -28,6 +27,23 @@ spec:
   podSelector:
     matchLabels:
       app: lk-jwt-service
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - {}
+  egress:
+    - {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mautrix-discord
+  namespace: matrix
+spec:
+  podSelector:
+    matchLabels:
+      app: mautrix-discord
   policyTypes:
     - Ingress
     - Egress

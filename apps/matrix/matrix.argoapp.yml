@@ -34,8 +34,43 @@ spec:
       name: matrix-stack-matrix-synapse
       jsonPointers:
         - /spec/template/metadata/annotations/checksum~1secrets
+    # Secrets adoptés mais créés à la main : ne jamais écraser leurs données.
+    - group: ""
+      kind: Secret
+      name: authentik-credentials
+      jsonPointers: [/data, /stringData]
+    - group: ""
+      kind: Secret
+      name: authentik-oidc-secret
+      jsonPointers: [/data, /stringData]
+    - group: ""
+      kind: Secret
+      name: coturn-secret
+      jsonPointers: [/data, /stringData]
+    - group: ""
+      kind: Secret
+      name: matrix-rtc-secrets
+      jsonPointers: [/data, /stringData]
+    - group: ""
+      kind: Secret
+      name: mautrix-discord-secret
+      jsonPointers: [/data, /stringData]
+    - group: ""
+      kind: Secret
+      name: synapse-authentik-config
+      jsonPointers: [/data, /stringData]
+    - group: ""
+      kind: Secret
+      name: synapse-authentik-secret
+      jsonPointers: [/data, /stringData]
+    - group: ""
+      kind: Secret
+      name: synapse-manual-secrets
+      jsonPointers: [/data, /stringData]
   syncPolicy:
     automated:
+      # ArgoCD v3 exige enabled: true (sinon l'auto-sync reste désactivé).
+      enabled: true
       prune: true
       selfHeal: true
     syncOptions:
