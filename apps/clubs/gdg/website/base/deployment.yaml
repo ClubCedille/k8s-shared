@@ -18,6 +18,8 @@ spec:
         - name: gdg
           image: ghcr.io/clubcedille/gdg-ets-hub:latest
           imagePullPolicy: Always
+          imagePullSecrets:
+            - name: ghcr-clubcedille-secret
           ports:
             - containerPort: 8080
           volumeMounts:
