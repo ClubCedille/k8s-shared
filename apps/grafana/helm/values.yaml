@@ -159,6 +159,8 @@ sidecar:
 # generates for the provisioned "Mimir" datasource. Every query is written to
 # return only the series that are in a bad state, so a threshold of > 0 means
 # "firing". The Discord webhook comes from Vault via $DISCORD_WEBHOOK_URL.
+# Notification templates are provisioned from a ConfigMap (see below and
+# docs/grafana-alerting).
 alerting:
   contactpoints.yaml:
     apiVersion: 1
@@ -170,6 +172,14 @@ alerting:
             type: discord
             settings:
               url: $DISCORD_WEBHOOK_URL
+              # Le template par défaut de Grafana déverse tous les labels
+              # Prometheus (pod, instance, endpoint...). On n'affiche que les
+              # champs utiles, dans l'ordre, avec l'heure de Montréal.
+              # Échappement Helm : le chart applique `tpl` aux valeurs alerting,
+              # donc les {{ }} doivent être protégés pour atteindre Grafana.
+              title: '{{ `{{ template "k8s.title" . }}` }}'
+              message: '{{ `{{ template "k8s.message" . }}` }}'
+
   policies.yaml:
     apiVersion: 1
     policies:
@@ -790,3 +800,16 @@ alerting:
             labels:
               severity: warning
               component: host
+
+# Le groupe de templates de notification ne peut pas vivre sous `alerting:` :
+# le chart applique `tpl` à ces valeurs et évaluerait les `{{ define }}`.
+# Kustomize le rend donc tel quel (resources/alerting/templates.yaml) et on le
+# monte dans le même répertoire de provisioning que les autres fichiers.
+extraVolumes:
+  - name: grafana-alerting-templates
+    configMap:
+      name: grafana-alerting-templates
+extraVolumeMounts:
+  - name: grafana-alerting-templates
+    mountPath: /etc/grafana/provisioning/alerting/templates.yaml
+    subPath: templates.yaml

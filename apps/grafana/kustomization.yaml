@@ -8,6 +8,7 @@ resources:
   - resources/httpproxy.yaml
   - resources/postgres.yaml
   - resources/vault.yaml
+  - resources/alerting/templates.yaml
   - resources/dashboards/infra-overview.yaml
   - resources/dashboards/infra-pve-nodes.yaml
   - resources/dashboards/infra-pve-cluster.yaml
