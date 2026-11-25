@@ -183,6 +183,14 @@ ingester:
     config.expand-env: "true"
   persistentVolume:
     storageClass: ceph-rbd
+    # Le volume de 2Gi (défaut du chart) s'est saturé le 2026-11-24 :
+    # "write to WAL: ... no space left on device" dès que la limite est passée
+    # à 600k séries (PR #711) avec policy_report_result de retour. 20Gi laisse
+    # de la marge pour le WAL et la compaction. Attention : volumeClaimTemplates
+    # d'un StatefulSet est immutable -> voir ignoreDifferences dans
+    # mimir.argoapp.yaml et la procédure de resize dans
+    # docs/mimir-series-limit-2026-11/README.md.
+    size: 20Gi
   # ~554Mi observed for 150k series; 600k series budget -> 2Gi request with
   # 4Gi ceiling so compaction/query spikes do not OOM the single ingester.
   resources:

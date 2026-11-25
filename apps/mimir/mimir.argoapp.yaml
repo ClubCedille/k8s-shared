@@ -18,3 +18,16 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+  # `spec.volumeClaimTemplates` d'un StatefulSet est immutable : ArgoCD ne peut
+  # pas appliquer le passage 2Gi -> 20Gi du PVC de l'ingester (le chart
+  # n'expose que le template, pas le PVC déjà créé). Le PVC est agrandi à la
+  # main via `kubectl patch pvc` (voir docs/mimir-series-limit-2026-11) ; sans
+  # cet ignoreDifferences, chaque réconciliation échouerait sur ce champ.
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      name: mimir-ingester
+      namespace: monitoring
+      jsonPointers:
+        - /spec/volumeClaimTemplates/0/spec/resources/requests/storage
