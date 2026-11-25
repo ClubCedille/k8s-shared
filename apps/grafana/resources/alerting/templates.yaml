@@ -54,15 +54,28 @@ data:
           {{ define "k8s.logs" -}}
           {{- $expr := "{" -}}
           {{- $sep := "" -}}
+          {{- $workload := "" -}}
           {{- with .Labels.namespace }}{{ $expr = printf "%s%snamespace=%q" $expr $sep . }}{{ $sep = "," }}{{ end -}}
+          {{- /* Les labels pod/container des regles kube-state-metrics sont ceux du
+                 scrapeur, pas de la charge en faute. On cible donc les pods dont le
+                 nom commence par celui du workload. */ -}}
+          {{- with .Labels.deployment }}{{ $expr = printf "%s%spod=~%q" $expr $sep (printf "%s.*" .) }}{{ $sep = "," }}{{ $workload = "1" }}{{ end -}}
+          {{- with .Labels.statefulset }}{{ $expr = printf "%s%spod=~%q" $expr $sep (printf "%s.*" .) }}{{ $sep = "," }}{{ $workload = "1" }}{{ end -}}
+          {{- with .Labels.job_name }}{{ $expr = printf "%s%spod=~%q" $expr $sep (printf "%s.*" .) }}{{ $sep = "," }}{{ $workload = "1" }}{{ end -}}
+          {{- with .Labels.cronjob }}{{ $expr = printf "%s%spod=~%q" $expr $sep (printf "%s.*" .) }}{{ $sep = "," }}{{ $workload = "1" }}{{ end -}}
+          {{- if not $workload -}}
           {{- with .Labels.pod }}{{ $expr = printf "%s%spod=%q" $expr $sep . }}{{ $sep = "," }}{{ end -}}
-          {{- with .Labels.container }}{{ $expr = printf "%s%scontainer=%q" $expr $sep . }}{{ $sep = "," }}{{ end -}}
+          {{- with .Labels.container }}{{ $expr = printf "%s%scontainer=%q" $expr $sep . }}{{ end -}}
+          {{- end -}}
           {{- $expr = printf "%s}" $expr -}}
           {{- if ne $expr "{}" -}}
           {{- $from := (.StartsAt.Add -3600000000000).UnixMilli -}}
           {{- $to := .StartsAt.UnixMilli -}}
           {{- if eq .Status "resolved" }}{{ $to = .EndsAt.UnixMilli }}{{ end -}}
-          {{- $panes := printf "{\"p1\":{\"datasource\":\"P8E80F9AEF21F6940\",\"queries\":[{\"refId\":\"A\",\"expr\":%q,\"queryType\":\"range\"}],\"range\":{\"from\":%d,\"to\":%d}}}" $expr $from $to -}}
-          {{ printf " · [Logs](https://grafana.etsmtl.club/explore?orgId=1&panes=%s)" (urlquery $panes) }}
+          {{- /* Explore v1 : schemaVersion=1 obligatoire pour que Grafana 13
+                 lise 'panes' ; l'id du pane doit faire 3 caracteres ; from/to
+                 doivent etre des chaines (epoch ms). */ -}}
+          {{- $panes := printf "{\"p11\":{\"datasource\":\"P8E80F9AEF21F6940\",\"queries\":[{\"refId\":\"A\",\"expr\":%q,\"queryType\":\"range\"}],\"range\":{\"from\":\"%d\",\"to\":\"%d\"}}}" $expr $from $to -}}
+          {{ printf " · [Logs](https://grafana.etsmtl.club/explore?orgId=1&schemaVersion=1&panes=%s)" (urlquery $panes) }}
           {{- end -}}
           {{- end -}}
