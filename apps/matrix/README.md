@@ -13,21 +13,24 @@ supplémentaire, ni NAT** à ajouter pour le média WebRTC :
   (`HTTPProxy`) sur le VIP existant `.75`, avec un certificat cert-manager.
   - `/livekit/sfu` → LiveKit `:7880` (WebSocket, prefix stripping inclus)
   - `/livekit/jwt/` → lk-jwt-service `:8080` (prefix stripping inclus)
-- **Média + TURN** : `livekit` tourne en `DaemonSet hostNetwork` sur les nodes
-  DMZ et binde directement :
+- **Média + TURN** : `livekit` tourne en `Deployment` (pas de `hostNetwork`, le
+  namespace applique PSA `baseline`) derrière un `Service LoadBalancer` sur
+  **`142.137.247.77`** (pool `matrix-rtc-ip` dans `system/metallb-extra`) :
   - TCP `7881` (ICE sur TCP)
-  - TCP `5349` (TURN/TLS, certificat `matrix-rtc-tls`)
-  - UDP `50000-50009` (média), `50010` (TURN/UDP), `50011-50019` (relais TURN)
+  - TCP `5349` (TURN/TLS, hostname `turn.etsmtl.club`, certificat `turn-rtc-tls`)
+  - UDP `50000` (média, via le **UDP mux** de LiveKit : `rtc.udp_port`, un seul
+    port au lieu d'une plage), `50001` (TURN/UDP), `50002-50005` (relais TURN)
 
-Le DaemonSet couvre tous les nodes DMZ, y compris celui qui porte le VIP
-Contour : `turns:matrix-rtc.etsmtl.club:5349` atteint donc toujours un pod
-LiveKit. `use_external_ip: true` fait annoncer l'IP publique du node comme
-candidate ICE.
+Kubernetes ne sait pas exposer une plage UDP dans un `Service` : il faut une
+entrée par port. Le UDP mux permet de réduire le média à **un seul port** ; si
+le débit devient insuffisant, passer `rtc.udp_port: 50000-50007` et ajouter les
+ports correspondants dans le Service.
 
-> Si vous préférez isoler le SFU derrière une IP publique dédiée, il faudra
-> alors déclarer une plage de ports UDP dans un `Service LoadBalancer` (ports
-> listés un à un) et repasser TURN en TLS port 443 sur un hostname séparé.
-> La solution actuelle évite cette complexité.
+Les nodes ont des IP privées : les IP publiques sont des VIP MetalLB en DMZ.
+On annonce donc explicitement `rtc.node_ip: 142.137.247.77` (avec
+`use_external_ip: false`) comme candidate ICE. Le A record
+`turn.etsmtl.club -> 142.137.247.77` est créé par external-dns via l'annotation
+sur le Service.
 
 ## Secret à créer manuellement
 

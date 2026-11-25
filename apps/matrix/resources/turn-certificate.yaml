@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: turn-rtc-cert
+  namespace: matrix
+spec:
+  secretName: turn-rtc-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: turn.etsmtl.club
+  dnsNames:
+    - turn.etsmtl.club

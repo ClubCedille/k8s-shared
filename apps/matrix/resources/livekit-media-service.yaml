@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: livekit-media
+  namespace: matrix
+  annotations:
+    # external-dns (source=service) crée le A record turn.etsmtl.club -> .77
+    external-dns.alpha.kubernetes.io/hostname: turn.etsmtl.club
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 142.137.247.77
+  externalTrafficPolicy: Local
+  selector:
+    app: livekit
+  ports:
+    - name: turn-tls
+      port: 5349
+      targetPort: 5349
+      protocol: TCP
+    - name: ice-tcp
+      port: 7881
+      targetPort: 7881
+      protocol: TCP
+    # UDP mux : 50000 porte tout le média WebRTC (rtc.udp_port).
+    - name: rtc-udp
+      port: 50000
+      targetPort: 50000
+      protocol: UDP
+    # TURN/UDP et ses relais (une entrée par port, pas de plage côté Service).
+    - name: turn-udp
+      port: 50001
+      targetPort: 50001
+      protocol: UDP
+    - name: relay-50002
+      port: 50002
+      targetPort: 50002
+      protocol: UDP
+    - name: relay-50003
+      port: 50003
+      targetPort: 50003
+      protocol: UDP
+    - name: relay-50004
+      port: 50004
+      targetPort: 50004
+      protocol: UDP
+    - name: relay-50005
+      port: 50005
+      targetPort: 50005
+      protocol: UDP

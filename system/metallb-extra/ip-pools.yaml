@@ -23,6 +23,18 @@ spec:
       - byzantium-helm
 ---
 apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: matrix-rtc-ip
+  namespace: metallb-system
+spec:
+  addresses:
+    - 142.137.247.77/32
+  serviceAllocation:
+    namespaces:
+      - matrix
+---
+apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
   name: extra-ips
@@ -31,6 +43,7 @@ spec:
   ipAddressPools:
     - forgejo-ip
     - byzantium-ip
+    - matrix-rtc-ip
   nodeSelectors:
     - matchLabels:
         etsmtl.club/external-network: "true"
