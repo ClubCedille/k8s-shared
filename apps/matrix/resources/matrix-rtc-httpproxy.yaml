@@ -1,0 +1,38 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: matrix-rtc-proxy
+  namespace: matrix
+spec:
+  virtualhost:
+    fqdn: matrix-rtc.etsmtl.club
+    tls:
+      secretName: matrix-rtc-tls
+  routes:
+    # MatrixRTC Authorization Service (lk-jwt-service).
+    # Les clients appellent /livekit/jwt/<endpoint>; on retire le préfixe
+    # avant de transmettre au service qui écoute sur /<endpoint>.
+    - conditions:
+        - prefix: /livekit/jwt/
+      pathRewritePolicy:
+        replacePrefix:
+          - prefix: /livekit/jwt/
+            replacement: /
+      services:
+        - name: lk-jwt-service
+          port: 8080
+      timeoutPolicy:
+        response: 120s
+        idle: 120s
+
+    # Signalisation LiveKit (WebSocket). Le média WebRTC ne passe PAS par ici :
+    # il est exposé directement sur l'IP publique des nodes DMZ (hostNetwork).
+    - conditions:
+        - prefix: /
+      enableWebsockets: true
+      services:
+        - name: livekit
+          port: 7880
+      timeoutPolicy:
+        response: 600s
+        idle: 600s

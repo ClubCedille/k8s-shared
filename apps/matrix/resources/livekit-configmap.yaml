@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: livekit-config
+  namespace: matrix
+data:
+  livekit.yaml: |
+    port: 7880
+    log_level: info
+
+    rtc:
+      tcp_port: 7881
+      # Plage UDP exposée en direct sur l'IP publique des nodes DMZ.
+      port_range_start: 50000
+      port_range_end: 50009
+      # Les nodes DMZ ont déjà une IP publique : LiveKit l'annonce aux clients.
+      use_external_ip: true
+
+    room:
+      # Seul lk-jwt-service peut créer une room (évite l'abus du SFU).
+      auto_create: false
+
+    redis:
+      address: matrix-stack-redis-master:6379
+      db: 3
+      password: "@@REDIS_PASSWORD@@"
+
+    keys:
+      "@@LIVEKIT_KEY@@": "@@LIVEKIT_SECRET@@"
+
+    # TURN intégré : pas de coturn à déployer. Le certificat est le même que
+    # celui de la signalisation, donc valide pour matrix-rtc.etsmtl.club.
+    turn:
+      enabled: true
+      domain: matrix-rtc.etsmtl.club
+      tls_port: 5349
+      udp_port: 50010
+      relay_range_start: 50011
+      relay_range_end: 50019
+      cert_file: /etc/livekit/tls/tls.crt
+      key_file: /etc/livekit/tls/tls.key
+
+    webhook:
+      api_key: "@@LIVEKIT_KEY@@"
+      urls:
+        - https://matrix-rtc.etsmtl.club/livekit/jwt/sfu_webhook
+
+    prometheus_port: 6789

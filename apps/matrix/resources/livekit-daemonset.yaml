@@ -1,0 +1,154 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: livekit
+  namespace: matrix
+spec:
+  selector:
+    matchLabels:
+      app: livekit
+  template:
+    metadata:
+      labels:
+        app: livekit
+    spec:
+      # Les IPs publiques sont directement sur les nodes de la DMZ : le média
+      # WebRTC (UDP) et TURN sont bindés sur l'IP du node, sans MetalLB ni NAT.
+      # Le DaemonSet tourne sur TOUS les nodes DMZ, dont celui qui porte le VIP
+      # Contour : matrix-rtc.etsmtl.club:5349 (TURN) arrive donc toujours sur
+      # un pod LiveKit.
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      securityContext:
+        fsGroup: 65534
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+      nodeSelector:
+        etsmtl.club/external-network: "true"
+      initContainers:
+        - name: render-config
+          image: alpine:3.20
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+              ephemeral-storage: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+          command:
+            - /bin/sh
+            - -c
+            - |
+              sed -e "s|@@LIVEKIT_KEY@@|${LIVEKIT_KEY}|g" \
+                  -e "s|@@LIVEKIT_SECRET@@|${LIVEKIT_SECRET}|g" \
+                  -e "s|@@REDIS_PASSWORD@@|${REDIS_PASSWORD}|g" \
+                  /etc/livekit/template/livekit.yaml > /etc/livekit/config/livekit.yaml
+          env:
+            - name: LIVEKIT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: matrix-rtc-secrets
+                  key: livekit-key
+            - name: LIVEKIT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: matrix-rtc-secrets
+                  key: livekit-secret
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: matrix-stack-redis
+                  key: redis-password
+          volumeMounts:
+            - name: template
+              mountPath: /etc/livekit/template
+            - name: config
+              mountPath: /etc/livekit/config
+      containers:
+        - name: livekit
+          image: livekit/livekit-server:v1.13.11
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          readinessProbe:
+            tcpSocket:
+              port: signal
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+              ephemeral-storage: 512Mi
+          args:
+            - --config
+            - /etc/livekit/config/livekit.yaml
+          ports:
+            - name: signal
+              containerPort: 7880
+              protocol: TCP
+            - name: ice-tcp
+              containerPort: 7881
+              protocol: TCP
+            - name: turn-tls
+              containerPort: 5349
+              protocol: TCP
+            # Listés à titre documentaire : toute la plage 50000-50019 est
+            # bindée sur le node (ports non privilégiés, accessibles en DMZ).
+            - name: rtc-udp
+              containerPort: 50000
+              protocol: UDP
+            - name: turn-udp
+              containerPort: 50010
+              protocol: UDP
+            - name: turn-relay
+              containerPort: 50011
+              protocol: UDP
+          volumeMounts:
+            - name: config
+              mountPath: /etc/livekit/config
+              readOnly: true
+            - name: tls
+              mountPath: /etc/livekit/tls
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: template
+          configMap:
+            name: livekit-config
+        - name: config
+          emptyDir: {}
+        - name: tls
+          secret:
+            secretName: matrix-rtc-tls
+        - name: tmp
+          emptyDir: {}

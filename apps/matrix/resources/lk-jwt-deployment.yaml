@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lk-jwt-service
+  namespace: matrix
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: lk-jwt-service
+  template:
+    metadata:
+      labels:
+        app: lk-jwt-service
+    spec:
+      securityContext:
+        fsGroup: 65534
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+      containers:
+        - name: lk-jwt-service
+          image: ghcr.io/element-hq/lk-jwt-service:v0.10.0
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+              ephemeral-storage: 16Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+          env:
+            - name: LIVEKIT_URL
+              value: wss://matrix-rtc.etsmtl.club/livekit/sfu
+            - name: LIVEKIT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: matrix-rtc-secrets
+                  key: livekit-key
+            - name: LIVEKIT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: matrix-rtc-secrets
+                  key: livekit-secret
+            - name: LIVEKIT_FULL_ACCESS_HOMESERVERS
+              value: matrix.etsmtl.club
+            - name: LIVEKIT_HS_SERVER_NAME
+              value: matrix.etsmtl.club
+            - name: LIVEKIT_AS_REGISTRATION_FILE
+              value: /etc/lk-jwt/registration.yaml
+            - name: LIVEKIT_REDIS_URL
+              value: redis://matrix-stack-redis-master:6379
+            - name: LIVEKIT_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: matrix-stack-redis
+                  key: redis-password
+            - name: LIVEKIT_REMOTE_CAN_PUBLISH_HOMESERVERS
+              value: "*"
+            - name: LIVEKIT_SANITY_CHECK_INTERVAL_SECONDS
+              value: "60"
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: registration
+              mountPath: /etc/lk-jwt/registration.yaml
+              subPath: registration.yaml
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: registration
+          secret:
+            secretName: matrix-rtc-secrets
+            items:
+              - key: registration.yaml
+                path: registration.yaml
+        - name: tmp
+          emptyDir: {}

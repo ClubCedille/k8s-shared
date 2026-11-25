@@ -7,6 +7,41 @@ extraConfig:
   enable_registration_without_verification: true
   serve_server_wellknown: true
 
+  # --- MatrixRTC (appels Cinny / Element) ---
+  experimental_features:
+    msc3266_enabled: true # room summary (knocking over federation)
+    msc4143_enabled: true # endpoint /rtc/transports (compat anciens clients)
+    msc4222_enabled: true # state_after dans /sync
+    # lk-jwt-service tourne en application service (MSC4502 + MSC4512).
+    msc4502_enabled: true
+    msc4512_enabled: true
+
+  max_event_delay_duration: 24h
+  rc_message:
+    per_second: 0.5
+    burst_count: 30
+  rc_delayed_event_mgmt:
+    per_second: 1
+    burst_count: 20
+
+  app_service_config_files:
+    - /synapse/config/conf.d/lk-jwt-registration.yaml
+
+  matrix_rtc:
+    transports:
+      - type: m.livekit
+        url: wss://matrix-rtc.etsmtl.club/livekit/sfu
+      # Transport unstable conservé pour les clients qui ne gèrent pas encore
+      # le transport stable (le JWT est alors appelé directement).
+      - type: livekit
+        url: wss://matrix-rtc.etsmtl.club/livekit/sfu
+        livekit_service_url: https://matrix-rtc.etsmtl.club/livekit/jwt
+
+  extra_well_known_client_content:
+    org.matrix.msc4143.rtc_foci:
+      - type: livekit
+        livekit_service_url: https://matrix-rtc.etsmtl.club/livekit/jwt
+
   auto_accept_invites:
     enabled: true
     only_for_direct_messages: false
@@ -60,3 +95,17 @@ synapse:
           key: oidc-client-secret
   extraCommands:
     - 'sed -i -e "s|@@OIDC_CLIENT_ID@@|${OIDC_CLIENT_ID}|g" -e "s|@@OIDC_CLIENT_SECRET@@|${OIDC_CLIENT_SECRET}|g" /synapse/config/conf.d/secrets.yaml'
+  # Fichier de registration de l'application service lk-jwt-service.
+  # Le secret matrix-rtc-secrets est créé manuellement (voir README.md).
+  extraVolumes:
+    - name: lk-jwt-registration
+      secret:
+        secretName: matrix-rtc-secrets
+        items:
+          - key: registration.yaml
+            path: lk-jwt-registration.yaml
+  extraVolumeMounts:
+    - name: lk-jwt-registration
+      mountPath: /synapse/config/conf.d/lk-jwt-registration.yaml
+      subPath: lk-jwt-registration.yaml
+      readOnly: true

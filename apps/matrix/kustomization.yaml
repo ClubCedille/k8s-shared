@@ -7,6 +7,14 @@ resources:
   - resources/cinny-deployment.yaml
   - resources/cinny-service.yaml
   - resources/httpproxy.yaml
+  - resources/livekit-configmap.yaml
+  - resources/livekit-daemonset.yaml
+  - resources/livekit-service.yaml
+  - resources/lk-jwt-deployment.yaml
+  - resources/lk-jwt-service.yaml
+  - resources/matrix-rtc-certificate.yaml
+  - resources/matrix-rtc-httpproxy.yaml
+  - resources/matrix-rtc-networkpolicy.yaml
   - resources/pvc.yaml
 helmCharts:
   - name: matrix-synapse
