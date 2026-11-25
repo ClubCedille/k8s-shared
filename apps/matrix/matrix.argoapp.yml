@@ -36,7 +36,11 @@ spec:
         - /spec/template/metadata/annotations/checksum~1secrets
   syncPolicy:
     automated:
-      prune: true
+      # ArgoCD v3 exige enabled: true (sinon l'auto-sync reste désactivé).
+      enabled: true
+      # prune désactivé : coturn, mautrix-discord et les secrets créés à la
+      # main dans le namespace matrix ne doivent pas être supprimés.
+      prune: false
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
