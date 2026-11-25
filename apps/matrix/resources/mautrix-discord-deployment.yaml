@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mautrix-discord
+  namespace: matrix
+  labels:
+    app: mautrix-discord
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mautrix-discord
+  template:
+    metadata:
+      labels:
+        app: mautrix-discord
+    spec:
+      initContainers:
+        - name: render-config
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              sed -e "s|@@AS_TOKEN@@|${AS_TOKEN}|g" \
+                  -e "s|@@HS_TOKEN@@|${HS_TOKEN}|g" \
+                  /config/config.yaml > /data/config.yaml
+          env:
+            - name: AS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: mautrix-discord-secret
+                  key: as-token
+            - name: HS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: mautrix-discord-secret
+                  key: hs-token
+          volumeMounts:
+            - name: config-template
+              mountPath: /config
+            - name: data
+              mountPath: /data
+      containers:
+        - name: mautrix-discord
+          image: dock.mau.dev/mautrix/discord:v0.7.7
+          ports:
+            - containerPort: 29334
+              name: appservice
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: config-template
+          configMap:
+            name: mautrix-discord-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: mautrix-discord-pvc

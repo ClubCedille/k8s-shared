@@ -18,6 +18,10 @@ resources:
   - resources/matrix-rtc-networkpolicy.yaml
   - resources/pvc.yaml
   - resources/turn-certificate.yaml
+  # Bridge mautrix-discord
+  - resources/mautrix-discord-configmap.yaml
+  - resources/mautrix-discord-deployment.yaml
+  - resources/mautrix-service.yaml
 helmCharts:
   - name: matrix-synapse
     repo: https://ananace.gitlab.io/charts
