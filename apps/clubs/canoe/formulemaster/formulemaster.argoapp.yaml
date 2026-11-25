@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: formulemaster
+  namespace: argocd
+spec:
+  project: k8s-shared
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: formulemaster
+  source:
+    repoURL: https://github.com/ClubCedille/k8s-shared
+    targetRevision: main
+    path: apps/clubs/canoe/formulemaster/prod
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
