@@ -50,11 +50,11 @@ Rendu attendu dans Discord :
 ```
 **A Deployment has had unavailable replicas for more than 15 minutes.**
 
-- `cluster` **k8s-shared**
-- `namespace` **default**
-- `déploiement` **gdq**
-- `sévérité` **warning**
-- `depuis` **25/11 14:07** (Montréal)
+- **cluster** `k8s-shared`
+- **namespace** `default`
+- **déploiement** `gdq`
+- **sévérité** `warning`
+- **depuis** `25/11 14:07` (Montréal)
 
 [Voir la règle](…) · [Ignorer](…) · [Logs](…)
 ```

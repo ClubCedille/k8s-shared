@@ -21,22 +21,22 @@ data:
           {{ end -}}
           **{{ $alert.Annotations.summary }}**
 
-          - `cluster` **{{ if $alert.Labels.cluster }}{{ $alert.Labels.cluster }}{{ else }}—{{ end }}**
-          - `namespace` **{{ if $alert.Labels.namespace }}{{ $alert.Labels.namespace }}{{ else }}—{{ end }}**
+          - **cluster** `{{ if $alert.Labels.cluster }}{{ $alert.Labels.cluster }}{{ else }}—{{ end }}`
+          - **namespace** `{{ if $alert.Labels.namespace }}{{ $alert.Labels.namespace }}{{ else }}—{{ end }}`
           {{- with $alert.Labels.deployment }}
-          - `déploiement` **{{ . }}**
+          - **déploiement** `{{ . }}`
           {{- end }}
           {{- with $alert.Labels.statefulset }}
-          - `statefulset` **{{ . }}**
+          - **statefulset** `{{ . }}`
           {{- end }}
           {{- with $alert.Labels.job_name }}
-          - `job` **{{ . }}**
+          - **job** `{{ . }}`
           {{- end }}
           {{- with $alert.Labels.cronjob }}
-          - `cronjob` **{{ . }}**
+          - **cronjob** `{{ . }}`
           {{- end }}
-          - `sévérité` **{{ if $alert.Labels.severity }}{{ $alert.Labels.severity }}{{ else }}—{{ end }}**
-          - `depuis` **{{ $alert.StartsAt | tz "America/Toronto" | date "02/01 15:04" }}** (Montréal){{ if eq $alert.Status "resolved" }} · `terminée` **{{ $alert.EndsAt | tz "America/Toronto" | date "02/01 15:04" }}**{{ end }}
+          - **sévérité** `{{ if $alert.Labels.severity }}{{ $alert.Labels.severity }}{{ else }}—{{ end }}`
+          - **depuis** `{{ $alert.StartsAt | tz "America/Toronto" | date "02/01 15:04" }}` (Montréal){{ if eq $alert.Status "resolved" }} · **terminée** `{{ $alert.EndsAt | tz "America/Toronto" | date "02/01 15:04" }}`{{ end }}
 
           {{ template "k8s.links" $alert -}}
           {{- end -}}
