@@ -17,7 +17,9 @@ spec:
     spec:
       containers:
         - name: cinny
-          image: ghcr.io/cinnyapp/cinny:latest
+          # MatrixRTC (voice/video rooms) depuis v4.11.1 ; v4.12.x inclus les
+          # correctifs de compatibilité avec les SDK Matrix récents.
+          image: ghcr.io/cinnyapp/cinny:v4.12.8
           ports:
             - containerPort: 80
               name: http
