@@ -48,7 +48,9 @@ comme le service de production.
 ## Chronologie
 
 - **Septembre 2026 (stockage).** Migration du contenu Nextcloud de CephFS vers
-  Garage (bucket `nextcloud-data`, ~8 To). Voir `analyse-tiering-ceph-garage.md`.
+  Garage (bucket `nextcloud-data`). L'estimation d'alors était de ~8 To (PR #347
+  parlait de 8–10 TiB) ; une mesure réelle du 2026-11-25 donne **15,69 To
+  (14,27 Tio, 737 568 objets)**. Voir `analyse-tiering-ceph-garage.md`.
 - **2026-09-04 → 09-12 (tiering).** Expérimentation d'un étage chaud Ceph RGW /
   froid Garage via la storage class `GARAGE_COLD`. Révoquée à la suite du bug
   Ceph [tracker#80309](https://tracker.ceph.com/issues/80309) ; l'ObjectBucketClaim
@@ -150,3 +152,16 @@ credentials viennent des secrets déjà présents dans le namespace.
 - [ ] Le Job de restauration manuel est
       `apps/nextcloud-new/restore-runbook/restore-job.yaml` (non appliqué par
       ArgoCD).
+
+### Volumes mesurés (2026-11-25, `rclone size --json`)
+
+| Bucket / préfixe | Objets | Octets | Taille |
+|---|---:|---:|---:|
+| `garage:nextcloud-data` (source) | 737 568 | 15 693 541 384 748 | **15,69 To / 14,27 Tio** |
+| `b2:k8s-shared-bucket/nextcloud-data-backup` (miroir) | 303 115 | 6 053 886 311 475 | **6,05 To / 5,51 Tio** |
+| `b2:k8s-shared-bucket/nextcloud-data-backup-changes` | 0 | 0 | 0 |
+
+Reste donc ~9,64 To (434 453 objets) à miroir lors de la mesure. Au tarif B2 de
+6,95 $ US/To/mois, le stockage complet représente **~109 $ US/mois** (hors
+préfixe `changes`, dépendant du churn quotidien) — le cap de 15 $/jour (~450 $/mois)
+laisse une marge confortable. Les appels API et l'egress restent gratuits.
