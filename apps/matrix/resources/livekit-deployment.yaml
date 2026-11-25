@@ -15,6 +15,9 @@ spec:
       labels:
         app: livekit
     spec:
+      # Le Service "livekit" injecterait LIVEKIT_PORT=tcp://... que le binaire
+      # LiveKit tente de parser comme un entier (crashloop).
+      enableServiceLinks: false
       # Pas de hostNetwork : le namespace matrix applique PSA baseline.
       # Le média est exposé par un Service LoadBalancer sur une IP publique
       # dédiée (voir livekit-media-service.yaml).
