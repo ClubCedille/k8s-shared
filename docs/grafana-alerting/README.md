@@ -75,7 +75,7 @@ Chaque alerte se termine par une ligne de liens courts, sans emoji :
 |---|---|---|
 | `[Voir le dashboard]` | `.DashboardURL` | Règle liée à un panneau Grafana |
 | `[Voir la règle]` | `.GeneratorURL` | Repli si pas de dashboard (toujours disponible) |
-| `[Ignorer]` | `.SilenceURL` | Toujours (ouvre le formulaire de silence pré-rempli, ne silence pas immédiatement) |
+| `[Ignorer]` | `.SilenceURL` (premier matcher seulement) | Toujours (ouvre le formulaire de silence pré-rempli, ne silence pas immédiatement) |
 | `[Runbook]` | annotation `runbook_url` | Uniquement si l'annotation est posée sur la règle |
 | `[Logs]` | Explore/Loki | Uniquement si `namespace`, `pod` ou `container` est présent dans les labels |
 
@@ -110,6 +110,12 @@ En cas d'erreur de template, les logs du pod contiennent un message
 `failed to template ...` et la notification n'est pas envoyée ; le premier
 réflexe est de revenir au template par défaut (`{{ template "default.message" . }}`)
 le temps de corriger.
+
+> Le `.SilenceURL` complet contient un `matcher=` par label de l'alerte : avec
+> une dizaine de labels, l'URL dépasse la longueur que Discord accepte dans un
+> lien Markdown et le `[Ignorer](...)` s'affiche en texte brut. Le template ne
+> conserve donc que le premier matcher (`__alert_rule_uid__` sur les alertes
+> réelles), ce qui suffit à cibler la règle entière.
 
 > Piège de provisioning : Grafana détecte un groupe de templates via une regex
 > `{{ define` (avec l'espace après `{{`). Écrire `{{- define` (trim à gauche)
