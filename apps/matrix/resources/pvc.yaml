@@ -10,3 +10,17 @@ spec:
     requests:
       storage: 20Gi
   storageClassName: cephfs
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mautrix-discord-pvc
+  namespace: matrix
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: cephfs

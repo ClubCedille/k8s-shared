@@ -26,6 +26,7 @@ extraConfig:
 
   app_service_config_files:
     - /synapse/config/conf.d/lk-jwt-registration.yaml
+    - /synapse/config/appservices/registration.yaml
 
   matrix_rtc:
     transports:
@@ -104,8 +105,17 @@ synapse:
         items:
           - key: registration.yaml
             path: lk-jwt-registration.yaml
+    - name: mautrix-discord-reg
+      secret:
+        secretName: mautrix-discord-secret
+        items:
+          - key: registration.yaml
+            path: registration.yaml
   extraVolumeMounts:
     - name: lk-jwt-registration
       mountPath: /synapse/config/conf.d/lk-jwt-registration.yaml
       subPath: lk-jwt-registration.yaml
+      readOnly: true
+    - name: mautrix-discord-reg
+      mountPath: /synapse/config/appservices
       readOnly: true

@@ -31,6 +31,14 @@ spec:
         response: 600s
         idle: 600s
     - conditions:
+        - prefix: /mautrix-discord/avatar
+      services:
+        - name: mautrix-discord
+          port: 29334
+      timeoutPolicy:
+        response: 60s
+        idle: 60s
+    - conditions:
         - prefix: /
       services:
         - name: cinny-deployment
