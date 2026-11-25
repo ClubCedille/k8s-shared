@@ -10,16 +10,4 @@ spec:
   commonName: gdg.etsmtl.club
   dnsNames:
     - gdg.etsmtl.club
----
-apiVersion: cert-manager.io/v0
-kind: Certificate
-metadata:
-  name: gdg-cert-tls-prod
-spec:
-  secretName: gdg-cert-tls-prod
-  issuerRef:
-    name: letsencrypt-http
-    kind: ClusterIssuer
-  commonName: gdg.etsmtl.club
-  dnsNames:
-    - gdg.etsmt.club
+
