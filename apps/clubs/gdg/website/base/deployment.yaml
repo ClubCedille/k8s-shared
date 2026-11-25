@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: gdg
   annotations:
-    kube-score/ignore: container-image-pull-policy,container-image-tag, pod-networkpolicy
+    kube-score/ignore: container-image-pull-policy,container-image-tag,pod-networkpolicy
 spec:
   replicas: 2
   selector:
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: gdg
-          image: ghcr.io/gdg-ets/gdg-ets-hub:latest
+          image: ghcr.io/clubcedille/gdg-ets-hub:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -33,6 +33,10 @@ spec:
               cpu: 100m
               memory: 128Mi
               ephemeral-storage: 256Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+              ephemeral-storage: 1Gi
           readinessProbe:
             httpGet:
               path: /

@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/gdg-ets/gdg-ets-hub:latest
+    argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/clubcedille/gdg-ets-hub:latest
     argocd-image-updater.argoproj.io/webapp.update-strategy: digest
 spec:
   project: k8s-shared
