@@ -19,7 +19,7 @@ helmCharts:
   - name: inventree
     releaseName: inventree
     repo: https://inventree.github.io/helm-charts
-    version: 0.4.41
+    version: 0.4.42
     namespace: comets-inventree
     valuesFile: helm/values.yaml
 patches:

@@ -16,7 +16,7 @@ helmCharts:
     namespace: penpot
     valuesFile: "helm/valkey-values.yaml"
   - name: penpot
-    version: "1.15.0"
+    version: "1.16.0"
     repo: "https://helm.penpot.app/"
     releaseName: "penpot"
     namespace: penpot
