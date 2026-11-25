@@ -61,23 +61,25 @@ plugin:
     # Probes custom : le defaut du chart (GET /vulnr/v1/policies) declenche le
     # handler lourd (lookup des advisories GitHub a chaque requete) -- il
     # repond 500/timeout sur ce cluster, la liveness tuait donc le conteneur
-    # toutes les ~30s (exit 143, CrashLoopBackOff). Le plugin expose
-    # /healthz et /ready (statiques, sans dependance a l'API) exactement pour
-    # ce cas -- cf. source: pkg/server/server.go (handlers enregistres avant
-    # l'auth et les lookups).
+    # toutes les ~30s (exit 143, CrashLoopBackOff).
+    #
+    # Verification faite en cluster sur trivy-plugin:0.5.3 : les endpoints
+    # /healthz et /ready, pourtant decrits comme statiques dans la source,
+    # repondent en fait 404, tout comme /, /health et /readyz. Une sonde HTTP tuait donc le
+    # conteneur de la meme maniere. On passe en sonde TCP sur le port du
+    # serveur : elle ne depend d'aucun handler applicatif et suffit pour
+    # detecter un plugin arrete.
     livenessProbe:
       timeoutSeconds: 3
       periodSeconds: 10
       failureThreshold: 3
-      httpGet:
-        path: /healthz
+      tcpSocket:
         port: http
     readinessProbe:
       timeoutSeconds: 3
       periodSeconds: 10
       failureThreshold: 3
-      httpGet:
-        path: /ready
+      tcpSocket:
         port: http
     resources:
       # Le plugin enchaine les restarts (probe sur /vulnr/v1/policies =>
