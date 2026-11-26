@@ -27,7 +27,7 @@ extraConfig:
   app_service_config_files:
     - /synapse/config/conf.d/lk-jwt-registration.yaml
     - /synapse/config/appservices/registration.yaml
-
+    - /synapse/config/conf.d/hookshot-registration.yaml
   matrix_rtc:
     transports:
       - type: m.livekit
@@ -111,6 +111,13 @@ synapse:
         items:
           - key: registration.yaml
             path: registration.yaml
+    - name: hookshot-registration
+      secret:
+        secretName: matrix-hookshot-secret
+        items:
+          - key: registration.yaml
+            path: registration.yaml
+
   extraVolumeMounts:
     - name: lk-jwt-registration
       mountPath: /synapse/config/conf.d/lk-jwt-registration.yaml
@@ -118,4 +125,8 @@ synapse:
       readOnly: true
     - name: mautrix-discord-reg
       mountPath: /synapse/config/appservices
+      readOnly: true
+    - name: hookshot-registration
+      mountPath: /synapse/config/conf.d/hookshot-registration.yaml
+      subPath: registration.yaml
       readOnly: true

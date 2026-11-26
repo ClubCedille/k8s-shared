@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: hookshot-cert
+  namespace: matrix
+spec:
+  secretName: hookshot-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: hookshot.etsmtl.club
+  dnsNames:
+    - hookshot.etsmtl.club

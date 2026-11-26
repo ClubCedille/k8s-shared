@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: matrix-hookshot
+  namespace: matrix
+  labels:
+    app: matrix-hookshot
+spec:
+  type: ClusterIP
+  selector:
+    app: matrix-hookshot
+  ports:
+    - name: appservice
+      port: 9993
+      targetPort: 9993
+    - name: webhooks
+      port: 9000
+      targetPort: 9000
