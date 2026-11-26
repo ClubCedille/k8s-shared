@@ -14,6 +14,21 @@ revisionHistoryLimit: 10
 
 community:
   enabled: true
+  # Pin SonarQube Community Build to 26.10 to match the community-branch-plugin
+  # 26.10.0 below: the plugin's major/minor version must match SonarQube's.
+  # The chart default (26.9.0.129388) is behind and would break PR decoration.
+  buildNumber: "26.10.0.133078"
+
+# The chart default ephemeral-storage limit is 512000M (a generic upstream
+# default from back when persistence was disabled). Here data/logs/indexes live
+# on the 20Gi PVC and measured ephemeral usage is ~33Mi (webapp emptyDir) plus a
+# few KB of rootfs, so a 1Gi cap gives ample headroom. Ephemeral storage is not
+# compressible, hence request == limit. cpu/memory keep the chart defaults.
+resources:
+  requests:
+    ephemeral-storage: 1Gi
+  limits:
+    ephemeral-storage: 1Gi
 
 # Settings to configure elasticsearch host requirements
 elasticsearch:
@@ -63,7 +78,7 @@ extraInitContainers:
     command:
       - sh
       - -c
-      - wget -O /tmp/sonarqube-webapp.zip https://github.com/mc1arke/sonarqube-community-branch-plugin/releases/download/26.5.0/sonarqube-webapp.zip &&
+      - wget -O /tmp/sonarqube-webapp.zip https://github.com/mc1arke/sonarqube-community-branch-plugin/releases/download/26.10.0/sonarqube-webapp.zip &&
         unzip -o /tmp/sonarqube-webapp.zip -d /web &&
         chmod -R 755 /web &&
         chown -R 1000:0 /web &&
@@ -81,7 +96,7 @@ tests:
   #
 plugins:
   install:
-    - https://github.com/mc1arke/sonarqube-community-branch-plugin/releases/download/26.5.0/sonarqube-community-branch-plugin-26.5.0.jar
+    - https://github.com/mc1arke/sonarqube-community-branch-plugin/releases/download/26.10.0/sonarqube-community-branch-plugin-26.10.0.jar
 
   # For use behind a corporate proxy when downloading plugins
   # httpProxy: ""
@@ -105,8 +120,8 @@ sonarProperties:
   sonar.core.serverBaseURL: https://sonarqube.etsmtl.club
   sonar.lf.enableGravatar: true
   sonar.log.level: INFO
-  sonar.web.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-26.5.0.jar=web"
-  sonar.ce.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-26.5.0.jar=ce"
+  sonar.web.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-26.10.0.jar=web"
+  sonar.ce.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-26.10.0.jar=ce"
   sonar.auth.saml.enabled: true
   # applicationId == authentik Audience
   sonar.auth.saml.applicationId: sonarqube
