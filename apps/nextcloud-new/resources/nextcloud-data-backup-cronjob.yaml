@@ -32,7 +32,9 @@ spec:
   jobTemplate:
     spec:
       backoffLimit: 2
-      activeDeadlineSeconds: 86400
+      # Une premiere sync complete de ~15,7 To dure ~50 h a 80 Mo/s.
+      # 24 h etait trop court (le job retry du 25/11 a ete tue par timeout).
+      activeDeadlineSeconds: 604800
       template:
         metadata:
           labels:
