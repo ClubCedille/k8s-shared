@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: authentik-space-sync
+  namespace: matrix
+spec:
+  schedule: "*/10 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: sync
+              image: python:3.12-alpine
+              command: ["python3", "/config/sync.py"]
+              env:
+                - name: AUTHENTIK_URL
+                  value: "https://auth.etsmtl.club"
+                - name: SYNAPSE_URL
+                  value: "http://matrix-stack-matrix-synapse:8008"
+                - name: MATRIX_DOMAIN
+                  value: "matrix.etsmtl.club"
+                - name: AUTHENTIK_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: authentik-sync-secret
+                      key: authentik-token
+                - name: SYNAPSE_ADMIN_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: authentik-sync-secret
+                      key: synapse-admin-token
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 100m
+                  memory: 128Mi
+              volumeMounts:
+                - name: config
+                  mountPath: /config
+                  readOnly: true
+          volumes:
+            - name: config
+              configMap:
+                name: authentik-sync-config
