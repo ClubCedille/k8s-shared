@@ -7,6 +7,9 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
     argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/dronolab/dronolab-website:latest
     argocd-image-updater.argoproj.io/webapp.update-strategy: digest
+    k8s.cedille.club/club: dronolab
+  labels:
+    k8s.cedille.club/club: dronolab
 spec:
   project: k8s-shared
   destination:
@@ -22,3 +25,8 @@ spec:
     automated:
       selfHeal: false
       prune: false
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: dronolab
+      annotations:
+        k8s.cedille.club/club: dronolab

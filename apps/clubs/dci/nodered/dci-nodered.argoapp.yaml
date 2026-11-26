@@ -3,6 +3,10 @@ kind: Application
 metadata:
   name: dci-nodered
   namespace: argocd
+  labels:
+    k8s.cedille.club/club: dci
+  annotations:
+    k8s.cedille.club/club: dci
 spec:
   project: k8s-shared
   destination:
@@ -18,3 +22,8 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: dci
+      annotations:
+        k8s.cedille.club/club: dci

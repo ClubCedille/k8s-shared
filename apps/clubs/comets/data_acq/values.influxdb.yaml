@@ -12,7 +12,8 @@ podAnnotations: {}
 
 ## Labels to be added to InfluxDB pods
 ##
-podLabels: {}
+podLabels:
+  k8s.cedille.club/club: comets
 
 nameOverride: ""
 fullnameOverride: ""

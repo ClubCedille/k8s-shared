@@ -1,8 +1,14 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 resources:
   - httpproxy.yaml
   - certificate.yaml
   - vault.yaml
   - ../base/
+labels:
+  - pairs:
+      k8s.cedille.club/club: piranha
+    includeSelectors: false
+    includeTemplates: true
+commonAnnotations:
+  k8s.cedille.club/club: piranha

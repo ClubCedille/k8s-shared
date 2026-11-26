@@ -7,6 +7,9 @@ metadata:
     argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/les-ingenieuses-de-l-ets/web-ingenieuses:latest
     argocd-image-updater.argoproj.io/webapp.update-strategy: digest
     argocd-image-updater.argoproj.io/webapp.pull-secret: pullsecret:argocd/ghcr-ingenieuses-secret
+    k8s.cedille.club/club: ingenieuses
+  labels:
+    k8s.cedille.club/club: ingenieuses
 spec:
   project: k8s-shared
   destination:
@@ -22,3 +25,8 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: ingenieuses
+      annotations:
+        k8s.cedille.club/club: ingenieuses

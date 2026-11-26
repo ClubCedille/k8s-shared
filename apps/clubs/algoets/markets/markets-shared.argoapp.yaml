@@ -13,6 +13,8 @@ metadata:
     argocd-image-updater.argoproj.io/backend.pull-secret: pullsecret:argocd/ghcr-markets-secret
     argocd-image-updater.argoproj.io/frontend.pull-secret: pullsecret:argocd/ghcr-markets-secret
     argocd-image-updater.argoproj.io/scheduler.pull-secret: pullsecret:argocd/ghcr-markets-secret
+  labels:
+    k8s.cedille.club/club: algoets
 spec:
   project: algoets
   destination:
@@ -28,6 +30,11 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: algoets
+      annotations:
+        k8s.cedille.club/club: algoets
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -44,6 +51,8 @@ metadata:
     argocd-image-updater.argoproj.io/backend.pull-secret: pullsecret:argocd/ghcr-markets-secret
     argocd-image-updater.argoproj.io/frontend.pull-secret: pullsecret:argocd/ghcr-markets-secret
     argocd-image-updater.argoproj.io/scheduler.pull-secret: pullsecret:argocd/ghcr-markets-secret
+  labels:
+    k8s.cedille.club/club: algoets
 spec:
   project: algoets
   destination:
@@ -59,3 +68,8 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: algoets
+      annotations:
+        k8s.cedille.club/club: algoets

@@ -8,6 +8,8 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
     argocd-image-updater.argoproj.io/image-list: app=ghcr.io/clubcedille/synapsets.etsmtl.ca:latest
     argocd-image-updater.argoproj.io/app.update-strategy: digest
+  labels:
+    k8s.cedille.club/club: synapsets
 spec:
   project: k8s-shared
   destination:
@@ -23,3 +25,8 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: synapsets
+      annotations:
+        k8s.cedille.club/club: synapsets

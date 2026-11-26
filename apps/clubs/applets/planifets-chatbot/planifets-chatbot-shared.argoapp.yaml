@@ -6,6 +6,8 @@ metadata:
   annotations:
     k8s.cedille.club/club: "applets"
     argocd.argoproj.io/sync-wave: "2"
+  labels:
+    k8s.cedille.club/club: applets
 spec:
   project: applets
   destination:
@@ -22,6 +24,11 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: applets
+      annotations:
+        k8s.cedille.club/club: applets
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -31,6 +38,8 @@ metadata:
   annotations:
     k8s.cedille.club/club: "applets"
     argocd.argoproj.io/sync-wave: "2"
+  labels:
+    k8s.cedille.club/club: applets
 spec:
   project: applets
   destination:
@@ -47,6 +56,11 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: applets
+      annotations:
+        k8s.cedille.club/club: applets
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -56,6 +70,8 @@ metadata:
   annotations:
     k8s.cedille.club/club: "applets"
     argocd.argoproj.io/sync-wave: "2"
+  labels:
+    k8s.cedille.club/club: applets
 spec:
   project: applets
   destination:
@@ -72,3 +88,8 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: applets
+      annotations:
+        k8s.cedille.club/club: applets

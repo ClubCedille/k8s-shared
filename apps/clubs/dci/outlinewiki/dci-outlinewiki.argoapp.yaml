@@ -3,6 +3,10 @@ kind: Application
 metadata:
   name: dci-outlinewiki
   namespace: argocd
+  labels:
+    k8s.cedille.club/club: dci
+  annotations:
+    k8s.cedille.club/club: dci
 spec:
   destination:
     namespace: dci-outlinewiki
@@ -18,3 +22,8 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: dci
+      annotations:
+        k8s.cedille.club/club: dci

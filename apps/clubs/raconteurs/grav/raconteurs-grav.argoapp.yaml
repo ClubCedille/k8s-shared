@@ -8,6 +8,8 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
     argocd-image-updater.argoproj.io/image-list: website=ghcr.io/clubcedille/grav:latest
     argocd-image-updater.argoproj.io/website.update-strategy: digest
+  labels:
+    k8s.cedille.club/club: raconteursdangle
 spec:
   project: k8s-shared
   destination:
@@ -23,3 +25,8 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: raconteursdangle
+      annotations:
+        k8s.cedille.club/club: raconteursdangle

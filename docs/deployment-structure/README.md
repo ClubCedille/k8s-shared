@@ -20,6 +20,8 @@ with the outliers called out and a target layout to converge on.
 >   tranchée : `apps/nextcloud-new` sert `nextcloud.etsmtl.club` et
 >   `apps/nextcloud` sert `old-nextcloud.etsmtl.club` depuis #719 (2026-11-23) ;
 > - la conversion Ingress → HTTPProxy décrite en §6 est désormais commitée ;
+> - §4.6 est résolu : `apps/clubs/comets/data_acq` est maintenant une
+>   kustomization (Helm + ressources) au lieu d'un path brut ;
 > - voir `docs/nextcloud-migration-2026-09/README.md` pour l'état détaillé.
 
 ---

@@ -3,12 +3,9 @@ kind: Kustomization
 metadata:
   name: inventree
   namespace: comets-inventree
-
 namespace: comets-inventree
-
 resources:
   - prod
-
 helmCharts:
   - name: valkey
     releaseName: inventree-cache
@@ -25,7 +22,6 @@ helmCharts:
 patches:
   - path: patches/inventree-deployment.yaml
   - path: patches/inventree-worker.yaml
-
   - target:
       kind: Deployment
       labelSelector: app.kubernetes.io/managed-by=Helm
@@ -40,3 +36,10 @@ patches:
             pod-networkpolicy,
             container-image-tag,
             container-image-pull-policy
+labels:
+  - pairs:
+      k8s.cedille.club/club: comets
+    includeSelectors: false
+    includeTemplates: true
+commonAnnotations:
+  k8s.cedille.club/club: comets

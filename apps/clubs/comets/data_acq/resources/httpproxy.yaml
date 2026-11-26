@@ -2,6 +2,10 @@ apiVersion: projectcontour.io/v1
 kind: HTTPProxy
 metadata:
   name: grafana-ingress
+  labels:
+    k8s.cedille.club/club: comets
+  annotations:
+    k8s.cedille.club/club: comets
 spec:
   virtualhost:
     fqdn: grafana.prodv2.cedille.club
@@ -20,6 +24,10 @@ apiVersion: projectcontour.io/v1
 kind: HTTPProxy
 metadata:
   name: influxdb2-ingress
+  labels:
+    k8s.cedille.club/club: comets
+  annotations:
+    k8s.cedille.club/club: comets
 spec:
   virtualhost:
     fqdn: influxdb.prodv2.cedille.club

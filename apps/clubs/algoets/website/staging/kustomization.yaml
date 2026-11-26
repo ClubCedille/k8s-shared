@@ -1,8 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 namespace: algoets-website-staging
-
 resources:
   - bucket.yaml
   - configmap.yaml
@@ -12,3 +10,10 @@ resources:
   - certificate.yaml
   - httpproxy.yaml
   - bucket-policy-job.yaml
+labels:
+  - pairs:
+      k8s.cedille.club/club: algoets
+    includeSelectors: false
+    includeTemplates: true
+commonAnnotations:
+  k8s.cedille.club/club: algoets

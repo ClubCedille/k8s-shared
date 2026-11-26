@@ -9,6 +9,8 @@ metadata:
     argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/clubcedille/algoets-website:latest
     argocd-image-updater.argoproj.io/webapp.update-strategy: digest
     argocd-image-updater.argoproj.io/webapp.pull-secret: pullsecret:argocd/ghcr-clubcedille-secret
+  labels:
+    k8s.cedille.club/club: algoets
 spec:
   project: k8s-shared
   destination:
@@ -24,3 +26,8 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: algoets
+      annotations:
+        k8s.cedille.club/club: algoets

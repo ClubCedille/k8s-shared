@@ -6,6 +6,8 @@ metadata:
   annotations:
     k8s.cedille.club/club: "synapsets"
     argocd.argoproj.io/sync-wave: "2"
+  labels:
+    k8s.cedille.club/club: synapsets
 spec:
   project: k8s-shared
   destination:
@@ -21,3 +23,8 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: synapsets
+      annotations:
+        k8s.cedille.club/club: synapsets

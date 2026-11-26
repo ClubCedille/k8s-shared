@@ -7,6 +7,9 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
     argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/clubcedille/gdg-ets-hub:latest
     argocd-image-updater.argoproj.io/webapp.update-strategy: digest
+    k8s.cedille.club/club: gdg
+  labels:
+    k8s.cedille.club/club: gdg
 spec:
   project: k8s-shared
   destination:
@@ -22,3 +25,8 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: gdg
+      annotations:
+        k8s.cedille.club/club: gdg

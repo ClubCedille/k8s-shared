@@ -5,6 +5,8 @@ metadata:
   namespace: argocd
   annotations:
     k8s.cedille.club/club: "capra"
+  labels:
+    k8s.cedille.club/club: capra
 spec:
   destination:
     namespace: capra-outlinewiki
@@ -20,3 +22,8 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: capra
+      annotations:
+        k8s.cedille.club/club: capra

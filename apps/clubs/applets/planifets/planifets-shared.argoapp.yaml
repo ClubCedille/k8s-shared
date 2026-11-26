@@ -9,6 +9,8 @@ metadata:
     argocd-image-updater.argoproj.io/image-list: website=ghcr.io/applets/planifets-frontend:latest, backend=ghcr.io/applets/planifets-backend:latest
     argocd-image-updater.argoproj.io/website.update-strategy: digest
     argocd-image-updater.argoproj.io/backend.update-strategy: digest
+  labels:
+    k8s.cedille.club/club: applets
 spec:
   project: applets
   destination:
@@ -24,6 +26,11 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: applets
+      annotations:
+        k8s.cedille.club/club: applets
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -36,6 +43,8 @@ metadata:
     argocd-image-updater.argoproj.io/image-list: website=ghcr.io/applets/planifets-frontend:staging, backend=ghcr.io/applets/planifets-backend:staging
     argocd-image-updater.argoproj.io/website.update-strategy: digest
     argocd-image-updater.argoproj.io/backend.update-strategy: digest
+  labels:
+    k8s.cedille.club/club: applets
 spec:
   project: applets
   destination:
@@ -52,6 +61,11 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: applets
+      annotations:
+        k8s.cedille.club/club: applets
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -64,6 +78,8 @@ metadata:
     argocd-image-updater.argoproj.io/image-list: website=ghcr.io/applets/planifets-frontend:dev, backend=ghcr.io/applets/planifets-backend:dev
     argocd-image-updater.argoproj.io/website.update-strategy: digest
     argocd-image-updater.argoproj.io/backend.update-strategy: digest
+  labels:
+    k8s.cedille.club/club: applets
 spec:
   project: applets
   destination:
@@ -80,3 +96,8 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: applets
+      annotations:
+        k8s.cedille.club/club: applets

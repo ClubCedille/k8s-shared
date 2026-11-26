@@ -7,6 +7,9 @@ metadata:
     argocd-image-updater.argoproj.io/image-list: etshub=ghcr.io/clubcedille/etshub:latest
     argocd-image-updater.argoproj.io/etshub.update-strategy: digest
     argocd-image-updater.argoproj.io/etshub.pull-secret: pullsecret:argocd/ghcr-clubcedille-secret
+    k8s.cedille.club/club: etshub
+  labels:
+    k8s.cedille.club/club: etshub
 spec:
   project: k8s-shared
   destination:
@@ -22,3 +25,8 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: etshub
+      annotations:
+        k8s.cedille.club/club: etshub

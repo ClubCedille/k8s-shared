@@ -5,6 +5,8 @@ metadata:
   namespace: argocd
   annotations:
     k8s.cedille.club/club: "cedille"
+  labels:
+    k8s.cedille.club/club: cedille
 spec:
   destination:
     namespace: outline-cedille
@@ -20,3 +22,8 @@ spec:
       selfHeal: false
     syncOptions:
       - CreateNamespace=true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: cedille
+      annotations:
+        k8s.cedille.club/club: cedille
