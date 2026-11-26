@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mercur-api-config
+data:
+  # Internal service URLs
+  REDIS_URL: "redis://redis:6379"
+
+  # Public base URLs
+  BACKEND_URL: "https://api.mercur.etsmtl.club"
+  STOREFRONT_URL: "https://mercur.etsmtl.club"
+  MERCUR_VENDOR_URL: "https://api.mercur.etsmtl.club/seller"
+  ADMIN_URL: "https://api.mercur.etsmtl.club/dashboard"
+
+  # CORS configuration for backend API
+  STORE_CORS: "https://mercur.etsmtl.club,https://docs.medusajs.com"
+  ADMIN_CORS: "https://api.mercur.etsmtl.club"
+  VENDOR_CORS: "https://api.mercur.etsmtl.club"
+  AUTH_CORS: "https://api.mercur.etsmtl.club,https://mercur.etsmtl.club"
+
+  # Storefront revalidation endpoint
+  STOREFRONT_REVALIDATE_URL: "https://mercur.etsmtl.club"
+
+  # S3 Object Storage (Ceph RGW from outline pattern)
+  S3_ENDPOINT: "https://s3.etsmtl.club"
+  S3_REGION: "us-east-1"
+  S3_FORCE_PATH_STYLE: "true"
