@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: synapse-admin-cert
+  namespace: matrix
+spec:
+  secretName: synapse-admin-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: synapse-admin.etsmtl.club
+  dnsNames:
+    - synapse-admin.etsmtl.club
