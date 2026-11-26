@@ -35,7 +35,7 @@ spec:
       containers:
         - name: formulemaster
           image: ghcr.io/canoe-beton-ets/formulemaster@sha256:d8a62b3058171f2ebe340c1a52e08ff29f75e07b5f6a33996969d182a78cb433
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
             - name: PUBLIC_ORIGIN
               value: https://formule.canoe.etsmtl.club
