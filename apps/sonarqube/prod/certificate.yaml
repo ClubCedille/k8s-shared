@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: sonarqube-tls
+  namespace: sonarqube
+spec:
+  secretName: sonarqube-tls-secret
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: sonarqube.etsmtl.club
+  dnsNames:
+    - sonarqube.etsmtl.club

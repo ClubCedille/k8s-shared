@@ -1,0 +1,20 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: supabase
+  namespace: exutoire
+  annotations:
+    gatus.cedille/protocol: "tcp"
+spec:
+  virtualhost:
+    fqdn: supabase.exutoire.etsmtl.club
+    tls:
+      secretName: supabase-tls
+      minimumProtocolVersion: "1.3"
+  routes:
+    - conditions:
+        - prefix: /
+      enableWebsockets: true
+      services:
+        - name: supabase-supabase-kong
+          port: 8000

@@ -53,7 +53,7 @@ setAdminPassword:
   passwordSecretName: "sonarqube-secrets"
 
 ingress:
-  enabled: true
+  enabled: false
   ingressClassName: contour
   hosts:
     - name: sonarqube.etsmtl.club

@@ -3,4 +3,6 @@ kind: Kustomization
 
 resources:
   - cnpg.cluster.yaml
+  - certificate.yaml
+  - httpproxy.yaml
   - ../base

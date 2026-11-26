@@ -20,6 +20,8 @@ with the outliers called out and a target layout to converge on.
 >   tranchée : `apps/nextcloud-new` sert `nextcloud.etsmtl.club` et
 >   `apps/nextcloud` sert `old-nextcloud.etsmtl.club` depuis #719 (2026-11-23) ;
 > - la conversion Ingress → HTTPProxy décrite en §6 est désormais commitée ;
+> - les 3 derniers Ingress générés par Helm (Forgejo, SonarQube, Supabase) ont
+>   aussi été convertis en HTTPProxy + Certificate ;
 > - §4.6 est résolu : `apps/clubs/comets/data_acq` est maintenant une
 >   kustomization (Helm + ressources) au lieu d'un path brut ;
 > - voir `docs/nextcloud-migration-2026-09/README.md` pour l'état détaillé.
@@ -171,11 +173,11 @@ It is historical residue that makes the app list harder to scan.
 project; the single-app projects add no value.
 
 ### 4.5 Directories named `ingress.yaml` that contain HTTPProxy
-Pre-existing, untouched by the conversion in §6: `preview-base/ingress.yaml`,
-`apps/clubs/preci/wordpress/prod/ingress.yaml`,
-`apps/clubs/veloom/wordpress/prod/ingress.yaml`,
-`system/argocd/resources/ingress.yaml`, `apps/clubs/crd-schema-publisher/`.
-Misleading now that HTTPProxy is the standard.
+**Résolu :** les fichiers `preview-base`, `preci/wordpress/prod`,
+`veloom/wordpress/prod` et `system/argocd/resources` ont été renommés en
+`httpproxy.yaml` (`httpproxy-etsmtl.yaml` pour VeloOM, afin de ne pas écraser
+l'autre proxy du même dossier). `crd-schema-publisher` utilise déjà
+`resources/httpproxy.yaml`.
 
 ### 4.6 `data_acq` uses a raw directory as an ArgoCD source
 `apps/clubs/comets/data_acq/resources` is referenced directly as an ArgoCD
@@ -184,9 +186,9 @@ that does this (the other two, `coder` and `planka`, are Shape D Helm apps, so
 they have a reason). Everything else goes through kustomize.
 
 ### 4.7 Naming oddities
-- `apps/clubs/veloom/wordpress/prod/staging-ingress.yaml` serves
-  `evovelo.prodv2.cedille.club` — "veloom" directory, "evovelo" hostname, and a
-  file called "staging" inside `prod`.
+- `apps/clubs/veloom/wordpress/prod/httpproxy.yaml` sert
+  `evovelo.prodv2.cedille.club` — "veloom" directory, "evovelo" hostname, et
+  `httpproxy-etsmtl.yaml` sert `evovelo.etsmtl.ca`.
 - `apps/forgejo/base`, `apps/matomo/prod/mariadb`, `apps/kubero-ui/{base,prod}`
   are not referenced by any Application. `apps/kubero-operator` and
   `system/backups` likewise (`velero-backup` exists only in-cluster, see §4.2).
@@ -260,6 +262,10 @@ and `outlinewiki`.
   port, TLS secret and issuer: 29/29 buildable overlays identical, plus 5
   blocked only by remote Helm chart downloads, verified at file level.
 
+Depuis, les 3 derniers `Ingress` générés par des charts Helm ont aussi été
+convertis : `ingress.enabled: false` dans Forgejo, SonarQube et Supabase, avec
+des `HTTPProxy` + `Certificate` explicites dans les overlays.
+
 ---
 
 ## 7. Suggested order of work
@@ -268,7 +274,7 @@ and `outlinewiki`.
    the only unreproducible state. Do this first.
 2. **Fix the 4 hostname/path divergences** (§4.1) and restore the 8 app-name
    segments. Mechanical `git mv`, one PR per repo, no manifest edits.
-3. **Rename the misleading `ingress.yaml` files** (§4.5). Trivial.
+3. **Rename the misleading `ingress.yaml` files** (§4.5). **Fait.**
 4. **Collapse the Helm shapes** (§3) onto Shape A. Largest change; do it app by
    app. La question Nextcloud n'est plus ouverte : conserver `apps/nextcloud-new`
    comme copie autoritative et traiter `apps/nextcloud` comme legacy (voir
