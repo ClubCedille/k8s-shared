@@ -107,6 +107,21 @@ Une fois le status `UP` :
 - vérifier l'API `/api/plugins/installed` ou l'UI *Administration > Marketplace* ;
 - reanalyser les projets (recommandation SonarSource post-update).
 
+## Exécution du 26/11/2026
+
+| Heure (UTC) | Événement |
+|---|---|
+| 01:28 | Backup CNPG terminé (`backupId 20261126T012827`) |
+| 01:35 | PR #801 mergée ; ArgoCD déploie image `26.10.0.133078-community`, chart `2026.5.1008`, `ephemeral-storage: 1Gi` |
+| 01:38 | `POST /api/system/migrate_db` → `{"state":"MIGRATION_RUNNING"}`, puis `DB_MIGRATION_RUNNING` |
+| ~01:45 | Migration DB terminée : `schema_migrations` passe de `202603003` à `202606006` ; redémarrage du web server et réindexation Elasticsearch |
+| 01:54 | `/api/system/status` passe en `UP` ; le plugin `26.10.0` est chargé (`Loaded core extensions: Community Branch Plugin`) |
+| 01:55–02:07 | Le pod est tué à plusieurs reprises par les probes du chart pendant la réindexation (`startupProbe`: 24×10s avec timeout 1s ; `livenessProbe` dès 60s) |
+
+Correctif appliqué : assouplissement des probes dans `values.yaml` (`startupProbe.failureThreshold: 90`, `timeoutSeconds: 5`, `livenessProbe.initialDelaySeconds: 180`, `failureThreshold: 12`, `timeoutSeconds: 10`). Le `selfHeal` d'ArgoCD a été désactivé temporairement pendant l'application du correctif en live, puis réactivé après merge de la PR de correction.
+
+Le Job `change-admin-password-hook` (bloqué depuis le 14/11 sur `DB_MIGRATION_NEEDED`) s'est terminé normalement dès le retour à `UP`.
+
 ## Rollback
 
 La migration de schéma n'est pas réversible en place. En cas d'échec :
@@ -119,3 +134,5 @@ La migration de schéma n'est pas réversible en place. En cas d'échec :
 
 - Les nombreux objets `Backup` avec `spec.cluster.name: sonarqube-postgresql` (ancien nom) restent en `Unknown`/`failed` et polluent les events. Le `ScheduledBackup` actuel utilise le bon nom `postgresql-sonarqube-cluster` et produit des backups `completed` quotidiennement.
 - Le défaut `ephemeral-storage: 512000M` du chart est un héritage de l'époque où `persistence.enabled: false` ; avec le PVC 20Gi il n'a aucun sens et faussait les inventaires (~1 To sur 2 pods).
+- Les probes par défaut du chart ne survivent pas à une migration DB : la réindexation Elasticsearch depuis la DB peut dépasser 4 minutes sur CephFS, ce qui déclenche `startupProbe` (24×10s, timeout 1s) puis `livenessProbe`. Les valeurs assouplies dans `values.yaml` sont nécessaires pour toute future montée de version avec migration.
+- L'accès via Omni (`kubectl`) a présenté des `proxy error` intermittents pendant l'opération ; le endpoint public `https://sonarqube.etsmtl.club/api/system/status` reste le moyen le plus simple de vérifier l'état.
