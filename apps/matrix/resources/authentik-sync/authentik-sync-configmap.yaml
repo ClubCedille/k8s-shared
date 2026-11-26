@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-sync-config
+  namespace: matrix
+data:
+  mapping.json: |
+    {
+      "kick_removed": false,
+      "groups": {
+        "exec-cedille": [
+          "!6vXBRsnTJcWgU2_ho7MyVrP_wewGNna4eL-fS1Tz0SE",
+          "!c77XDc8HZzsfvGrUFN3w4vaAr7P1IuZ1To62dUei0CA"
+        ],
+        "club-cedille": [
+          "!c77XDc8HZzsfvGrUFN3w4vaAr7P1IuZ1To62dUei0CA"
+        ]
+      },
+      "admins": {
+        "exec-cedille": [
+          "!6vXBRsnTJcWgU2_ho7MyVrP_wewGNna4eL-fS1Tz0SE",
+          "!c77XDc8HZzsfvGrUFN3w4vaAr7P1IuZ1To62dUei0CA"
+        ]
+      }
+    }
+  sync.py: |
+    import json, os, urllib.error, urllib.parse, urllib.request
+
+    AK, AK_TOK = os.environ["AUTHENTIK_URL"].rstrip("/"), os.environ["AUTHENTIK_TOKEN"]
+    SYN, SYN_TOK = os.environ["SYNAPSE_URL"].rstrip("/"), os.environ["SYNAPSE_ADMIN_TOKEN"]
+    DOM = os.environ["MATRIX_DOMAIN"]
+
+    def req(url, tok, method="GET", body=None):
+        data = json.dumps(body).encode() if body is not None else None
+        hdrs = {"Authorization": f"Bearer {tok}", "Content-Type": "application/json", "User-Agent": "matrix-authentik-sync/1.0"}
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, data, hdrs, method=method), timeout=20) as r:
+                return json.loads(r.read() or "{}")
+        except urllib.error.HTTPError as e:
+            print(f"[HTTP {e.code}] {url} -> {e.read().decode('utf-8', 'replace')}")
+            raise
+
+    def ak_members(group):
+        mxids, page = set(), 1
+        while page:
+            res = req(f"{AK}/api/v3/core/users/?groups_by_name={urllib.parse.quote(group)}&is_active=true&page_size=200&page={page}", AK_TOK)
+            mxids |= {f"@{u['username'].strip().lower()}:{DOM}" for u in res.get("results", []) if u.get("username")}
+            page = res.get("pagination", {}).get("next") or None
+        return mxids
+
+    cfg = json.load(open("/config/mapping.json"))
+    admin = req(f"{SYN}/_matrix/client/v3/account/whoami", SYN_TOK).get("user_id")
+    syn_users = {u["name"] for u in req(f"{SYN}/_synapse/admin/v2/users?limit=500&guests=false", SYN_TOK).get("users", [])}
+    expected_by_room, admins_by_room = {}, {}
+    for target, src in ((expected_by_room, cfg.get("groups", {})), (admins_by_room, cfg.get("admins", {}))):
+        for grp, rooms in src.items():
+            if rooms:
+                members = ak_members(grp) & syn_users
+                print(f"[GROUP] {grp}: {len(members)} membre(s) actif(s) sur Matrix")
+                for r in rooms:
+                    target.setdefault(r, set()).update(members)
+
+    for room, expected in expected_by_room.items():
+        rid = urllib.parse.quote(room, safe="")
+        try:
+            current = set(req(f"{SYN}/_synapse/admin/v1/rooms/{rid}/members", SYN_TOK).get("members", []))
+        except urllib.error.HTTPError:
+            continue
+        for u in sorted(expected - current):
+            try:
+                req(f"{SYN}/_synapse/admin/v1/join/{rid}", SYN_TOK, "POST", {"user_id": u})
+                print(f"[JOIN] {u} -> {room}")
+            except urllib.error.HTTPError:
+                pass
+        if cfg.get("kick_removed"):
+            for u in sorted(current - expected):
+                if u != admin and u.endswith(f":{DOM}"):
+                    try:
+                        req(f"{SYN}/_matrix/client/v3/rooms/{rid}/kick", SYN_TOK, "POST", {"user_id": u, "reason": "Retiré du groupe Authentik"})
+                        print(f"[KICK] {u} <- {room}")
+                    except urllib.error.HTTPError:
+                        pass
+
+    for room, adm_users in admins_by_room.items():
+        rid = urllib.parse.quote(room, safe="")
+        try:
+            pl = req(f"{SYN}/_matrix/client/v3/rooms/{rid}/state/m.room.power_levels", SYN_TOK)
+            users = pl.setdefault("users", {})
+            changed = [u for u in sorted(adm_users) if users.get(u, 0) < 100 and not users.__setitem__(u, 100)]
+            if changed:
+                req(f"{SYN}/_matrix/client/v3/rooms/{rid}/state/m.room.power_levels", SYN_TOK, "PUT", pl)
+                print(f"[ADMIN] {', '.join(changed)} -> {room}")
+        except urllib.error.HTTPError:
+            pass

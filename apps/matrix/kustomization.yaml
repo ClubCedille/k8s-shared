@@ -36,6 +36,9 @@ resources:
   - resources/hookshot/matrix-hookshot-deployment.yaml
   - resources/hookshot/matrix-hookshot-httpproxy.yaml
   - resources/hookshot/matrix-hookshot-service.yaml
+  # Authentik -> Matrix Space Sync
+  - resources/authentik-sync/authentik-sync-configmap.yaml
+  - resources/authentik-sync/authentik-sync-cronjob.yaml
 helmCharts:
   - name: matrix-synapse
     repo: https://ananace.gitlab.io/charts
