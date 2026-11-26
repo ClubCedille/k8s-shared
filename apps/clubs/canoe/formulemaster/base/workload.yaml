@@ -1,0 +1,106 @@
+﻿apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: formulemaster-data
+spec:
+  storageClassName: ceph-rbd
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: formulemaster
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: formulemaster
+  template:
+    metadata:
+      labels:
+        app: formulemaster
+    spec:
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: formulemaster-ghcr
+      securityContext:
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: formulemaster
+          image: ghcr.io/canoe-beton-ets/formulemaster@sha256:d8a62b3058171f2ebe340c1a52e08ff29f75e07b5f6a33996969d182a78cb433
+          imagePullPolicy: Always
+          env:
+            - name: PUBLIC_ORIGIN
+              value: https://formule.canoe.etsmtl.club
+          ports:
+            - name: http
+              containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+              ephemeral-storage: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: formulemaster-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: formulemaster
+spec:
+  type: ClusterIP
+  selector:
+    app: formulemaster
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: formulemaster
+spec:
+  podSelector:
+    matchLabels:
+      app: formulemaster
+  policyTypes:
+    - Ingress
+  ingress: []
