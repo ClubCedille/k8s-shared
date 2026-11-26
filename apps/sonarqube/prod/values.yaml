@@ -30,6 +30,19 @@ resources:
   limits:
     ephemeral-storage: 1Gi
 
+# After a DB migration SonarQube rebuilds its Elasticsearch indexes from the
+# database, which takes several minutes on the CephFS PVC. The chart defaults
+# (startup: 24x10s with a 1s timeout, liveness: starting after 60s) killed the
+# pod mid-startup and caused a crash loop. Give startup enough room and don't
+# let liveness fire while the web server is still warming up.
+startupProbe:
+  failureThreshold: 90
+  timeoutSeconds: 5
+livenessProbe:
+  initialDelaySeconds: 180
+  failureThreshold: 12
+  timeoutSeconds: 10
+
 # Settings to configure elasticsearch host requirements
 elasticsearch:
   bootstrapChecks: false
