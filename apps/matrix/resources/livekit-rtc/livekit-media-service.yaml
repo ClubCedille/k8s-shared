@@ -4,18 +4,18 @@ metadata:
   name: livekit-media
   namespace: matrix
   annotations:
-    # external-dns (source=service) crée le A record turn.etsmtl.club -> .72
+    # external-dns (source=service) crée le A record turn.etsmtl.club -> .77
     external-dns.alpha.kubernetes.io/hostname: turn.etsmtl.club
 spec:
   type: LoadBalancer
-  loadBalancerIP: 142.137.247.72
+  loadBalancerIP: 142.137.247.77
   externalTrafficPolicy: Local
   selector:
     app: livekit
   ports:
     - name: turn-tls
-      port: 443
-      targetPort: 443
+      port: 5349
+      targetPort: 5349
       protocol: TCP
     - name: ice-tcp
       port: 7881
