@@ -1,0 +1,19 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: hookshot-proxy
+  namespace: matrix
+spec:
+  virtualhost:
+    fqdn: hookshot.etsmtl.club
+    tls:
+      secretName: hookshot-tls
+  routes:
+    - conditions:
+        - prefix: /
+      services:
+        - name: matrix-hookshot
+          port: 9000
+      timeoutPolicy:
+        response: 60s
+        idle: 60s

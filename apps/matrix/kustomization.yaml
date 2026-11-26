@@ -30,6 +30,12 @@ resources:
   - resources/synapse-admin/synapse-admin-deployment.yaml
   - resources/synapse-admin/synapse-admin-httpproxy.yaml
   - resources/synapse-admin/synapse-admin-services.yaml
+  # Matrix Hookshot
+  - resources/hookshot/matrix-hookshot-certificate.yaml
+  - resources/hookshot/matrix-hookshot-configmap.yaml
+  - resources/hookshot/matrix-hookshot-deployment.yaml
+  - resources/hookshot/matrix-hookshot-httpproxy.yaml
+  - resources/hookshot/matrix-hookshot-service.yaml
 helmCharts:
   - name: matrix-synapse
     repo: https://ananace.gitlab.io/charts

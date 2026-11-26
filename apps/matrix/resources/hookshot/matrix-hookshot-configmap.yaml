@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: matrix-hookshot-config
+  namespace: matrix
+
+
+data:
+  config.yml: |
+    bridge:
+      domain: matrix.etsmtl.club
+      url: http://matrix-stack-matrix-synapse:8008
+      mediaUrl: https://matrix.etsmtl.club
+      port: 9993
+      bindAddress: 0.0.0.0
+
+    passFile: /data/passkey.pem
+
+    generic:
+      enabled: true
+      urlPrefix: https://hookshot.etsmtl.club/webhook
+      allowJsTransformationFunctions: false
+
+    listeners:
+      - port: 9000
+        bindAddress: 0.0.0.0
+        resources:
+          - webhooks
+
+    permissions:
+      - actor: matrix.etsmtl.club
+        services:
+          - service: "*"
+            level: manageConnections
+    logging:
+      level: info
