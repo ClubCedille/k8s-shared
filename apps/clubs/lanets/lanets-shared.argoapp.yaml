@@ -5,6 +5,8 @@ metadata:
   namespace: argocd
   annotations:
     k8s.cedille.club/club: "lanets"
+  labels:
+    k8s.cedille.club/club: lanets
 spec:
   destination:
     namespace: lanets-shared
@@ -20,3 +22,8 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: lanets
+      annotations:
+        k8s.cedille.club/club: lanets

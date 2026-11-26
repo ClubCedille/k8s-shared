@@ -181,7 +181,8 @@ extraEmptyDirMounts: []
 
 
 # Apply extra labels to common labels.
-extraLabels: {}
+extraLabels:
+  k8s.cedille.club/club: comets
 
 ## Assign a PriorityClassName to pods if set
 # priorityClassName:

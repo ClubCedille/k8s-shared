@@ -8,6 +8,8 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
     argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/conjureets/conjure-site:latest
     argocd-image-updater.argoproj.io/webapp.update-strategy: digest
+  labels:
+    k8s.cedille.club/club: conjure
 spec:
   project: conjure
   destination:
@@ -23,3 +25,8 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: conjure
+      annotations:
+        k8s.cedille.club/club: conjure

@@ -2,6 +2,10 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: grafana-tls
+  labels:
+    k8s.cedille.club/club: comets
+  annotations:
+    k8s.cedille.club/club: comets
 spec:
   secretName: grafana-tls
   issuerRef:
@@ -15,6 +19,10 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: influxdb2-tls
+  labels:
+    k8s.cedille.club/club: comets
+  annotations:
+    k8s.cedille.club/club: comets
 spec:
   secretName: influxdb2-tls
   issuerRef:

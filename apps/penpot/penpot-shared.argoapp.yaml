@@ -1,22 +1,30 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: calidum-rotae-shared
+  name: penpot-shared
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "2"
+    k8s.cedille.club/club: penpot
+  labels:
+    k8s.cedille.club/club: penpot
 spec:
   project: k8s-shared
   destination:
     server: https://kubernetes.default.svc
-    namespace: calidum-rotae
+    namespace: penpot
   source:
+    path: apps/penpot
     repoURL: https://github.com/ClubCedille/k8s-shared
-    path: apps/clubs/calidum-rotae/prod
     targetRevision: HEAD
   syncPolicy:
+    automated:
+      prune: false
+      selfHeal: false
     syncOptions:
       - CreateNamespace=true
-    automated:
-      selfHeal: true
-      prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: penpot
+      annotations:
+        k8s.cedille.club/club: penpot

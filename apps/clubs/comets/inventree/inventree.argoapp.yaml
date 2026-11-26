@@ -5,6 +5,8 @@ metadata:
   namespace: argocd
   annotations:
     k8s.cedille.club/club: "comets"
+  labels:
+    k8s.cedille.club/club: comets
 spec:
   project: k8s-shared
   destination:
@@ -14,9 +16,13 @@ spec:
     repoURL: https://github.com/ClubCedille/k8s-shared.git
     targetRevision: HEAD
     path: apps/clubs/comets/inventree
-
   syncPolicy:
     automated:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: comets
+      annotations:
+        k8s.cedille.club/club: comets

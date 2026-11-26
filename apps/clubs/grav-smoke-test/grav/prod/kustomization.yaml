@@ -1,12 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 namePrefix: grav-smoke-test-
-
 resources:
   - ../../../../../bases/grav
   - vault-secret.yaml
-
 patches:
   - path: vault-patch.yaml
   - target:
@@ -44,3 +41,8 @@ patches:
       - op: replace
         path: /spec/path
         value: kv/data/grav-smoke-test-grav/default/grav
+labels:
+  - pairs:
+      k8s.cedille.club/club: grav-smoke-test
+    includeSelectors: false
+    includeTemplates: true

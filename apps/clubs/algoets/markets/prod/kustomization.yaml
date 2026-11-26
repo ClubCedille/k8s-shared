@@ -1,12 +1,17 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 resources:
   - ../base
   - httpproxy.yaml
   - certificate.yaml
   - configMap.yaml
   - vault-secret.yaml
-
 patches:
   - path: patch-api-token-salt.yaml
+labels:
+  - pairs:
+      k8s.cedille.club/club: algoets
+    includeSelectors: false
+    includeTemplates: true
+commonAnnotations:
+  k8s.cedille.club/club: algoets

@@ -10,6 +10,9 @@ metadata:
     argocd-image-updater.argoproj.io/mysql.update-strategy: digest
     argocd-image-updater.argoproj.io/webapp.pull-secret: pullsecret:argocd/ghcr-crabe-secret
     argocd-image-updater.argoproj.io/mysql.pull-secret: pullsecret:argocd/ghcr-crabe-secret
+    k8s.cedille.club/club: crabe
+  labels:
+    k8s.cedille.club/club: crabe
 spec:
   project: k8s-shared
   destination:
@@ -25,6 +28,11 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: crabe
+      annotations:
+        k8s.cedille.club/club: crabe
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -38,6 +46,9 @@ metadata:
     argocd-image-updater.argoproj.io/mysql.update-strategy: digest
     argocd-image-updater.argoproj.io/webapp.pull-secret: pullsecret:argocd/ghcr-crabe-secret
     argocd-image-updater.argoproj.io/mysql.pull-secret: pullsecret:argocd/ghcr-crabe-secret
+    k8s.cedille.club/club: crabe
+  labels:
+    k8s.cedille.club/club: crabe
 spec:
   project: k8s-shared
   destination:
@@ -53,3 +64,8 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: crabe
+      annotations:
+        k8s.cedille.club/club: crabe

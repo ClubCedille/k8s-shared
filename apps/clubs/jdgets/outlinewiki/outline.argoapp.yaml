@@ -5,6 +5,8 @@ metadata:
   namespace: argocd
   annotations:
     k8s.cedille.club/club: "jdgets"
+  labels:
+    k8s.cedille.club/club: jdgets
 spec:
   destination:
     namespace: jdgets-outlinewiki
@@ -20,3 +22,8 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: jdgets
+      annotations:
+        k8s.cedille.club/club: jdgets

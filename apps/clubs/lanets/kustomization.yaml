@@ -3,6 +3,12 @@ kind: Kustomization
 metadata:
   name: lanets-v1
   namespace: lanets-shared
-
 resources:
   - resources/certificate.yaml
+labels:
+  - pairs:
+      k8s.cedille.club/club: lanets
+    includeSelectors: false
+    includeTemplates: true
+commonAnnotations:
+  k8s.cedille.club/club: lanets

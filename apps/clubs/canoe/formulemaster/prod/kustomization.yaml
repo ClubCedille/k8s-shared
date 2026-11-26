@@ -3,3 +3,10 @@ kind: Kustomization
 namespace: formulemaster
 resources:
   - ../base
+labels:
+  - pairs:
+      k8s.cedille.club/club: canoe
+    includeSelectors: false
+    includeTemplates: true
+commonAnnotations:
+  k8s.cedille.club/club: canoe

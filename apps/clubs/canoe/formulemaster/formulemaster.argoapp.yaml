@@ -3,6 +3,10 @@ kind: Application
 metadata:
   name: formulemaster
   namespace: argocd
+  labels:
+    k8s.cedille.club/club: canoe
+  annotations:
+    k8s.cedille.club/club: canoe
 spec:
   project: k8s-shared
   destination:
@@ -17,3 +21,8 @@ spec:
       - CreateNamespace=true
     automated:
       selfHeal: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: canoe
+      annotations:
+        k8s.cedille.club/club: canoe

@@ -5,6 +5,9 @@ metadata:
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "2"
+    k8s.cedille.club/club: exutoire
+  labels:
+    k8s.cedille.club/club: exutoire
 spec:
   project: k8s-shared
   destination:
@@ -20,3 +23,8 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: exutoire
+      annotations:
+        k8s.cedille.club/club: exutoire

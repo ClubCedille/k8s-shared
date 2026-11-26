@@ -5,6 +5,8 @@ metadata:
   namespace: argocd
   annotations:
     k8s.cedille.club/club: "algoets"
+  labels:
+    k8s.cedille.club/club: algoets
 spec:
   destination:
     namespace: algoets-s3-bucket
@@ -20,3 +22,8 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: algoets
+      annotations:
+        k8s.cedille.club/club: algoets

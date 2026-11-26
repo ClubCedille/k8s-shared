@@ -8,6 +8,9 @@ metadata:
     argocd-image-updater.argoproj.io/image-list: website=ghcr.io/clubcedille/saveursdegenie.etsmtl.ca:latest
     argocd-image-updater.argoproj.io/website.update-strategy: digest
     argocd-image-updater.argoproj.io/website.pull-secret: pullsecret:argocd/ghcr-clubcedille-secret
+    k8s.cedille.club/club: saveursdegenie
+  labels:
+    k8s.cedille.club/club: saveursdegenie
 spec:
   project: k8s-shared
   destination:
@@ -24,3 +27,8 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: saveursdegenie
+      annotations:
+        k8s.cedille.club/club: saveursdegenie

@@ -7,6 +7,9 @@ metadata:
     argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/clubcedille/exutoire:latest
     argocd-image-updater.argoproj.io/webapp.update-strategy: digest
     argocd-image-updater.argoproj.io/webapp.pull-secret: pullsecret:argocd/ghcr-clubcedille-secret
+    k8s.cedille.club/club: exutoire
+  labels:
+    k8s.cedille.club/club: exutoire
 spec:
   project: k8s-shared
   destination:
@@ -22,3 +25,8 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: exutoire
+      annotations:
+        k8s.cedille.club/club: exutoire

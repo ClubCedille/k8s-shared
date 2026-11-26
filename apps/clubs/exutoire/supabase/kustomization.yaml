@@ -1,6 +1,5 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 resources:
   - resources/namespace.yaml
   - resources/configMap.yaml
@@ -13,7 +12,6 @@ helmCharts:
     releaseName: "supabase"
     namespace: exutoire
     valuesFile: "helm/values.yaml"
-
 patches:
   ## The supabase helm chart v0.5.0 renders the db StatefulSet without
   ## serviceName; the "supabase" Service already selects (app.kubernetes.io/name: supabase-db).
@@ -74,7 +72,7 @@ patches:
   - target:
       kind: Deployment
       name: supabase-supabase-imgproxy
-    patch: |
+    patch: |-
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
@@ -91,3 +89,10 @@ patches:
             secretKeyRef:
               name: supabase-secret
               key: S3_SECRET_ACCESS_KEY
+labels:
+  - pairs:
+      k8s.cedille.club/club: exutoire
+    includeSelectors: false
+    includeTemplates: true
+commonAnnotations:
+  k8s.cedille.club/club: exutoire

@@ -7,6 +7,9 @@ metadata:
     argocd-image-updater.argoproj.io/image-list: webapp=ghcr.io/clubcedille/dci-summercamp2026:latest
     argocd-image-updater.argoproj.io/webapp.update-strategy: digest
     argocd-image-updater.argoproj.io/webapp.pull-secret: pullsecret:argocd/ghcr-clubcedille-secret
+    k8s.cedille.club/club: dci
+  labels:
+    k8s.cedille.club/club: dci
 spec:
   project: k8s-shared
   destination:
@@ -22,3 +25,8 @@ spec:
     automated:
       selfHeal: true
       prune: true
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: dci
+      annotations:
+        k8s.cedille.club/club: dci
