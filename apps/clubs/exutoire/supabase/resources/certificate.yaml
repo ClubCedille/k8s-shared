@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: supabase-tls
+  namespace: exutoire
+spec:
+  secretName: supabase-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: supabase.exutoire.etsmtl.club
+  dnsNames:
+    - supabase.exutoire.etsmtl.club

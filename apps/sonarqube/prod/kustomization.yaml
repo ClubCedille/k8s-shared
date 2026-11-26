@@ -5,6 +5,8 @@ resources:
   - secret
   - cnpg.cluster.yaml
   - vault.yaml
+  - certificate.yaml
+  - httpproxy.yaml
 
 helmCharts:
   - name: sonarqube

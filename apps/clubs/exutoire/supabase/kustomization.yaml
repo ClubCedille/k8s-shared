@@ -5,6 +5,8 @@ resources:
   - resources/configMap.yaml
   - resources/bucket-limits.configMap.yaml
   - resources/bucket-limits.job.yaml
+  - resources/certificate.yaml
+  - resources/httpproxy.yaml
 helmCharts:
   - name: supabase
     version: "0.8.0"

@@ -6,7 +6,7 @@ service:
     loadBalancerIP: 142.137.247.76
 
 ingress:
-  enabled: true
+  enabled: false
   ingressClassName: contour
   hosts:
     - host: git.etsmtl.club
