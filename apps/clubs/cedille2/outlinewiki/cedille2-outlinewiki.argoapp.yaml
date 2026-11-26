@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cedille2-outlinewiki
+  namespace: argocd
+  labels:
+    k8s.cedille.club/club: "cedille2"
+    k8s.cedille.club/id: "1628e560f30ac5c8995e012607f706d73c3230db"
+  annotations:
+    k8s.cedille.club/id: "1628e560f30ac5c8995e012607f706d73c3230db"
+    k8s.cedille.club/club: "cedille2"
+spec:
+  destination:
+    namespace: cedille2-outlinewiki
+    server: https://kubernetes.default.svc
+  project: k8s-shared
+  source:
+    path: apps/clubs/cedille2/outlinewiki/prod
+    repoURL: https://github.com/ClubCedille/k8s-shared
+    targetRevision: HEAD
+  syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: "cedille2"
+        k8s.cedille.club/id: "1628e560f30ac5c8995e012607f706d73c3230db"
+      annotations:
+        k8s.cedille.club/id: "1628e560f30ac5c8995e012607f706d73c3230db"
+        k8s.cedille.club/club: "cedille2"
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
