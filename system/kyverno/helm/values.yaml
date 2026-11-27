@@ -5,3 +5,9 @@
 config:
   webhookLabels:
     app.kubernetes.io/managed-by: argocd
+  # Kyverno filters ReplicaSets out of the policy engine by default. That also
+  # hides them from NamespacedDeletingPolicy/DeletingPolicy, so cleanup
+  # policies silently skip empty ReplicaSets.
+  resourceFiltersExclude:
+    - '[ReplicaSet,*,*]'
+    - '[ReplicaSet/?*,*,*]'
