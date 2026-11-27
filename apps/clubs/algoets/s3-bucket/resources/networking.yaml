@@ -30,6 +30,7 @@ spec:
       allowOrigin:
         - https://algoets.etsmtl.club
         - https://algoets-staging.prodv2.cedille.club
+        - https://algoets.staging.etsmtl.ca
       allowMethods:
         - "*"
       allowHeaders:
