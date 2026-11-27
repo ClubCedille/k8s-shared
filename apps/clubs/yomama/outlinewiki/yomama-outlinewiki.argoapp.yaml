@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: yomama-outlinewiki
+  namespace: argocd
+  labels:
+    k8s.cedille.club/club: "yomama"
+    k8s.cedille.club/id: "abf48f98c19c16143efd0a76d7b2aaa16c203648"
+  annotations:
+    k8s.cedille.club/id: "abf48f98c19c16143efd0a76d7b2aaa16c203648"
+    k8s.cedille.club/club: "yomama"
+spec:
+  destination:
+    namespace: yomama-outlinewiki
+    server: https://kubernetes.default.svc
+  project: k8s-shared
+  source:
+    path: apps/clubs/yomama/outlinewiki/prod
+    repoURL: https://github.com/ClubCedille/k8s-shared
+    targetRevision: HEAD
+  syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        k8s.cedille.club/club: "yomama"
+        k8s.cedille.club/id: "abf48f98c19c16143efd0a76d7b2aaa16c203648"
+      annotations:
+        k8s.cedille.club/id: "abf48f98c19c16143efd0a76d7b2aaa16c203648"
+        k8s.cedille.club/club: "yomama"
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

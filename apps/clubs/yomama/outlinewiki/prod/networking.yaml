@@ -1,0 +1,100 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: yomama-outlinewiki-tls
+spec:
+  secretName: yomama-outlinewiki-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: wiki.yomama.etsmtl.club
+  dnsNames:
+    - wiki.yomama.etsmtl.club
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: yomama-outlinewiki-httpproxy
+spec:
+  virtualhost:
+    fqdn: wiki.yomama.etsmtl.club
+    tls:
+      secretName: yomama-outlinewiki-tls
+      minimumProtocolVersion: "1.3"
+  routes:
+    - conditions:
+        - prefix: /
+      enableWebsockets: true
+      services:
+        - name: yomama-outlinewiki-svc
+          port: 3000
+      timeoutPolicy:
+        idle: 600s
+        response: 600s
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: yomama-outlinewiki-s3-tls
+spec:
+  secretName: yomama-outlinewiki-s3-tls
+  issuerRef:
+    name: letsencrypt-etsmtl
+    kind: ClusterIssuer
+  commonName: s3.yomama.etsmtl.club
+  dnsNames:
+    - s3.yomama.etsmtl.club
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: yomama-outlinewiki-s3
+spec:
+  ports:
+    - name: http
+      port: 7480
+      targetPort: 7480
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: yomama-outlinewiki-s3
+  labels:
+    kubernetes.io/service-name: yomama-outlinewiki-s3
+addressType: IPv4
+ports:
+  - name: http
+    protocol: TCP
+    port: 7480
+endpoints:
+  - addresses:
+      - 10.0.21.59
+    conditions:
+      ready: true
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: yomama-outlinewiki-s3-httpproxy
+spec:
+  virtualhost:
+    fqdn: s3.yomama.etsmtl.club
+    tls:
+      secretName: yomama-outlinewiki-s3-tls
+      minimumProtocolVersion: "1.3"
+    corsPolicy:
+      allowOrigin:
+        - https://wiki.yomama.etsmtl.club
+      allowMethods:
+        - "*"
+      allowHeaders:
+        - "*"
+  routes:
+    - conditions:
+        - prefix: /
+      services:
+        - name: yomama-outlinewiki-s3
+          port: 7480
+      timeoutPolicy:
+        idle: 600s
+        response: 600s
