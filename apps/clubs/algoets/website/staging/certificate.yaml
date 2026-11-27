@@ -10,3 +10,16 @@ spec:
   commonName: algoets-staging.prodv2.cedille.club
   dnsNames:
     - algoets-staging.prodv2.cedille.club
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: algoets-website-staging-etsmtl-tls
+spec:
+  secretName: algoets-website-staging-etsmtl-tls
+  issuerRef:
+    name: letsencrypt-http
+    kind: ClusterIssuer
+  commonName: algoets.staging.etsmtl.ca
+  dnsNames:
+    - algoets.staging.etsmtl.ca
