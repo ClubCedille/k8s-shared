@@ -1,0 +1,7 @@
+# Adopt the webhook configurations in Argo CD so they are tracked and pruned
+# with the rest of the Kyverno resources. `webhookLabels` lives under `config`
+# in the chart; it is written to the Kyverno ConfigMap, not applied by a chart
+# template.
+config:
+  webhookLabels:
+    app.kubernetes.io/managed-by: argocd
