@@ -3,3 +3,4 @@ kind: Kustomization
 namespace: formulemaster
 resources:
   - ../base
+  - vault-secret.yaml
