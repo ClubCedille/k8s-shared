@@ -4,3 +4,23 @@ namespace: formulemaster
 resources:
   - ../base
   - vault-secret.yaml
+patches:
+  - target:
+      kind: NetworkPolicy
+      name: formulemaster
+    patch: |-
+      - op: replace
+        path: /spec/ingress
+        value:
+          - from:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: authentik
+                podSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: authentik
+                    app.kubernetes.io/instance: authentik
+                    app.kubernetes.io/component: server
+            ports:
+              - protocol: TCP
+                port: 3000

@@ -6,6 +6,7 @@ metadata:
 resources:
   - resources/certificate.yaml
   - resources/httpproxy.yaml
+  - resources/formulemaster.yaml
   - resources/pvc.yaml
   - resources/postgresql.yaml
 helmCharts:
