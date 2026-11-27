@@ -28,6 +28,8 @@ jobs:
         include:
           - name: authentik
             dir: terraform/authentik
+          - name: formulemaster
+            dir: terraform/formulemaster/authentik
           - name: outline
             dir: terraform/outline/authentik-vault
           - name: nodered
@@ -127,7 +129,7 @@ jobs:
         uses: clubcedille/cedille-workflows/.github/actions/tofu-plan-summary@master
         with:
           plans-dir: plans
-          expected-modules: "authentik,outline,nodered,coder,coroot,matomo,penpot,inventree,hi-events,policy-reporter,dependency-track"
+          expected-modules: "authentik,formulemaster,outline,nodered,coder,coroot,matomo,penpot,inventree,hi-events,policy-reporter,dependency-track"
 
   apply:
     needs: plan
@@ -142,6 +144,8 @@ jobs:
         include:
           - name: authentik
             dir: terraform/authentik
+          - name: formulemaster
+            dir: terraform/formulemaster/authentik
           - name: outline
             dir: terraform/outline/authentik-vault
           - name: nodered

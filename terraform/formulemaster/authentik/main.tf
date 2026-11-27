@@ -1,3 +1,43 @@
+terraform {
+  required_version = ">=1.14"
+
+  backend "kubernetes" {
+    secret_suffix = "state-formulemaster-authentik"
+    namespace     = "terraform"
+    config_path   = "~/.kube/config"
+  }
+
+  required_providers {
+    authentik = {
+      source  = "goauthentik/authentik"
+      version = "2025.12.1"
+    }
+  }
+}
+
+variable "AUTHENTIK_API_TOKEN" {
+  type      = string
+  sensitive = true
+}
+
+provider "authentik" {
+  url   = "https://auth.etsmtl.club"
+  token = var.AUTHENTIK_API_TOKEN
+}
+
+locals {
+  formulemaster_groups = [
+    "formulemaster-capitaines",
+    "formulemaster-gestionnaires-beton",
+    "formulemaster-users",
+  ]
+}
+
+data "authentik_group" "formulemaster" {
+  for_each = toset(local.formulemaster_groups)
+  name     = each.key
+}
+
 data "authentik_flow" "formulemaster_authorization" {
   slug = "default-provider-authorization-implicit-consent"
 }
@@ -28,24 +68,11 @@ resource "authentik_application" "formulemaster" {
 }
 
 resource "authentik_policy_binding" "formulemaster" {
-  for_each = {
-    capitaines = {
-      group = authentik_group.formulemaster_capitaines.id
-      order = 0
-    }
-    gestionnaires_beton = {
-      group = authentik_group.formulemaster_gestionnaires_beton.id
-      order = 1
-    }
-    users = {
-      group = authentik_group.formulemaster_users.id
-      order = 2
-    }
-  }
+  for_each = data.authentik_group.formulemaster
 
   target = authentik_application.formulemaster.uuid
-  group  = each.value.group
-  order  = each.value.order
+  group  = each.value.id
+  order  = index(local.formulemaster_groups, each.key)
 }
 
 resource "authentik_outpost_provider_attachment" "formulemaster" {
