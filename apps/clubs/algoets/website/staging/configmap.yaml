@@ -6,7 +6,7 @@ data:
   NODE_ENV: production
   PORT: "3000"
   HOST: 0.0.0.0
-  APP_ORIGIN: https://algoets-staging.prodv2.cedille.club
+  APP_ORIGIN: https://algoets.staging.etsmtl.ca
   # Endpoint public du proxy S3 (bucket dedie au staging).
   URL: https://s3.algoets.etsmtl.club
   MAX_UPLOAD_BYTES: "10485760"
